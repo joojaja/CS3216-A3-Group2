@@ -1,8 +1,8 @@
 # CS3216-A3-Group2
 
-Repository for CS3216 Assignment 3, Group 2. The product is referred to as APP_NAME until the team picks a final name.
+Repository for CS3216 Assignment 3, Group 2. The product is called Drape.
 
-APP_NAME is a wardrobe-first clothing assistant for Singapore. Users photograph their clothes, get outfits matched to the occasion and the live NEA weather forecast, and check whether a prospective purchase is redundant before buying.
+Drape is a wardrobe-first clothing assistant for Singapore. Users photograph their clothes, get outfits matched to the occasion and the live NEA weather forecast, and check whether a prospective purchase is redundant before buying.
 
 ## Team
 
@@ -36,8 +36,9 @@ npm run dev
 ### Supabase setup
 
 1. Create a free project at supabase.com
-2. Paste `app/supabase/migrations/0001_init.sql` into the SQL editor and run it. This creates all tables, row-level security policies, the private `wardrobe-images` bucket, and the profile auto-creation trigger
-3. Copy the project URL and anon key into `.env.local`
+2. Paste `app/supabase/schema.sql` into the SQL editor and run it. This creates all tables, row-level security policies, the private `wardrobe-images` bucket, and the profile auto-creation trigger. The file resets everything it owns first, so it is also how you wipe and rebuild the database
+3. Copy the project URL and publishable key into `.env.local`
+4. Under Authentication, turn off email confirmation for development. The built-in mailer only delivers to your own team's addresses and allows two emails an hour
 
 ### Gemini setup
 
@@ -46,7 +47,7 @@ Get a free API key from Google AI Studio and put it in `GOOGLE_GENERATIVE_AI_API
 ## Repo layout
 
 - `app/` — the Next.js application
-- `app/supabase/migrations/` — database schema
+- `app/supabase/schema.sql` — the whole database schema in one file
 - `AGENTS.md` — product spec, constraints and agent rules
 - `UNSLOP.md` — writing style rules applied to all user-facing copy
 

@@ -17,15 +17,15 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "APP_NAME | Wardrobe-first outfit assistant",
-    template: "%s | APP_NAME",
+    default: "Drape | Wardrobe-first outfit assistant",
+    template: "%s | Drape",
   },
   description:
-    "APP_NAME helps you wear what you already own, get outfits matched to Singapore's weather, and check whether a purchase is worth it before you spend.",
+    "Drape helps you wear what you already own, get outfits matched to Singapore's weather, and check whether a purchase is worth it before you spend.",
   openGraph: {
     type: "website",
-    siteName: "APP_NAME",
-    title: "APP_NAME | Wardrobe-first outfit assistant",
+    siteName: "Drape",
+    title: "Drape | Wardrobe-first outfit assistant",
     description:
       "Wear what you own. Get outfits matched to Singapore's weather. Check before you buy.",
     url: siteUrl,
