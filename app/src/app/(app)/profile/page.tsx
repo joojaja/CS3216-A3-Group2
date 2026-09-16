@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "@/components/profile-form";
+import { PageHeader } from "@/components/page-header";
 import { SetupNotice } from "@/components/setup-notice";
 
 export const metadata: Metadata = { title: "Profile" };
@@ -16,9 +17,36 @@ const emptyProfile = {
   sizes: null,
 };
 
+const dataBox = (
+  <aside className="rounded-xl border border-line px-4.5 py-4 text-sm">
+    <b className="block font-semibold">Your data</b>
+    <p className="mt-1.5 leading-relaxed text-mute">
+      Wardrobe photos and preferences are private to your account. Deleting an
+      item removes its stored photo. Full account deletion is on the roadmap.
+    </p>
+  </aside>
+);
+
 export default async function ProfilePage() {
   const supabase = await createClient();
-  if (!supabase) return <SetupNotice />;
+
+  if (!supabase) {
+    return (
+      <>
+        <PageHeader
+          title="Profile and preferences"
+          description="Connect Supabase to save preferences. The form below is a preview."
+        />
+        <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
+          <SetupNotice />
+          <div className="mt-5 grid gap-6 md:grid-cols-[1fr_300px] md:items-start">
+            <ProfileForm profile={emptyProfile} />
+            {dataBox}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   const {
     data: { user },
@@ -30,28 +58,20 @@ export default async function ProfilePage() {
       "display_name, preferred_styles, preferred_colours, disliked_colours, common_occasions, preference_notes, sizes",
     )
     .eq("user_id", user?.id)
-    .single();
+    .maybeSingle();
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-xl font-semibold tracking-tight">
-        Profile and preferences
-      </h1>
-      <p className="mt-1 text-sm text-stone-500">
-        Signed in as {user?.email}. These preferences shape your outfit
-        recommendations and you can change them any time.
-      </p>
-      <div className="mt-6">
-        <ProfileForm profile={profile ?? emptyProfile} />
+    <>
+      <PageHeader
+        title="Profile and preferences"
+        description={`Signed in as ${user?.email}. These preferences shape your outfit recommendations and you can change them any time.`}
+      />
+      <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
+        <div className="grid gap-6 md:grid-cols-[1fr_300px] md:items-start">
+          <ProfileForm profile={profile ?? emptyProfile} />
+          {dataBox}
+        </div>
       </div>
-      <div className="mt-10 rounded-xl border border-stone-200 bg-white p-5 text-sm">
-        <p className="font-medium">Your data</p>
-        <p className="mt-1 text-stone-500">
-          Wardrobe photos and preferences are private to your account. Deleting
-          an item removes its stored photo. Full account deletion is on the
-          roadmap.
-        </p>
-      </div>
-    </div>
+    </>
   );
 }

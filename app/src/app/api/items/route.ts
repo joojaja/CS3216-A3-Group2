@@ -51,18 +51,29 @@ export async function POST(request: Request) {
     );
   }
 
-  let parsed;
+  let attributes: unknown;
   try {
-    parsed = saveItemSchema.parse({
-      attributes: JSON.parse(String(payload)),
-      user_notes: form.get("user_notes") ?? undefined,
-    });
+    attributes = JSON.parse(String(payload));
   } catch {
+    return Response.json({ error: "Invalid item attributes" }, { status: 400 });
+  }
+
+  const result = saveItemSchema.safeParse({
+    attributes,
+    user_notes: form.get("user_notes") ?? undefined,
+  });
+  if (!result.success) {
+    // Name the first offending field so the user can fix it, and log the
+    // full issue list for debugging
+    const first = result.error.issues[0];
+    const field = first?.path.filter((p) => p !== "attributes").join(".") || "form";
+    console.error("[items:save] validation failed", result.error.issues);
     return Response.json(
-      { error: "Invalid item attributes" },
+      { error: `Invalid item attributes: ${field} ${first?.message.toLowerCase() ?? "is invalid"}` },
       { status: 400 },
     );
   }
+  const parsed = result.data;
 
   const ext = file.type === "image/heic" ? "heic" : file.type.split("/")[1];
   const imagePath = `${user.id}/${randomUUID()}.${ext}`;
@@ -75,13 +86,17 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image upload failed" }, { status: 502 });
   }
 
+  // confidence fields live in the ai_confidence jsonb column, not as their
+  // own columns, so split them off before spreading
+  const { confidence_notes, uncertain_fields, ...columns } = parsed.attributes;
+
   const { data, error } = await supabase
     .from("wardrobe_items")
     .insert({
       user_id: user.id,
       image_path: imagePath,
-      ...parsed.attributes,
-      ai_confidence: { notes: parsed.attributes.confidence_notes },
+      ...columns,
+      ai_confidence: { notes: confidence_notes, uncertain_fields },
       user_notes: parsed.user_notes ?? null,
       attributes_confirmed: true,
     })

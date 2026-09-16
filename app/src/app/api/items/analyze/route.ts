@@ -1,6 +1,11 @@
 import { generateObject } from "ai";
 import { clothingAttributesSchema } from "@/lib/schemas/ai";
-import { getModel, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
+import {
+  getModel,
+  imagePart,
+  reportAiError,
+  UNTRUSTED_CONTENT_RULE,
+} from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -21,6 +26,7 @@ Rules:
 - weather_tags must reflect Singapore's tropical climate (hot, humid, frequent rain, strong indoor air-conditioning)
 - Do not guess exact fabric composition. Describe visible material cues only (e.g. "looks like knit", "sheen suggests satin")
 - In confidence_notes, state what you are unsure about (e.g. colour accuracy in poor lighting, whether it is a dress or a long top)
+- In uncertain_fields, list the exact field names you are not confident about, chosen from: category, subcategory, primary_colour, secondary_colours, pattern, material_cues, formality, layering_role, weather_tags. Leave it empty only if you are confident about everything. material_cues should almost always be listed, since fabric cannot be verified from a photo
 - If the image shows multiple garments, describe the most prominent one and say so in confidence_notes
 
 ${UNTRUSTED_CONTENT_RULE}`;
@@ -64,9 +70,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
-
   try {
     const { object } = await generateObject({
       model: getModel(),
@@ -74,19 +77,13 @@ export async function POST(request: Request) {
       messages: [
         {
           role: "user",
-          content: [
-            { type: "text", text: PROMPT },
-            { type: "image", image: dataUrl },
-          ],
+          content: [{ type: "text", text: PROMPT }, await imagePart(file)],
         },
       ],
     });
 
     return Response.json({ attributes: object });
-  } catch {
-    return Response.json(
-      { error: "Analysis failed. Please try again." },
-      { status: 502 },
-    );
+  } catch (error) {
+    return Response.json({ error: reportAiError("analyze", error) }, { status: 502 });
   }
 }

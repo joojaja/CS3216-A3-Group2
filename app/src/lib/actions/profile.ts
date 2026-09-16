@@ -54,10 +54,15 @@ export async function saveProfile(
 
   if (!parsed.success) return { error: "Invalid profile data" };
 
+  // Upsert rather than update, so an account whose profile row is missing
+  // (for example one created before a schema reset) still saves instead of
+  // silently matching zero rows
   const { error } = await supabase
     .from("user_profiles")
-    .update({ ...parsed.data, updated_at: new Date().toISOString() })
-    .eq("user_id", user.id);
+    .upsert(
+      { user_id: user.id, ...parsed.data, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" },
+    );
 
   if (error) return { error: "Could not save profile" };
 

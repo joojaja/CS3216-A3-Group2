@@ -1,18 +1,86 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f7f5f0;
-  --foreground: #1c1917;
-}
+@theme {
+  --color-cobalt: #2549e8;
+  --color-cobalt-deep: #1733ae;
+  --color-cobalt-light: #dce4ff;
+  --color-cobalt-faint: #c6d2ff;
+  --color-tangerine: #ff6b2c;
+  --color-tangerine-light: #ffe6d9;
+  --color-wash: #eef1fb;
+  --color-line: #d8def2;
+  --color-ink: #12163a;
+  --color-mute: #5a618c;
+  --color-body: #30365e;
+  --color-ok: #1b7a48;
+  --color-ok-light: #e6f6ec;
+  --color-warn: #a46b00;
+  --color-warn-light: #fff1cc;
+  --color-warn-line: #f3d98a;
+  --color-warn-ink: #5c3d00;
+  --color-bad: #b3261e;
+  --color-bad-light: #fbe4e2;
+  --color-bad-line: #f1b8b3;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --ease-settle: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --ease-pill: cubic-bezier(0.5, 1.4, 0.4, 1);
+
+  --animate-sweep: sweep 1.1s linear infinite;
+  --animate-veil: veil 2.2s ease-in-out infinite;
+  --animate-beam: beam 2.2s ease-in-out infinite;
+
+  @keyframes sweep {
+    to {
+      background-position: -240% 0;
+    }
+  }
+  @keyframes veil {
+    0% {
+      clip-path: inset(0 0 100% 0);
+    }
+    50% {
+      clip-path: inset(0 0 0 0);
+    }
+    50.01% {
+      clip-path: inset(100% 0 0 0);
+    }
+    100% {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes beam {
+    0% {
+      top: 0;
+    }
+    50% {
+      top: calc(100% - 3px);
+    }
+    100% {
+      top: 0;
+    }
+  }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #ffffff;
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .shim {
+    background: linear-gradient(
+      100deg,
+      var(--color-wash) 30%,
+      #e4e9f9 50%,
+      var(--color-wash) 70%
+    );
+    background-size: 240% 100%;
+    animation: var(--animate-sweep);
+    border-radius: 6px;
+    color: transparent;
+  }
 }
