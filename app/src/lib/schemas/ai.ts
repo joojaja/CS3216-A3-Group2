@@ -54,6 +54,9 @@ export const clothingAttributesSchema = z.object({
   layering_role: z.enum(LAYERING_ROLES),
   weather_tags: z.array(z.enum(WEATHER_TAGS)).default([]),
   confidence_notes: z.string(),
+  // Names of the fields above the model is not confident about, so the UI
+  // can mark them for the user to check first
+  uncertain_fields: z.array(z.string()).default([]),
 });
 
 export type ClothingAttributes = z.infer<typeof clothingAttributesSchema>;

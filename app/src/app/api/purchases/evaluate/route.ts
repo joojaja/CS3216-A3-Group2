@@ -3,7 +3,12 @@ import {
   clothingAttributesSchema,
   purchaseEvaluationSchema,
 } from "@/lib/schemas/ai";
-import { getModel, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
+import {
+  getModel,
+  imagePart,
+  reportAiError,
+  UNTRUSTED_CONTENT_RULE,
+} from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -90,8 +95,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
 
   const { data: items } = await supabase
     .from("wardrobe_items")
@@ -108,10 +111,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: "user",
-          content: [
-            { type: "text", text: EXTRACT_PROMPT },
-            { type: "image", image: dataUrl },
-          ],
+          content: [{ type: "text", text: EXTRACT_PROMPT }, await imagePart(file)],
         },
       ],
     });
@@ -174,10 +174,7 @@ ${UNTRUSTED_CONTENT_RULE}`;
         .map((id) => (items as WardrobeRow[] | null)?.find((i) => i.id === id))
         .filter(Boolean),
     });
-  } catch {
-    return Response.json(
-      { error: "Evaluation failed. Please try again." },
-      { status: 502 },
-    );
+  } catch (error) {
+    return Response.json({ error: reportAiError("evaluate", error) }, { status: 502 });
   }
 }

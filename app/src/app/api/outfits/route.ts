@@ -1,7 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { outfitSelectionSchema } from "@/lib/schemas/ai";
-import { getModel, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
+import { getModel, reportAiError, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
 import { getSingaporeForecast } from "@/lib/weather";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -168,10 +168,7 @@ ${UNTRUSTED_CONTENT_RULE}`;
       items: itemsById,
       weather: forecast?.summary ?? null,
     });
-  } catch {
-    return Response.json(
-      { error: "Recommendation failed. Please try again." },
-      { status: 502 },
-    );
+  } catch (error) {
+    return Response.json({ error: reportAiError("outfits", error) }, { status: 502 });
   }
 }
