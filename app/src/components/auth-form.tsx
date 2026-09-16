@@ -44,15 +44,20 @@ export function AuthForm() {
       const supabase = createClient();
 
       if (mode === "signup") {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
         });
         if (signUpError) throw signUpError;
-        setNotice(
-          "Account created. If email confirmation is enabled, check your inbox, then sign in.",
-        );
-        setMode("signin");
+
+        if (data.session) {
+          // Confirmation is disabled, so the account is already signed in
+          router.push(searchParams.get("next") ?? "/wardrobe");
+          router.refresh();
+        } else {
+          setNotice("Account created.");
+          setMode("signin");
+        }
       } else {
         const { error: signInError } =
           await supabase.auth.signInWithPassword({ email, password });
