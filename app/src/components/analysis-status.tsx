@@ -10,9 +10,9 @@ import { useAnalysis } from "@/components/analysis-context";
 // Hidden on the add-item page itself, where the full form is visible.
 export function AnalysisStatus({ variant }: { variant: "rail" | "bar" }) {
   const pathname = usePathname();
-  const { step, file, preview, bg } = useAnalysis();
+  const { step, file, preview, bg, crop } = useAnalysis();
 
-  const removing = bg.status === "running" && step === "pick";
+  const removing = (bg.status === "running" || crop.status === "running") && step === "pick";
   const analyzing = step === "analyzing";
   const show =
     pathname !== "/wardrobe/new" &&
@@ -29,7 +29,9 @@ export function AnalysisStatus({ variant }: { variant: "rail" | "bar" }) {
   // The rail is narrow, so the second line doubles as the call to action
   // there and the separate button is only shown on the wider mobile bar
   const detail = removing
-    ? "Removing the background"
+    ? crop.status === "running"
+      ? "Cropping to the garment"
+      : "Removing the background"
     : analyzing
       ? "You can keep browsing"
       : variant === "rail"
