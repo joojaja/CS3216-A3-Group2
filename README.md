@@ -44,6 +44,10 @@ npm run dev
 
 Get a free API key from Google AI Studio and put it in `GOOGLE_GENERATIVE_AI_API_KEY`.
 
+### Background removal
+
+Photos are cut out and placed on white before analysis. This runs entirely in the browser through `@imgly/background-removal` (AGPL-3.0) on `onnxruntime-web`, so the photo never leaves the device for this step. The first use downloads a 40 MB model from the IMG.LY CDN, which the browser then caches. Users can switch back to the original photo at any point, and HEIC photos skip the step because browsers other than Safari cannot decode them.
+
 ## Repo layout
 
 - `app/` — the Next.js application
