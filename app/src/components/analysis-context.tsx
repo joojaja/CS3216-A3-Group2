@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ClothingAttributes } from "@/lib/schemas/ai";
+import type { ClothingAttributes, EditableAttributes } from "@/lib/schemas/ai";
 import {
   cleanGarmentPhoto,
   NothingDetectedError,
@@ -84,7 +84,7 @@ type Api = State & {
   skipClean: () => void;
   retryClean: () => void;
   analyze: () => Promise<void>;
-  setField: <K extends keyof ClothingAttributes>(key: K, value: ClothingAttributes[K]) => void;
+  setField: <K extends keyof EditableAttributes>(key: K, value: EditableAttributes[K]) => void;
   setNotes: (notes: string) => void;
   setStep: (step: Step) => void;
   setError: (error: string | null) => void;
@@ -284,7 +284,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [file]);
 
   const setField = useCallback(
-    <K extends keyof ClothingAttributes>(key: K, value: ClothingAttributes[K]) => {
+    <K extends keyof EditableAttributes>(key: K, value: EditableAttributes[K]) => {
       setState((prev) => ({
         ...prev,
         attrs: { ...prev.attrs, [key]: value },
