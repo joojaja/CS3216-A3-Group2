@@ -23,8 +23,11 @@ export function ItemUploader() {
     originalPreview,
     cleaned,
     cleanedPreview,
-    useCleaned,
+    cropped,
+    croppedPreview,
+    choice,
     bg,
+    crop,
     attrs,
     aiTouched,
     edited,
@@ -72,7 +75,16 @@ export function ItemUploader() {
   const uncertain = new Set(attrs.uncertain_fields);
   const reviewing = step === "review" || step === "saving";
   const removing = bg.status === "running";
+  const cropping = crop.status === "running";
+  const preparing = removing || cropping;
   const busy = step === "analyzing" || step === "saving";
+
+  // Every version of the photo the user can pick from, once there are two
+  const choices = [
+    originalPreview && { key: "original" as const, label: "Original", src: originalPreview },
+    cropped && croppedPreview && { key: "cropped" as const, label: "Cropped to item", src: croppedPreview },
+    cleaned && cleanedPreview && { key: "cleaned" as const, label: "Background removed", src: cleanedPreview },
+  ].filter((c): c is { key: "original" | "cropped" | "cleaned"; label: string; src: string } => Boolean(c));
 
   function tagFor(key: string): Tag {
     if (!aiTouched || edited.has(key)) return null;
@@ -111,13 +123,15 @@ export function ItemUploader() {
               <span className="absolute inset-x-0 top-0 z-20 h-[3px] animate-beam bg-white shadow-[0_0_18px_4px_rgba(37,73,232,0.55)]" />
             </>
           )}
-          {removing && (
+          {preparing && (
             <span className="absolute inset-x-0 bottom-0 z-20 bg-ink/70 px-3 py-2 text-left text-xs text-white">
-              <span className="block truncate">{progressLabel}</span>
+              <span className="block truncate">{cropping ? "Finding the garment" : progressLabel}</span>
               <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/25">
                 <motion.span
                   className="block h-full rounded-full bg-tangerine"
-                  animate={{ width: bg.phase === "download" ? `${Math.max(4, bg.progress * 100)}%` : "100%" }}
+                  animate={{
+                    width: removing && bg.phase === "download" ? `${Math.max(4, bg.progress * 100)}%` : "100%",
+                  }}
                   transition={{ ease: "linear", duration: 0.2 }}
                 />
               </span>
@@ -132,44 +146,42 @@ export function ItemUploader() {
           className="sr-only"
         />
 
-        {/* Before and after, once the cutout exists */}
+        {/* Every available version, once there is a choice to make */}
         <AnimatePresence>
-          {cleaned && originalPreview && cleanedPreview && (
+          {choices.length > 1 && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mt-3 grid grid-cols-2 gap-2"
+              className={`mt-3 grid gap-2 ${choices.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}
               role="radiogroup"
               aria-label="Which photo to use"
             >
-              <Choice
-                label="Original"
-                src={originalPreview}
-                selected={!useCleaned}
-                disabled={busy}
-                onClick={() => chooseImage("original")}
-              />
-              <Choice
-                label="Background removed"
-                src={cleanedPreview}
-                selected={useCleaned}
-                disabled={busy}
-                onClick={() => chooseImage("cleaned")}
-              />
+              {choices.map((c) => (
+                <Choice
+                  key={c.key}
+                  label={c.label}
+                  src={c.src}
+                  selected={choice === c.key}
+                  disabled={busy}
+                  onClick={() => chooseImage(c.key)}
+                />
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
 
         <p className="mt-2.5 text-xs leading-relaxed text-mute">
-          {!original && "JPEG, PNG, WebP or HEIC up to 8 MB. One item per photo works best."}
-          {original && bg.status === "running" && "Happens on your device. The photo does not leave your browser for this step."}
-          {original && bg.status === "done" && `${file?.name}, ${((file?.size ?? 0) / 1024 / 1024).toFixed(1)} MB`}
+          {!original &&
+            "JPEG, PNG, WebP or HEIC up to 8 MB. One item per photo. For the cleanest cutout, lay it flat on a plain surface that contrasts with its colour."}
+          {original && removing && "Happens on your device. The photo does not leave your browser for this step."}
+          {original && cropping && "Couldn't separate the garment from the background. Finding it in the photo to crop instead."}
+          {original && !preparing && bg.status === "done" && `${file?.name}, ${((file?.size ?? 0) / 1024 / 1024).toFixed(1)} MB`}
           {original && bg.status === "skipped" && "Using the original photo."}
-          {original && (bg.status === "failed" || bg.status === "unsupported") && (
+          {original && !preparing && (bg.status === "failed" || bg.status === "unsupported") && (
             <>
               {bg.message}
-              {bg.status === "failed" && (
+              {bg.status === "failed" && crop.status !== "done" && (
                 <>
                   {" "}
                   <button type="button" onClick={retryClean} className="font-medium text-cobalt hover:underline">
@@ -189,12 +201,12 @@ export function ItemUploader() {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={analyze}
-              disabled={!file || removing}
+              disabled={!file || preparing}
               className="rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cobalt-deep disabled:opacity-40"
             >
               Analyze with AI
             </button>
-            {removing && (
+            {preparing && (
               <button
                 type="button"
                 onClick={skipClean}
@@ -204,9 +216,9 @@ export function ItemUploader() {
               </button>
             )}
             {!original && <p className="text-xs text-mute">Pick a photo first.</p>}
-            {removing && (
+            {preparing && (
               <p className="basis-full text-xs text-mute">
-                Analysis starts once the background is removed, or skip to use the photo as shot.
+                Analysis starts once the photo is prepared, or skip to use it as shot.
               </p>
             )}
           </div>
