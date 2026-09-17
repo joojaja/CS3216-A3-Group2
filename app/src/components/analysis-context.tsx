@@ -11,9 +11,11 @@ import {
 import type { ClothingAttributes, EditableAttributes } from "@/lib/schemas/ai";
 import {
   cleanGarmentPhoto,
+  cropGarmentPhoto,
   NothingDetectedError,
   UnsupportedImageError,
   type CleanProgress,
+  type NormalizedBox,
 } from "@/lib/image/clean";
 
 // The add-item flow lives here rather than in the page component so it
@@ -25,6 +27,8 @@ import {
 export type Step = "pick" | "analyzing" | "review" | "saving";
 
 export type BgStatus = "idle" | "running" | "done" | "failed" | "unsupported" | "skipped";
+export type CropStatus = "idle" | "running" | "done" | "failed";
+export type ImageChoice = "original" | "cropped" | "cleaned";
 
 export const CHECKLIST = [
   "Image accepted",
@@ -55,8 +59,12 @@ type State = {
   // Output of background removal, once available
   cleaned: File | null;
   cleanedPreview: string | null;
-  // Which of the two the user wants to analyse and save
-  useCleaned: boolean;
+  // Fallback crop to the garment when removal fails, once available
+  cropped: File | null;
+  croppedPreview: string | null;
+  // Which version the user wants to analyse and save
+  choice: ImageChoice;
+  crop: { status: CropStatus };
   bg: {
     status: BgStatus;
     phase: "download" | "process";
@@ -80,7 +88,7 @@ type Api = State & {
   file: File | null;
   preview: string | null;
   pickFile: (file: File | null) => void;
-  chooseImage: (which: "cleaned" | "original") => void;
+  chooseImage: (which: ImageChoice) => void;
   skipClean: () => void;
   retryClean: () => void;
   analyze: () => Promise<void>;
@@ -99,7 +107,10 @@ const initial: State = {
   originalPreview: null,
   cleaned: null,
   cleanedPreview: null,
-  useCleaned: true,
+  cropped: null,
+  croppedPreview: null,
+  choice: "cleaned",
+  crop: { status: "idle" },
   bg: idleBg,
   attrs: emptyAttrs,
   aiTouched: false,
@@ -120,6 +131,7 @@ export function useAnalysis() {
 function revoke(state: State) {
   if (state.originalPreview) URL.revokeObjectURL(state.originalPreview);
   if (state.cleanedPreview) URL.revokeObjectURL(state.cleanedPreview);
+  if (state.croppedPreview) URL.revokeObjectURL(state.croppedPreview);
 }
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
@@ -135,10 +147,46 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     timers.current = [];
   };
 
+  // Second line of defence: ask the server where the garment is and crop to
+  // it. The tile then frames the item even though the background stays.
+  const runCrop = useCallback(async (file: File, gen: number) => {
+    setState((prev) => ({ ...prev, crop: { status: "running" } }));
+    try {
+      const form = new FormData();
+      form.set("image", file);
+      const res = await fetch("/api/items/locate", { method: "POST", body: form });
+      const body: { found?: boolean; box?: NormalizedBox; error?: string } = await res.json();
+      if (gen !== generation.current) return;
+      if (!res.ok || !body.found || !body.box) throw new Error(body.error ?? "not found");
+
+      const cropped = await cropGarmentPhoto(file, body.box);
+      if (gen !== generation.current) return;
+      setState((prev) => {
+        if (prev.croppedPreview) URL.revokeObjectURL(prev.croppedPreview);
+        return {
+          ...prev,
+          cropped,
+          croppedPreview: URL.createObjectURL(cropped),
+          choice: "cropped",
+          crop: { status: "done" },
+          bg: {
+            ...prev.bg,
+            message:
+              "Couldn't separate the garment from the background, so the photo was cropped to it instead.",
+          },
+        };
+      });
+    } catch {
+      if (gen !== generation.current) return;
+      setState((prev) => ({ ...prev, crop: { status: "failed" } }));
+    }
+  }, []);
+
   const runClean = useCallback((file: File) => {
     const gen = ++generation.current;
     setState((prev) => ({
       ...prev,
+      crop: { status: "idle" },
       bg: { status: "running", phase: "download", progress: 0, message: null },
     }));
 
@@ -160,27 +208,29 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             ...prev,
             cleaned,
             cleanedPreview: URL.createObjectURL(cleaned),
-            useCleaned: true,
+            choice: "cleaned",
             bg: { status: "done", phase: "process", progress: 1, message: null },
           };
         });
       })
       .catch((err: unknown) => {
         if (gen !== generation.current) return;
-        const status: BgStatus = err instanceof UnsupportedImageError ? "unsupported" : "failed";
-        const message =
-          err instanceof UnsupportedImageError
-            ? "This browser cannot decode HEIC photos, so the original will be used."
-            : err instanceof NothingDetectedError
-              ? "Could not find a garment to cut out. Using the original photo."
-              : "Background removal did not work for this photo. Using the original.";
+        const unsupported = err instanceof UnsupportedImageError;
+        const message = unsupported
+          ? "This browser cannot decode HEIC photos, so the original will be used."
+          : err instanceof NothingDetectedError
+            ? "Couldn't separate the garment from the background. Try a plain surface that contrasts with the item."
+            : "Background removal did not work for this photo. Using the original.";
         setState((prev) => ({
           ...prev,
-          useCleaned: false,
-          bg: { status, phase: "process", progress: 0, message },
+          choice: "original",
+          bg: { status: unsupported ? "unsupported" : "failed", phase: "process", progress: 0, message },
         }));
+        // HEIC cannot be cropped in the browser either, so only fall back
+        // to a crop when decoding is possible
+        if (!unsupported) void runCrop(file, gen);
       });
-  }, []);
+  }, [runCrop]);
 
   const reset = useCallback(() => {
     controller.current?.abort();
@@ -212,15 +262,20 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     [runClean],
   );
 
-  const chooseImage = useCallback((which: "cleaned" | "original") => {
-    setState((prev) => ({ ...prev, useCleaned: which === "cleaned" && prev.cleaned !== null }));
+  const chooseImage = useCallback((which: ImageChoice) => {
+    setState((prev) => {
+      const available =
+        (which === "cleaned" && prev.cleaned) || (which === "cropped" && prev.cropped) || which === "original";
+      return available ? { ...prev, choice: which } : prev;
+    });
   }, []);
 
   const skipClean = useCallback(() => {
     generation.current++;
     setState((prev) => ({
       ...prev,
-      useCleaned: false,
+      choice: "original",
+      crop: { status: "idle" },
       bg: { status: "skipped", phase: "process", progress: 0, message: null },
     }));
   }, []);
@@ -229,9 +284,18 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (state.original) runClean(state.original);
   }, [state.original, runClean]);
 
-  const file = state.useCleaned && state.cleaned ? state.cleaned : state.original;
+  const file =
+    state.choice === "cleaned" && state.cleaned
+      ? state.cleaned
+      : state.choice === "cropped" && state.cropped
+        ? state.cropped
+        : state.original;
   const preview =
-    state.useCleaned && state.cleanedPreview ? state.cleanedPreview : state.originalPreview;
+    state.choice === "cleaned" && state.cleanedPreview
+      ? state.cleanedPreview
+      : state.choice === "cropped" && state.croppedPreview
+        ? state.croppedPreview
+        : state.originalPreview;
 
   const analyze = useCallback(async () => {
     if (!file) return;

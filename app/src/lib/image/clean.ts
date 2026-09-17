@@ -159,9 +159,55 @@ async function compositeOnWhite(bitmap: ImageBitmap, sourceName: string): Promis
   }
   sctx.putImageData(imageData, 0, 0);
 
-  const boxW = maxX - minX + 1;
-  const boxH = maxY - minY + 1;
-  const longest = Math.max(boxW, boxH);
+  return tileOnWhite(scratch, minX, minY, maxX - minX + 1, maxY - minY + 1, sourceName, "clean");
+}
+
+// Normalised 0..1 box with the origin at the top left, as returned by the
+// locate endpoint.
+export type NormalizedBox = { ymin: number; xmin: number; ymax: number; xmax: number };
+
+// Fallback when segmentation fails: crop the photo to the garment's box and
+// present it as a tile, background and all. The garment is framed properly
+// even though it could not be separated from what it lies on.
+export async function cropGarmentPhoto(file: File, box: NormalizedBox): Promise<File> {
+  if (file.type === "image/heic" || file.type === "image/heif") {
+    throw new UnsupportedImageError("This browser cannot decode HEIC photos");
+  }
+
+  const bitmap = await createImageBitmap(file);
+  try {
+    const { width, height } = bitmap;
+    const boxW = (box.xmax - box.xmin) * width;
+    const boxH = (box.ymax - box.ymin) * height;
+    if (boxW < width * 0.05 || boxH < height * 0.05) {
+      throw new NothingDetectedError("The garment box was too small to use");
+    }
+
+    const padding = Math.max(boxW, boxH) * PADDING_RATIO;
+    const x0 = Math.max(0, Math.round(box.xmin * width - padding));
+    const y0 = Math.max(0, Math.round(box.ymin * height - padding));
+    const x1 = Math.min(width, Math.round(box.xmax * width + padding));
+    const y1 = Math.min(height, Math.round(box.ymax * height + padding));
+
+    return await tileOnWhite(bitmap, x0, y0, x1 - x0, y1 - y0, file.name, "crop");
+  } finally {
+    bitmap.close();
+  }
+}
+
+// Draws a region of the source centred on a white square no larger than
+// MAX_SIDE and encodes it as JPEG. Shared by the cutout and crop paths so
+// every wardrobe tile has the same framing.
+async function tileOnWhite(
+  source: CanvasImageSource,
+  sx: number,
+  sy: number,
+  sw: number,
+  sh: number,
+  sourceName: string,
+  suffix: string,
+): Promise<File> {
+  const longest = Math.max(sw, sh);
   const padding = Math.round(longest * PADDING_RATIO);
   const squareSource = longest + padding * 2;
   const scale = Math.min(1, MAX_SIDE / squareSource);
@@ -173,16 +219,16 @@ async function compositeOnWhite(bitmap: ImageBitmap, sourceName: string): Promis
   octx.fillStyle = "#FFFFFF";
   octx.fillRect(0, 0, side, side);
 
-  const drawW = Math.round(boxW * scale);
-  const drawH = Math.round(boxH * scale);
+  const drawW = Math.round(sw * scale);
+  const drawH = Math.round(sh * scale);
   const dx = Math.round((side - drawW) / 2);
   const dy = Math.round((side - drawH) / 2);
   octx.imageSmoothingQuality = "high";
-  octx.drawImage(scratch, minX, minY, boxW, boxH, dx, dy, drawW, drawH);
+  octx.drawImage(source, sx, sy, sw, sh, dx, dy, drawW, drawH);
 
   const blob = await toBlob(out, "image/jpeg", JPEG_QUALITY);
   const base = sourceName.replace(/\.[^.]+$/, "") || "item";
-  return new File([blob], `${base}-clean.jpg`, { type: "image/jpeg" });
+  return new File([blob], `${base}-${suffix}.jpg`, { type: "image/jpeg" });
 }
 
 function makeCanvas(width: number, height: number): HTMLCanvasElement {
