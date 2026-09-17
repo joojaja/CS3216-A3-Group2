@@ -61,6 +61,15 @@ export const clothingAttributesSchema = z.object({
 
 export type ClothingAttributes = z.infer<typeof clothingAttributesSchema>;
 
+// What the user can edit. The confidence fields describe the AI's draft
+// rather than the garment, so they are never edited directly
+export type EditableAttributes = Omit<ClothingAttributes, "confidence_notes" | "uncertain_fields">;
+
+export const editableAttributesSchema = clothingAttributesSchema.omit({
+  confidence_notes: true,
+  uncertain_fields: true,
+});
+
 export const occasionConstraintsSchema = z.object({
   occasion_type: z.string(),
   formality: z.enum(FORMALITY_LEVELS),
