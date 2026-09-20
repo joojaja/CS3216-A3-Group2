@@ -84,3 +84,82 @@ body {
     color: transparent;
   }
 }
+
+.analytics-banner {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 100;
+  background: #fcfbf7;
+  color: #242823;
+  border: 1px solid #caccc3;
+  border-radius: 16px;
+  box-shadow: 0 8px 35px #0002;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.analytics-banner p {
+  max-width: 75ch;
+}
+.analytics-banner a {
+  text-decoration: underline;
+}
+.analytics-banner > div {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.analytics-banner button,
+.analytics-settings button {
+  min-height: 44px;
+  border: 1px solid #caccc3;
+  border-radius: 10px;
+  padding: 10px 15px;
+  background: #e4e4dc;
+}
+.analytics-banner button:last-child {
+  background: #e59b87;
+}
+.analytics-settings {
+  padding: 24px;
+  max-width: 760px;
+  margin: 0 auto 40px;
+}
+.privacy-copy {
+  max-width: 760px;
+  margin: auto;
+  padding: 60px 24px;
+}
+.drape-public .privacy-copy h1 {
+  font-size: 48px;
+  margin-bottom: 24px;
+}
+.drape-public .privacy-copy h2 {
+  font-size: 28px;
+  margin: 32px 0 14px;
+}
+.drape-public .privacy-copy p {
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+.analytics-banner :focus-visible,
+.analytics-settings :focus-visible {
+  outline: 3px solid #7f473b;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .analytics-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .analytics-banner > div {
+    justify-content: flex-end;
+  }
+}

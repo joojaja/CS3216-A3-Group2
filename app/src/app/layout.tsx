@@ -1,44 +1,63 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
+import { siteUrl, siteDescription } from "@/lib/site";
+import { AnalyticsConsent } from "@/components/analytics-consent";
 import "./globals.css";
 
-const geistSans = Geist({
+const uiFont = localFont({
+  src: [
+    { path: "../../public/landing/font-2.woff", weight: "400" },
+    { path: "../../public/landing/font-3.woff", weight: "600" },
+  ],
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  display: "swap",
 });
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Drape | Wardrobe-first outfit assistant",
-    template: "%s | Drape",
+    default: "Wearabouts | Wardrobe-first outfit assistant",
+    template: "%s | Wearabouts",
   },
-  description:
-    "Drape helps you wear what you already own, get outfits matched to Singapore's weather, and check whether a purchase is worth it before you spend.",
+  description: siteDescription,
+  applicationName: "Wearabouts",
+  alternates: { canonical: "/" },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wearabouts | Make more of the clothes you own",
+    description: siteDescription,
+    images: ["/opengraph-image"],
+  },
   openGraph: {
     type: "website",
-    siteName: "Drape",
-    title: "Drape | Wardrobe-first outfit assistant",
+    siteName: "Wearabouts",
+    title: "Wearabouts | Wardrobe-first outfit assistant",
     description:
       "Wear what you own. Get outfits matched to Singapore's weather. Check before you buy.",
     url: siteUrl,
+    locale: "en_SG",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Wearabouts. Make more of the clothes you own.",
+      },
+    ],
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${uiFont.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <AnalyticsConsent />
+      </body>
     </html>
   );
 }
