@@ -1,104 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { GarmentIcon, tintFor } from "@/components/garment-icon";
 import { useToast } from "@/components/toast";
-
-type RecommendedItem = {
-  id: string;
-  category: string;
-  subcategory: string | null;
-  primary_colour: string | null;
-};
-
-type Recommendation = {
-  id: string | null;
-  item_ids: string[];
-  explanation: string;
-  warnings: string[];
-};
-
-const FEEDBACK_REASONS = [
-  { value: "too_warm", label: "Too warm" },
-  { value: "too_formal", label: "Too formal" },
-  { value: "too_casual", label: "Too casual" },
-  { value: "uncomfortable", label: "Uncomfortable" },
-  { value: "disliked_colour_combination", label: "Bad colour combo" },
-  { value: "other", label: "Other" },
-] as const;
-
-type Reason = (typeof FEEDBACK_REASONS)[number]["value"];
+import {
+  FEEDBACK_REASONS,
+  usePlanner,
+  type FeedbackAction,
+  type Reason,
+} from "@/components/planner-context";
 
 const inputClass =
   "mt-1.5 block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm font-normal transition focus:border-cobalt focus:outline-none focus:ring-[3px] focus:ring-cobalt-light";
 
+// The request and its results live in PlannerProvider so they survive
+// switching tabs; only the reason sheet is local to this page.
 export function OutfitPlanner() {
   const { toast } = useToast();
-  const [occasion, setOccasion] = useState("");
-  const [date, setDate] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [weather, setWeather] = useState<string | null>(null);
-  const [items, setItems] = useState<Record<string, RecommendedItem>>({});
-  const [recs, setRecs] = useState<Recommendation[]>([]);
-  const [sentFeedback, setSentFeedback] = useState<Record<string, string>>({});
+  const {
+    occasion,
+    setOccasion,
+    date,
+    setDate,
+    status,
+    error,
+    weather,
+    items,
+    recs,
+    sentFeedback,
+    seen,
+    recommend: runRecommend,
+    sendFeedback: submitFeedback,
+    markSeen,
+  } = usePlanner();
   // Which recommendation has the reason sheet open, and what is ticked
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const [reasons, setReasons] = useState<Set<Reason>>(new Set());
 
-  async function recommend() {
-    setLoading(true);
-    setError(null);
+  const loading = status === "loading";
+
+  // Being on this page is what counts as having seen the result, which
+  // dismisses the status card shown on the other tabs
+  useEffect(() => {
+    if (!seen && (status === "done" || status === "error")) markSeen();
+  }, [seen, status, markSeen]);
+
+  function recommend() {
     setSheetFor(null);
-
-    const res = await fetch("/api/outfits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        occasion_text: occasion,
-        requested_date: date || undefined,
-      }),
-    });
-    const body = await res.json();
-
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(body.error ?? "Recommendation failed");
-      return;
-    }
-
-    setRecs(body.recommendations);
-    setItems(body.items);
-    setWeather(body.weather);
+    void runRecommend();
   }
 
   async function sendFeedback(
     recommendationId: string | null,
-    action: "wore" | "liked" | "rejected",
+    action: FeedbackAction,
     picked?: Reason[],
   ) {
     if (!recommendationId) return;
-
-    const res = await fetch("/api/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recommendation_id: recommendationId,
-        action,
-        reason: picked?.[0],
-        free_text:
-          picked && picked.length > 1
-            ? FEEDBACK_REASONS.filter((r) => picked.includes(r.value))
-                .map((r) => r.label)
-                .join(", ")
-            : undefined,
-      }),
-    });
-
-    if (res.ok) {
-      setSentFeedback((prev) => ({ ...prev, [recommendationId]: action }));
+    const ok = await submitFeedback(recommendationId, action, picked);
+    if (ok) {
       setSheetFor(null);
       setReasons(new Set());
       toast(action === "wore" ? "Marked as worn" : "Feedback recorded");
