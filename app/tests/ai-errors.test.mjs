@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
 process.env.NODE_ENV = "development";
-const { reportAiError, AI_ERROR_LOG } = await import("../src/lib/ai/gemini.ts");
+const { reportAiError, aiFailure, getModel, AI_ERROR_LOG } = await import("../src/lib/ai/gemini.ts");
 
 // Shapes mirror what the AI SDK throws: a retry wrapper around the provider
 // error, and a schema failure wrapping the validation error
@@ -65,6 +65,52 @@ test("the log never leaks into the user-facing message", () => {
   const shown = reportAiError("outfits", apiError(500, "Internal error at https://generativelanguage.googleapis.com/v1beta/models/secret"));
   assert.doesNotMatch(shown, /googleapis|secret|Internal/);
   assert.ok(existsSync(AI_ERROR_LOG));
+});
+
+test("route context lands in the log entry", () => {
+  reportAiError("outfits", apiError(503, "high demand"), { model: "gemini-3.6-flash", key: "free", ms: 18000, wardrobeItems: 12, followUp: true });
+  const entry = lastLogEntry();
+  assert.equal(entry.model, "gemini-3.6-flash");
+  assert.equal(entry.key, "free");
+  assert.equal(entry.ms, 18000);
+  assert.equal(entry.wardrobeItems, 12);
+  assert.equal(entry.followUp, true);
+});
+
+test("the error response carries a reference code that matches the log, and the cause only in development", async () => {
+  const error = retryError(apiError(503, "This model is currently experiencing high demand."));
+  error.errors = [1, 2, 3];
+
+  const dev = await aiFailure("outfits", error).json();
+  assert.match(dev.error, /busy right now.*\(ref [0-9a-f]{6}\)$/);
+  assert.equal(dev.ref, lastLogEntry().ref);
+  assert.match(dev.debug, /503 AI_RetryError via AI_APICallError, 3 attempts: This model is currently experiencing high demand/);
+
+  process.env.NODE_ENV = "production";
+  try {
+    const response = aiFailure("outfits", error);
+    assert.equal(response.status, 503);
+    const prod = await response.json();
+    assert.match(prod.error, /\(ref [0-9a-f]{6}\)$/);
+    assert.equal(prod.debug, undefined);
+    assert.equal(aiFailure("analyze", new Error("boom")).status, 502);
+  } finally {
+    process.env.NODE_ENV = "development";
+  }
+});
+
+test("a free-tier call never falls back to the paid key", () => {
+  const saved = { paid: process.env.GOOGLE_GENERATIVE_AI_API_KEY, free: process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY };
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = "paid-key-that-must-not-be-used";
+  delete process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY;
+  try {
+    assert.throws(() => getModel("free"), /GOOGLE_GENERATIVE_AI_FREE_API_KEY is not set/);
+    assert.equal(reportAiError("outfits", new Error("GOOGLE_GENERATIVE_AI_FREE_API_KEY is not set")), "AI is not configured on the server.");
+    assert.ok(getModel("paid"), "the paid path itself still resolves");
+  } finally {
+    if (saved.paid === undefined) delete process.env.GOOGLE_GENERATIVE_AI_API_KEY; else process.env.GOOGLE_GENERATIVE_AI_API_KEY = saved.paid;
+    if (saved.free !== undefined) process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY = saved.free;
+  }
 });
 
 test.after(() => rmSync(AI_ERROR_LOG, { force: true }));
