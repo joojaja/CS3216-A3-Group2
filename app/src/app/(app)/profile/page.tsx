@@ -18,9 +18,9 @@ const emptyProfile = {
 };
 
 const dataBox = (
-  <aside className="rounded-xl border border-line px-4.5 py-4 text-sm">
-    <b className="block font-semibold">Your data</b>
-    <p className="mt-1.5 leading-relaxed text-mute">
+  <aside className="rounded-xl border border-line bg-card px-5 py-4.5 text-sm shadow-[0_12px_32px_#24282308]">
+    <b className="block text-[11px] font-semibold tracking-[0.15em] uppercase text-mute">Your data</b>
+    <p className="mt-2.5 leading-relaxed text-body">
       Wardrobe photos and preferences are private to your account. Deleting an
       item removes its stored photo. Full account deletion is on the roadmap.
     </p>
@@ -34,6 +34,7 @@ export default async function ProfilePage() {
     return (
       <>
         <PageHeader
+          eyebrow="Profile"
           title="Profile and preferences"
           description="Connect Supabase to save preferences. The form below is a preview."
         />
@@ -63,6 +64,7 @@ export default async function ProfilePage() {
   return (
     <>
       <PageHeader
+        eyebrow="Profile"
         title="Profile and preferences"
         description={`Signed in as ${user?.email}. These preferences shape your outfit recommendations and you can change them any time.`}
       />
