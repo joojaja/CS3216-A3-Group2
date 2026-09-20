@@ -48,7 +48,9 @@ Get a free API key from Google AI Studio and put it in `GOOGLE_GENERATIVE_AI_API
 
 Photos are cut out and placed on white before analysis. This runs entirely in the browser through `@imgly/background-removal` (AGPL-3.0) on `onnxruntime-web`, so the photo never leaves the device for this step. The first use downloads a 40 MB model from the IMG.LY CDN, which the browser then caches. Users can switch back to the original photo at any point, and HEIC photos skip the step because browsers other than Safari cannot decode them.
 
-The model works by contrast, so a pale garment on a pale surface defeats it. When the cutout fails, the app asks Gemini only for the garment's bounding box (`/api/items/locate`) and crops the photo to it, background and all. The user then chooses between the original and the crop. The best results come from laying the item flat on a plain surface that contrasts with its colour, and the Add item page says so.
+The model works by contrast, so a pale garment on a pale surface defeats it. When the cutout fails, the app falls back to the Gemini image model (`/api/items/enhance`), which understands what a garment is and isolates it onto white. If that also fails, it asks Gemini only for the garment's bounding box (`/api/items/locate`) and crops the photo to it. The user always chooses which version to keep, and the original is never more than a tap away.
+
+Two AI edits are also available on request: **Isolate with AI** cuts the garment onto white, and **Iron with AI** renders it flat like a catalogue photo. Both run on `gemini-3.1-flash-lite-image` and cost about 3 US cents per image, so the Google project needs a billing account and the calls are rate-limited to 10 a minute per user. Generated images can change small details such as printed text, which the interface says plainly, and every saved item records which version was stored in `ai_confidence.image_source`. Paid-tier requests are not used by Google to improve its models.
 
 ## Repo layout
 
