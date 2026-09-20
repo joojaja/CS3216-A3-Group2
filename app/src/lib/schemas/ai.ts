@@ -92,6 +92,11 @@ export const occasionConstraintsSchema = z.object({
 export type OccasionConstraints = z.infer<typeof occasionConstraintsSchema>;
 
 export const outfitSelectionSchema = z.object({
+  // False when the message is not about choosing or adjusting an outfit from
+  // the wardrobe. The planner only ever answers with outfits, so anything else
+  // is declined in one sentence instead of answered
+  is_outfit_request: z.boolean(),
+  decline_message: z.string().default(""),
   outfits: z
     .array(
       z.object({
@@ -100,7 +105,6 @@ export const outfitSelectionSchema = z.object({
         warnings: z.array(z.string()).default([]),
       }),
     )
-    .min(1)
     .max(3),
 });
 
