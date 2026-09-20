@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# AI failure log written by the dev server, see src/lib/ai/gemini.ts
+/logs/
+
 # vercel
 .vercel
 
