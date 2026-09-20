@@ -25,9 +25,15 @@ export function ItemUploader() {
     cleanedPreview,
     cropped,
     croppedPreview,
+    isolated,
+    isolatedPreview,
+    ironed,
+    ironedPreview,
     choice,
     bg,
     crop,
+    enhance,
+    requestEdit,
     attrs,
     aiTouched,
     edited,
@@ -56,6 +62,9 @@ export function ItemUploader() {
     form.set("image", file);
     form.set("payload", JSON.stringify(attrs));
     form.set("user_notes", notes);
+    // Recorded with the item so it is always clear whether the stored photo
+    // is the shot itself, a cutout, a crop or an AI rendering
+    form.set("image_source", choice);
 
     const res = await fetch("/api/items", { method: "POST", body: form });
     const body = await res.json();
@@ -76,15 +85,23 @@ export function ItemUploader() {
   const reviewing = step === "review" || step === "saving";
   const removing = bg.status === "running";
   const cropping = crop.status === "running";
-  const preparing = removing || cropping;
+  const isolating = enhance.isolate.status === "running";
+  const ironing = enhance.iron.status === "running";
+  const preparing = removing || cropping || isolating || ironing;
   const busy = step === "analyzing" || step === "saving";
+  const aiChosen = choice === "isolated" || choice === "ironed";
 
   // Every version of the photo the user can pick from, once there are two
+  type ChoiceKey = "original" | "cropped" | "cleaned" | "isolated" | "ironed";
   const choices = [
     originalPreview && { key: "original" as const, label: "Original", src: originalPreview },
     cropped && croppedPreview && { key: "cropped" as const, label: "Cropped to item", src: croppedPreview },
     cleaned && cleanedPreview && { key: "cleaned" as const, label: "Background removed", src: cleanedPreview },
-  ].filter((c): c is { key: "original" | "cropped" | "cleaned"; label: string; src: string } => Boolean(c));
+    isolated && isolatedPreview && { key: "isolated" as const, label: "AI isolated", src: isolatedPreview },
+    ironed && ironedPreview && { key: "ironed" as const, label: "AI ironed", src: ironedPreview },
+  ].filter((c): c is { key: ChoiceKey; label: string; src: string } => Boolean(c));
+
+  const editFailure = enhance.isolate.message ?? enhance.iron.message;
 
   function tagFor(key: string): Tag {
     if (!aiTouched || edited.has(key)) return null;
@@ -125,7 +142,15 @@ export function ItemUploader() {
           )}
           {preparing && (
             <span className="absolute inset-x-0 bottom-0 z-20 bg-ink/70 px-3 py-2 text-left text-xs text-white">
-              <span className="block truncate">{cropping ? "Finding the garment" : progressLabel}</span>
+              <span className="block truncate">
+                {ironing
+                  ? "Ironing with AI"
+                  : isolating
+                    ? "Isolating with AI"
+                    : cropping
+                      ? "Finding the garment"
+                      : progressLabel}
+              </span>
               <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/25">
                 <motion.span
                   className="block h-full rounded-full bg-tangerine"
@@ -153,7 +178,7 @@ export function ItemUploader() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={`mt-3 grid gap-2 ${choices.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}
+              className={`mt-3 grid gap-2 ${choices.length >= 3 ? "grid-cols-3" : "grid-cols-2"}`}
               role="radiogroup"
               aria-label="Which photo to use"
             >
@@ -171,14 +196,49 @@ export function ItemUploader() {
           )}
         </AnimatePresence>
 
+        {/* AI edits on request. Each call is paid, so nothing runs until asked */}
+        {original && bg.status !== "unsupported" && !busy && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {!isolated && (
+              <button
+                type="button"
+                onClick={() => requestEdit("isolate")}
+                disabled={preparing}
+                className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium transition hover:border-cobalt hover:text-cobalt disabled:opacity-40"
+              >
+                {isolating ? "Isolating..." : "Isolate with AI"}
+              </button>
+            )}
+            {!ironed && (
+              <button
+                type="button"
+                onClick={() => requestEdit("iron")}
+                disabled={preparing}
+                className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium transition hover:border-cobalt hover:text-cobalt disabled:opacity-40"
+              >
+                {ironing ? "Ironing..." : "Iron with AI"}
+              </button>
+            )}
+          </div>
+        )}
+
         <p className="mt-2.5 text-xs leading-relaxed text-mute">
           {!original &&
             "JPEG, PNG, WebP or HEIC up to 8 MB. One item per photo. For the cleanest cutout, lay it flat on a plain surface that contrasts with its colour."}
           {original && removing && "Happens on your device. The photo does not leave your browser for this step."}
-          {original && cropping && "Couldn't separate the garment from the background. Finding it in the photo to crop instead."}
-          {original && !preparing && bg.status === "done" && `${file?.name}, ${((file?.size ?? 0) / 1024 / 1024).toFixed(1)} MB`}
-          {original && bg.status === "skipped" && "Using the original photo."}
-          {original && !preparing && (bg.status === "failed" || bg.status === "unsupported") && (
+          {original && isolating && !ironing && bg.status === "failed" && "Couldn't separate the garment on your device. Asking the image model to isolate it instead."}
+          {original && isolating && !ironing && bg.status !== "failed" && "The image model is cutting the garment onto white."}
+          {original && ironing && "The image model is rendering the garment flat, like a catalogue photo."}
+          {original && cropping && "The image model could not help either. Finding the garment to crop instead."}
+          {original && !preparing && aiChosen && (
+            <span className="text-warn-ink">
+              Generated by AI. It can change small details such as printed text or a logo, so compare
+              it with the original before saving.
+            </span>
+          )}
+          {original && !preparing && !aiChosen && bg.status === "done" && `${file?.name}, ${((file?.size ?? 0) / 1024 / 1024).toFixed(1)} MB`}
+          {original && !preparing && !aiChosen && bg.status === "skipped" && "Using the original photo."}
+          {original && !preparing && !aiChosen && (bg.status === "failed" || bg.status === "unsupported") && (
             <>
               {bg.message}
               {bg.status === "failed" && crop.status !== "done" && (
@@ -190,6 +250,9 @@ export function ItemUploader() {
                 </>
               )}
             </>
+          )}
+          {original && !preparing && editFailure && !aiChosen && (
+            <span className="block text-bad">{editFailure}</span>
           )}
         </p>
       </div>

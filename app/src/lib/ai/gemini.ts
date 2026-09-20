@@ -12,6 +12,17 @@ export function getModel() {
   return google(MODEL_ID);
 }
 
+// Image editing model (Nano Banana). Paid tier only: about US$0.03 per
+// image, so every call is user-initiated or a last-resort fallback.
+export const IMAGE_MODEL_ID = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-lite-image";
+
+export function getImageModel() {
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not set");
+  }
+  return google(IMAGE_MODEL_ID);
+}
+
 // Builds the image part of a multimodal message from an uploaded file.
 export async function imagePart(file: File) {
   return {
