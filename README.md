@@ -1,8 +1,8 @@
 # CS3216-A3-Group2
 
-Repository for CS3216 Assignment 3, Group 2. The product is called Drape.
+Repository for CS3216 Assignment 3, Group 2. The product is called Wearabouts.
 
-Drape is a wardrobe-first clothing assistant for Singapore. Users photograph their clothes, get outfits matched to the occasion and the live NEA weather forecast, and check whether a prospective purchase is redundant before buying.
+Wearabouts is a wardrobe-first clothing assistant for Singapore. Users photograph their clothes, get outfits matched to the occasion and the live NEA weather forecast, and check whether a prospective purchase is redundant before buying.
 
 ## Team
 
@@ -36,9 +36,9 @@ npm run dev
 ### Supabase setup
 
 1. Create a free project at supabase.com
-2. Paste `app/supabase/schema.sql` into the SQL editor and run it. This creates all tables, row-level security policies, the private `wardrobe-images` bucket, and the profile auto-creation trigger. The file resets everything it owns first, so it is also how you wipe and rebuild the database
+2. For a new, empty project, run `app/supabase/schema.sql` in the SQL editor. It creates the tables, ownership policies, private image bucket and profile trigger. This script deletes existing application tables before recreating them. Do not run it against an existing team project to install this branch. The landing and onboarding changes require no schema migration.
 3. Copy the project URL and publishable key into `.env.local`
-4. Under Authentication, turn off email confirmation for development. The built-in mailer only delivers to your own team's addresses and allows two emails an hour
+4. Configure the site URL and allow the deployed `/auth/callback` URL under Authentication redirect URLs. For local development, allow `http://localhost:3000/auth/callback` as well. Registration supports both immediate sessions and email confirmation. Use a working mail configuration for confirmation delivery.
 
 ### Gemini setup
 
@@ -62,3 +62,25 @@ Two AI edits are also available on request: **Isolate with AI** cuts the garment
 ## Resources used
 
 <!-- List significant tutorials, templates and references here before submission -->
+
+## Landing and onboarding
+
+The public page follows the supplied Wearabouts cinematic HTML and design document. Registration leads to optional style, colour and occasion preferences, then the existing upload, AI review and confirmation flow. A saved confirmed item completes onboarding. Returning accounts with confirmed items continue to the wardrobe. Preferences remain editable from Profile.
+
+Without service variables, local development offers a clearly labelled preview login using `test@gmail.com` and `testtest`. This does not save preferences or clothing. The preview login is disabled in production. Live verification needs a test account on the configured Supabase project and a working Gemini key.
+
+Set `NEXT_PUBLIC_SITE_URL` to the deployed HTTPS origin before building. It controls canonical URLs, the sitemap and social links. The site includes an Open Graph image, Twitter card, robots file and sitemap. Account and wardrobe pages are marked `noindex`.
+
+Optional Google Analytics uses `NEXT_PUBLIC_GA_MEASUREMENT_ID`. It loads after consent. Disable Enhanced Measurement in the GA4 web stream so automatically collected URL/form events do not bypass the curated funnel. See [launch setup](docs/launch-setup.md) for event verification and the report evidence still required.
+
+## Verification and project documentation
+
+Run `npm run lint`, `npm test` and `npm run build` from `app/`. The Node test runner requires Node 22.18 or newer to import TypeScript directly. If the local Turbopack process is blocked, `npm run build -- --webpack` is a supported alternative.
+
+- [Design](design.md) records the reference, visual tokens and responsive behaviour.
+- [Goals](goals.md) records this branch's scope and milestones.
+- [Competitor review](docs/competitor-onboarding-review.md) documents the 24 supplied screenshots.
+- [Assignment evidence](docs/assignment-evidence.md) maps all compulsory milestones without claiming missing evidence.
+- [Verification](docs/verification.md) distinguishes automated checks, browser checks and live-service checks.
+
+Reference images and fonts were extracted from the user-supplied `Wearabouts_Cinematic_Landing (3).html`. Confirm their provenance and distribution rights before public launch. Competitor screenshots are research references and are not served by the website.
