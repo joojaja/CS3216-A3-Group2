@@ -1,7 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
+import { safeAuthDestination } from "@/lib/auth-navigation";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/wardrobe", "/planner", "/evaluator", "/profile"];
+const PROTECTED_PREFIXES = [
+  "/onboarding",
+  "/wardrobe",
+  "/planner",
+  "/evaluator",
+  "/profile",
+];
 
 // Name of the dev-only session cookie, set by the login form when Supabase
 // env vars are missing. Never consulted when Supabase is configured.
@@ -21,14 +28,32 @@ function guard(
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("next", path);
-    return NextResponse.redirect(redirectUrl);
+    const redirected = NextResponse.redirect(redirectUrl);
+    response.cookies
+      .getAll()
+      .forEach((cookie) => redirected.cookies.set(cookie));
+    for (const header of ["cache-control", "expires", "pragma"]) {
+      const value = response.headers.get(header);
+      if (value) redirected.headers.set(header, value);
+    }
+    return redirected;
   }
 
   if (authenticated && path === "/login") {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/wardrobe";
+    redirectUrl.pathname = safeAuthDestination(
+      request.nextUrl.searchParams.get("next"),
+    );
     redirectUrl.search = "";
-    return NextResponse.redirect(redirectUrl);
+    const redirected = NextResponse.redirect(redirectUrl);
+    response.cookies
+      .getAll()
+      .forEach((cookie) => redirected.cookies.set(cookie));
+    for (const header of ["cache-control", "expires", "pragma"]) {
+      const value = response.headers.get(header);
+      if (value) redirected.headers.set(header, value);
+    }
+    return redirected;
   }
 
   return response;
@@ -46,7 +71,9 @@ export async function updateSession(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!url || !key) {
-    const devAuthed = request.cookies.get(DEV_AUTH_COOKIE)?.value === "1";
+    const devAuthed =
+      process.env.NODE_ENV === "development" &&
+      request.cookies.get(DEV_AUTH_COOKIE)?.value === "1";
     return guard(request, response, devAuthed);
   }
 
