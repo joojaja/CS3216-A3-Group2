@@ -44,7 +44,9 @@ npm run dev
 
 Get an API key from Google AI Studio and put it in `GOOGLE_GENERATIVE_AI_API_KEY`. Everything works on the free tier except the two image edits, which need a billing account linked to the project.
 
-The tier belongs to the Google project, not the key, so linking billing makes every call from that project paid. To keep the outfit planner on the free tier once billing is on, create a second API key under a separate project with no billing account and put it in `GOOGLE_GENERATIVE_AI_FREE_API_KEY`. The planner is text only and uses that key; photo analysis, purchase checks and image edits stay on the paid key, where Google does not use the uploads to improve its models. Without the second key, the planner falls back to the main one.
+When an AI call fails, the user sees a short generic message ending in a six-character reference such as `(ref 5ba5f4)`. The same reference is on the server log line, which carries the real provider error: in the terminal running `next dev`, and in production in the Vercel function logs. In development every failure is also appended to `app/logs/ai-errors.log` as one JSON line with the reference, status, the unwrapped cause, retry count, the provider response, the model and key used, timing and, for schema failures, the raw model output; and the planner shows the cause under the error, marked "Development only". Production responses never include it. Free-tier calls are routinely refused with a 503 "high demand" error when Google has no spare capacity; the app shows this as "The AI service is busy right now".
+
+The tier belongs to the Google project, not the key, so linking billing makes every call from that project paid. The outfit planner is text only and runs on `GOOGLE_GENERATIVE_AI_FREE_API_KEY`, a key from a separate project with no billing account. It never falls back to the main key: if the free key is missing, the planner reports that AI is not configured rather than spending. Photo analysis, purchase checks and image edits stay on the main key, where Google does not use the uploads to improve its models. Both keys are required.
 
 ### Background removal
 

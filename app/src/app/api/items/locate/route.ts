@@ -3,7 +3,8 @@ import { garmentLocationSchema } from "@/lib/schemas/ai";
 import {
   getModel,
   imagePart,
-  reportAiError,
+  aiFailure,
+  MODEL_ID,
   UNTRUSTED_CONTENT_RULE,
 } from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
@@ -86,6 +87,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return Response.json({ error: reportAiError("locate", error) }, { status: 502 });
+    return aiFailure("locate", error, { model: MODEL_ID, key: "paid" });
   }
 }
