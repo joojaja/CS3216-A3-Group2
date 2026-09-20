@@ -1,3 +1,5 @@
+import { appendFileSync, mkdirSync } from "node:fs";
+import path from "node:path";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 // gemini-2.5-flash is no longer offered to new Google accounts (the API
@@ -46,20 +48,86 @@ export async function imagePart(file: File) {
   };
 }
 
+type ErrorLike = {
+  name?: string;
+  message?: string;
+  statusCode?: number;
+  responseBody?: string;
+  isRetryable?: boolean;
+  cause?: unknown;
+  lastError?: unknown;
+  text?: string;
+  finishReason?: string;
+};
+
+// The AI SDK wraps provider errors: a RetryError holds the last attempt in
+// lastError, and a NoObjectGeneratedError holds the schema failure in cause.
+// Follow the chain down to the error that actually explains the failure.
+function rootCause(error: unknown): ErrorLike {
+  let current = (error ?? {}) as ErrorLike;
+  for (let depth = 0; depth < 6; depth++) {
+    const next = (current.lastError ?? current.cause) as ErrorLike | undefined;
+    if (!next || typeof next !== "object") break;
+    current = next;
+  }
+  return current;
+}
+
+const FAILURE_MESSAGE: Record<string, string> = {
+  analyze: "Analysis failed. Please try again.",
+  locate: "Could not find the garment in the photo. Please try again.",
+  enhance: "Could not edit the photo. Please try again.",
+  outfits: "Could not build outfits this time. Please try again.",
+  evaluate: "Could not evaluate this item. Please try again.",
+};
+
+// Where failures are written in development, so they can be read even when
+// the dev server's terminal belongs to a tool rather than the developer.
+// Vercel's filesystem is read-only, so production relies on the function logs
+export const AI_ERROR_LOG = path.join(process.cwd(), "logs", "ai-errors.log");
+
 // Logs the real provider error on the server so failures are diagnosable,
 // then returns a short message safe to show the user. Provider errors are
 // never forwarded verbatim because they can leak prompt or config details.
 export function reportAiError(where: string, error: unknown): string {
-  const status = (error as { statusCode?: number })?.statusCode;
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`[ai:${where}] ${status ?? ""} ${message}`);
+  const outer = (error ?? {}) as ErrorLike;
+  const root = rootCause(error);
+  const status = root.statusCode ?? outer.statusCode;
+  const message = root.message ?? outer.message ?? String(error);
 
-  if (status === 429) return "The AI service is busy. Wait a minute and try again.";
+  console.error(`[ai:${where}] ${status ?? "-"} ${outer.name ?? "Error"}: ${message}`);
+  if (process.env.NODE_ENV === "development") {
+    const entry = {
+      at: new Date().toISOString(),
+      where,
+      status: status ?? null,
+      error: outer.name ?? "Error",
+      cause: root !== outer ? root.name : undefined,
+      retryable: root.isRetryable,
+      message,
+      response: root.responseBody?.slice(0, 800),
+      // The raw model output when it failed schema validation
+      modelOutput: outer.text?.slice(0, 800),
+      finishReason: outer.finishReason,
+    };
+    try {
+      mkdirSync(path.dirname(AI_ERROR_LOG), { recursive: true });
+      appendFileSync(AI_ERROR_LOG, `${JSON.stringify(entry)}\n`);
+    } catch {
+      // Logging must never turn into a second failure
+    }
+  }
+
+  const busy =
+    status === 429 ||
+    status === 503 ||
+    /high demand|overloaded|resource.?exhausted|rate limit|quota/i.test(message);
+  if (busy) return "The AI service is busy right now. Wait a moment and try again.";
   if (status === 404) return "The configured AI model is not available. Check GEMINI_MODEL.";
   if (message.includes("GOOGLE_GENERATIVE_AI_API_KEY") || message.includes("API key")) {
     return "AI is not configured on the server.";
   }
-  return "Analysis failed. Please try again.";
+  return FAILURE_MESSAGE[where] ?? "Something went wrong. Please try again.";
 }
 
 // Appended to every prompt that includes user-supplied images or text.
