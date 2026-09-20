@@ -6,14 +6,12 @@ export const metadata: Metadata = { title: "Outfit planner" };
 
 export default function PlannerPage() {
   return (
-    <>
+    <div className="flex min-h-full flex-col">
       <PageHeader
         title="Outfit planner"
-        description="Describe the occasion. Recommendations are built only from your confirmed wardrobe items and the current Singapore forecast."
+        description="Describe the occasion, then adjust the outfits in follow-ups. Everything is built from your confirmed wardrobe items and the current Singapore forecast."
       />
-      <div className="px-5 py-5 pb-28 md:px-9 md:py-6">
-        <OutfitPlanner />
-      </div>
-    </>
+      <OutfitPlanner />
+    </div>
   );
 }

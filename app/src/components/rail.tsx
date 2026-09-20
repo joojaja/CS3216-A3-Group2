@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { signOut } from "@/lib/actions/auth";
 import { AnalysisStatus } from "@/components/analysis-status";
+import { PlannerStatus } from "@/components/planner-status";
 
 const links = [
   { href: "/wardrobe", label: "Wardrobe", short: "Wardrobe", icon: HomeIcon },
@@ -69,6 +70,7 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
 
         <div className="mt-auto">
           <AnalysisStatus variant="rail" />
+          <PlannerStatus variant="rail" />
         </div>
 
         <div className="border-t border-white/20 px-6 py-4 text-[13px] leading-relaxed text-cobalt-faint">
@@ -94,9 +96,10 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
         </div>
       </aside>
 
-      {/* Mobile: status bar for background analysis, then the tab bar */}
+      {/* Mobile: status bars for background work, then the tab bar */}
       <div className="md:hidden">
         <AnalysisStatus variant="bar" />
+        <PlannerStatus variant="bar" />
         <nav className="relative grid grid-cols-5 bg-cobalt pb-1.5">
         {active >= 0 && (
           <motion.div
