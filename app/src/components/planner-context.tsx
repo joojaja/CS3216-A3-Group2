@@ -43,6 +43,8 @@ export type Turn = {
   message: string;
   status: TurnStatus;
   error: string | null;
+  // The real cause of a failure. The server only sends it in development
+  errorDetail: string | null;
   weather: string | null;
   items: Record<string, RecommendedItem>;
   recs: Recommendation[];
@@ -137,7 +139,11 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         if (ac.signal.aborted) return;
 
         if (!res.ok) {
-          patchTurn(turn.id, { status: "error", error: body.error ?? "Recommendation failed" });
+          patchTurn(turn.id, {
+            status: "error",
+            error: body.error ?? "Recommendation failed",
+            errorDetail: typeof body.debug === "string" ? body.debug : null,
+          });
         } else if (body.declined) {
           patchTurn(turn.id, { status: "declined", declineMessage: body.message });
         } else {
@@ -153,6 +159,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         patchTurn(turn.id, {
           status: "error",
           error: err instanceof Error ? err.message : "Recommendation failed",
+          errorDetail: null,
         });
       }
     },
@@ -169,6 +176,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         message: text,
         status: "loading",
         error: null,
+        errorDetail: null,
         weather: null,
         items: {},
         recs: [],
@@ -191,7 +199,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
       ...prev,
       turns: prev.turns.map((turn) =>
         turn.status === "loading"
-          ? { ...turn, status: "error", error: "Stopped before it finished." }
+          ? { ...turn, status: "error", error: "Stopped before it finished.", errorDetail: null }
           : turn,
       ),
     }));
@@ -201,7 +209,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
   const retry = useCallback(async () => {
     const last = state.turns[state.turns.length - 1];
     if (!last || last.status !== "error") return;
-    patchTurn(last.id, { status: "loading", error: null });
+    patchTurn(last.id, { status: "loading", error: null, errorDetail: null });
     setState((prev) => ({ ...prev, seen: false }));
     await run(last, state.turns.slice(0, -1));
   }, [state.turns, run, patchTurn]);

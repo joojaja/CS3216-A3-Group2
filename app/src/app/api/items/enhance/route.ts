@@ -3,7 +3,7 @@ import {
   getImageModel,
   IMAGE_MODEL_ID,
   imagePart,
-  reportAiError,
+  aiFailure,
   UNTRUSTED_CONTENT_RULE,
 } from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
@@ -103,6 +103,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return Response.json({ error: reportAiError("enhance", error) }, { status: 502 });
+    return aiFailure("enhance", error, { model: IMAGE_MODEL_ID, key: "paid", mode });
   }
 }
