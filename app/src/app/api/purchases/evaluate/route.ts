@@ -6,7 +6,8 @@ import {
 import {
   getModel,
   imagePart,
-  reportAiError,
+  aiFailure,
+  MODEL_ID,
   UNTRUSTED_CONTENT_RULE,
 } from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
@@ -175,6 +176,6 @@ ${UNTRUSTED_CONTENT_RULE}`;
         .filter(Boolean),
     });
   } catch (error) {
-    return Response.json({ error: reportAiError("evaluate", error) }, { status: 502 });
+    return aiFailure("evaluate", error, { model: MODEL_ID, key: "paid" });
   }
 }

@@ -137,16 +137,24 @@ function TurnView({
       )}
 
       {turn.status === "error" && (
-        <div className="flex max-w-[560px] flex-wrap items-center gap-3 rounded-2xl rounded-bl-md bg-bad-light px-4 py-3 text-[14px] text-bad">
-          <span className="flex-1">{turn.error}</span>
-          {isLatest && (
-            <button
-              type="button"
-              onClick={() => void retry()}
-              className="rounded-lg border border-bad-line bg-white px-3 py-1.5 text-[13px] font-medium"
-            >
-              Try again
-            </button>
+        <div className="grid max-w-[560px] gap-2.5 rounded-2xl rounded-bl-md bg-bad-light px-4 py-3 text-[14px] text-bad">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex-1">{turn.error}</span>
+            {isLatest && (
+              <button
+                type="button"
+                onClick={() => void retry()}
+                className="rounded-lg border border-bad-line bg-white px-3 py-1.5 text-[13px] font-medium"
+              >
+                Try again
+              </button>
+            )}
+          </div>
+          {/* Only present when the server runs in development */}
+          {turn.errorDetail && (
+            <pre className="overflow-x-auto rounded-lg border border-bad-line bg-white/70 px-3 py-2 text-[12px] leading-relaxed whitespace-pre-wrap break-words text-bad/90">
+              <b className="font-semibold">Development only.</b> {turn.errorDetail}
+            </pre>
           )}
         </div>
       )}
