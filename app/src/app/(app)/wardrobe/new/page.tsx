@@ -8,6 +8,7 @@ export default function NewItemPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Add item"
         title="Add a clothing item"
         description="Upload a clear photo of one item, ideally flat on a plain surface that contrasts with it. AI will draft the attributes and you confirm or correct them before anything is saved."
       />
