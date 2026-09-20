@@ -1,28 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cobalt: #2549e8;
-  --color-cobalt-deep: #1733ae;
-  --color-cobalt-light: #dce4ff;
-  --color-cobalt-faint: #c6d2ff;
-  --color-tangerine: #ff6b2c;
-  --color-tangerine-light: #ffe6d9;
-  --color-wash: #eef1fb;
-  --color-line: #d8def2;
-  --color-ink: #12163a;
-  --color-mute: #5a618c;
-  --color-body: #30365e;
-  --color-ok: #1b7a48;
-  --color-ok-light: #e6f6ec;
-  --color-warn: #a46b00;
-  --color-warn-light: #fff1cc;
-  --color-warn-line: #f3d98a;
-  --color-warn-ink: #5c3d00;
-  --color-bad: #b3261e;
-  --color-bad-light: #fbe4e2;
-  --color-bad-line: #f1b8b3;
+  /* The signed-in app shares the landing page palette from design.md and
+     landing.css so both halves of the product read as one. The token names
+     are kept so existing utility classes keep working; only the values
+     changed. */
+  --color-cobalt: #384436;
+  --color-cobalt-deep: #242823;
+  --color-cobalt-light: #e2e5de;
+  --color-cobalt-faint: #d2d8ce;
+  --color-tangerine: #b76650;
+  --color-tangerine-light: #f3ddd4;
+  --color-accent: #e59b87;
+  --color-accent-deep: #d98975;
+  --color-paper: #f6f3ec;
+  --color-card: #fcfbf7;
+  --color-soft: #e4e4dc;
+  --color-wash: #eeeee7;
+  --color-line: #caccc3;
+  --color-ink: #1a1c19;
+  --color-mute: #656a61;
+  --color-body: #3a3f38;
+  --color-ok: #55704f;
+  --color-ok-light: #e8ede2;
+  --color-warn: #8a6a1f;
+  --color-warn-light: #f3ecd6;
+  --color-warn-line: #dcc98a;
+  --color-warn-ink: #4f3d0f;
+  --color-bad: #a32e30;
+  --color-bad-light: #f5e1de;
+  --color-bad-line: #e2b3ad;
+  /* Warm white so bg-white cards and text-white on dark surfaces sit on paper */
+  --color-white: #fcfbf7;
+
+  --radius-lg: 0.75rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.375rem;
 
   --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-fraunces), Georgia, serif;
   --font-mono: var(--font-geist-mono);
 
   --ease-settle: cubic-bezier(0.2, 0.8, 0.3, 1);
@@ -65,17 +81,40 @@
 }
 
 body {
-  background: #ffffff;
+  background: var(--color-paper);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
 }
 
+/* Same focus treatment as the onboarding pages. Lives in the base layer so
+   a control's own focus utilities (focus:outline-none plus a ring) replace it
+   rather than stacking on top of it. */
+@layer base {
+  :focus-visible {
+    outline: 3px solid #7f473b;
+    outline-offset: 3px;
+  }
+}
+
 @layer components {
+  /* Landing-sized form controls inside the signed-in app: 48px tall, 10px
+     radius, card surface. Zero-specificity selector in the components layer
+     so utility classes on a control still win. */
+  .app-shell :where(
+      input:not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+      textarea,
+      select
+    ) {
+    min-height: 48px;
+    border-radius: 10px;
+    background-color: var(--color-card);
+  }
+
   .shim {
     background: linear-gradient(
       100deg,
       var(--color-wash) 30%,
-      #e4e9f9 50%,
+      #e6e6de 50%,
       var(--color-wash) 70%
     );
     background-size: 240% 100%;

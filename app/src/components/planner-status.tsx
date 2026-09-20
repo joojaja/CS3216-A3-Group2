@@ -52,25 +52,25 @@ export function PlannerStatus({ variant }: { variant: "rail" | "bar" }) {
           transition={{ duration: 0.3, ease: [0.2, 0.8, 0.3, 1] }}
           className={
             variant === "rail"
-              ? "mx-3 mb-3 rounded-[10px] bg-white/12 p-3"
-              : "flex items-center gap-3 border-t border-white/20 bg-cobalt-deep px-4 py-2.5 text-white"
+              ? "mx-3 mb-3 rounded-[10px] border border-line bg-card p-3"
+              : "flex items-center gap-3 border-t border-line bg-card px-4 py-2.5 text-ink"
           }
         >
           <Link href="/planner" className="flex items-center gap-3">
-            <span className="relative grid size-9 shrink-0 place-items-center rounded-lg bg-white/15">
+            <span className="relative grid size-9 shrink-0 place-items-center rounded-lg bg-soft">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.9"
-                className="size-[19px] text-white"
+                className="size-[19px] text-ink"
               >
                 <circle cx="12" cy="12" r="8" />
                 <path d="M12 8v4l3 2" />
               </svg>
               {working && (
-                <span className="absolute inset-0 grid place-items-center rounded-lg bg-cobalt-deep/50">
-                  <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                <span className="absolute inset-0 grid place-items-center rounded-lg bg-paper/70">
+                  <span className="size-4 animate-spin rounded-full border-2 border-line border-t-ink" />
                 </span>
               )}
               {!working && (
@@ -86,13 +86,13 @@ export function PlannerStatus({ variant }: { variant: "rail" | "bar" }) {
               )}
             </span>
             <span className="min-w-0 flex-1">
-              <b className="block truncate text-[13px] font-medium text-white">{title}</b>
-              <span className="block truncate text-xs text-cobalt-faint">{detail}</span>
+              <b className="block truncate text-[13px] font-medium text-ink">{title}</b>
+              <span className="block truncate text-xs text-mute">{detail}</span>
             </span>
             {variant === "bar" && (
               <span
                 className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-medium ${
-                  working ? "bg-white/15 text-white" : "bg-tangerine text-white"
+                  working ? "bg-soft text-ink" : "bg-accent text-ink"
                 }`}
               >
                 {action}
