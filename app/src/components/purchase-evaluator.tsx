@@ -174,7 +174,7 @@ export function PurchaseEvaluator() {
             {/* What the model read, so the verdict can be checked */}
             <div className="overflow-hidden rounded-xl border border-line text-sm">
               <Row
-                label="What Drape read"
+                label="What Wearabouts read"
                 value={[result.attributes.primary_colour, result.attributes.subcategory]
                   .filter(Boolean)
                   .join(" ")}

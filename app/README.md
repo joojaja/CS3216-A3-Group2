@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wearabouts web application
 
-## Getting Started
+This directory contains the Next.js application. See the [repository README](../README.md) for service setup and product context.
 
-First, run the development server:
+## Local development
 
 ```bash
+npm ci
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill the service variables in `.env.local` to use real accounts and private wardrobe storage. Without them, development mode offers a labelled preview with no persistence. Never commit `.env.local`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Checks
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm test
+npm run build
+```
 
-## Learn More
+Tests use Node's built-in runner with TypeScript support, requiring Node 22.18 or newer. No test dependency is added. Next.js supports `npm run build -- --webpack` when the local Turbopack process cannot run.
 
-To learn more about Next.js, take a look at the following resources:
+## Routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Route | Purpose |
+| --- | --- |
+| `/` | Public editorial landing page |
+| `/login` | Sign in or register |
+| `/auth/callback` | Exchange an email-confirmation code for a session |
+| `/onboarding` | Optional preferences and first confirmed wardrobe item |
+| `/wardrobe` | Existing private wardrobe |
+| `/planner`, `/evaluator`, `/profile` | Existing teammate-owned product flows |
+| `/privacy` | Data-use explanation and analytics controls |
+| `/robots.txt`, `/sitemap.xml`, `/opengraph-image` | Search and social metadata |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Onboarding reuses the existing profile action and `ItemUploader`. Its resume marker in auth user metadata controls presentation only. It never grants access. Completion is checked against the authenticated user's confirmed wardrobe items.
