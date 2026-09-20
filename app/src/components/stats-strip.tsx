@@ -12,20 +12,26 @@ function Count({ value }: { value: number }) {
     return controls.stop;
   }, [raw, value]);
 
-  return <motion.b className="block text-[26px] leading-none font-semibold tracking-tight md:text-[26px]">{rounded}</motion.b>;
+  return (
+    <motion.b className="block font-serif text-[32px] leading-none tracking-[-0.03em] md:text-[38px]">
+      {rounded}
+    </motion.b>
+  );
 }
 
+// Hairline-topped figures, the same treatment as the numbered feature grid
+// on the landing page
 export function StatsStrip({
   stats,
 }: {
   stats: { value: number; label: string }[];
 }) {
   return (
-    <div className="mb-5 grid grid-cols-3 gap-2 md:gap-3">
+    <div className="mb-6 grid grid-cols-3 gap-5 md:gap-8">
       {stats.map((stat) => (
-        <div key={stat.label} className="rounded-xl border border-line px-3 py-3 md:px-4 md:py-3.5">
+        <div key={stat.label} className="border-t border-line pt-3.5">
           <Count value={stat.value} />
-          <span className="mt-1.5 block text-xs text-mute md:text-[13px]">{stat.label}</span>
+          <span className="mt-2 block text-xs text-mute md:text-[13px]">{stat.label}</span>
         </div>
       ))}
     </div>
