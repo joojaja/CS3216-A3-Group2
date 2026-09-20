@@ -35,42 +35,42 @@ export const FEEDBACK_REASONS = [
 export type Reason = (typeof FEEDBACK_REASONS)[number]["value"];
 export type FeedbackAction = "wore" | "liked" | "rejected";
 
-export type PlannerStatus = "idle" | "loading" | "done" | "error";
+export type TurnStatus = "loading" | "done" | "declined" | "error";
 
-type State = {
-  occasion: string;
-  date: string;
-  status: PlannerStatus;
+// One exchange in the thread: what the user asked, and what came back
+export type Turn = {
+  id: string;
+  message: string;
+  status: TurnStatus;
   error: string | null;
   weather: string | null;
   items: Record<string, RecommendedItem>;
   recs: Recommendation[];
+  declineMessage: string | null;
+};
+
+type State = {
+  draft: string;
+  turns: Turn[];
   sentFeedback: Record<string, FeedbackAction>;
-  // The occasion the running request or the current results are for. Shown
-  // in the status card while the user is on another tab
-  requestedFor: string;
-  // Whether the finished result has been shown on the planner page. The
-  // status card on other tabs hides once it has
+  // Whether the latest reply has been shown on the planner page. The status
+  // card on other tabs hides once it has
   seen: boolean;
 };
 
-const initial: State = {
-  occasion: "",
-  date: "",
-  status: "idle",
-  error: null,
-  weather: null,
-  items: {},
-  recs: [],
-  sentFeedback: {},
-  requestedFor: "",
-  seen: true,
-};
+const initial: State = { draft: "", turns: [], sentFeedback: {}, seen: true };
+
+// Oldest first, capped so the prompt stays small
+const CONTEXT_MESSAGES = 6;
 
 type Api = State & {
-  setOccasion: (occasion: string) => void;
-  setDate: (date: string) => void;
-  recommend: () => Promise<void>;
+  latest: Turn | null;
+  busy: boolean;
+  setDraft: (draft: string) => void;
+  send: (message?: string) => Promise<void>;
+  stop: () => void;
+  retry: () => Promise<void>;
+  clear: () => void;
   sendFeedback: (
     recommendationId: string,
     action: FeedbackAction,
@@ -87,79 +87,129 @@ export function usePlanner() {
   return ctx;
 }
 
-// Owns the outfit request so it keeps running when the planner page unmounts.
-// Mounted in the app layout, which Next.js keeps alive across tab changes, so
-// the prompt, the in-flight request and the results all survive navigation.
-// Nothing here survives a hard refresh by design.
+// Owns the outfit thread so requests keep running when the planner page
+// unmounts. Mounted in the app layout, which Next.js keeps alive across tab
+// changes, so the draft, the in-flight request and every reply survive
+// navigation. Nothing here survives a hard refresh by design.
 export function PlannerProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>(initial);
   const controller = useRef<AbortController | null>(null);
 
-  const setOccasion = useCallback(
-    (occasion: string) => setState((prev) => ({ ...prev, occasion })),
-    [],
-  );
-  const setDate = useCallback((date: string) => setState((prev) => ({ ...prev, date })), []);
+  const setDraft = useCallback((draft: string) => setState((prev) => ({ ...prev, draft })), []);
   const markSeen = useCallback(() => {
     setState((prev) => (prev.seen ? prev : { ...prev, seen: true }));
   }, []);
 
-  const recommend = useCallback(async () => {
-    const occasion = state.occasion.trim();
-    if (occasion.length < 3) return;
-
-    // A newer request always wins; the older response is dropped
-    controller.current?.abort();
-    const ac = new AbortController();
-    controller.current = ac;
-
+  const patchTurn = useCallback((id: string, patch: Partial<Turn>) => {
     setState((prev) => ({
       ...prev,
-      status: "loading",
-      error: null,
-      requestedFor: occasion,
-      seen: false,
+      turns: prev.turns.map((turn) => (turn.id === id ? { ...turn, ...patch } : turn)),
     }));
+  }, []);
 
-    try {
-      const res = await fetch("/api/outfits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          occasion_text: occasion,
-          requested_date: state.date || undefined,
-        }),
-        signal: ac.signal,
-      });
-      const body = await res.json();
-      if (ac.signal.aborted) return;
+  const run = useCallback(
+    async (turn: Turn, history: Turn[]) => {
+      controller.current?.abort();
+      const ac = new AbortController();
+      controller.current = ac;
 
-      if (!res.ok) {
-        setState((prev) => ({
-          ...prev,
+      // Earlier successful requests give a short follow-up its context
+      const answered = history.filter((t) => t.status === "done");
+      const last = answered[answered.length - 1];
+      const previous = answered.length
+        ? {
+            messages: answered.slice(-CONTEXT_MESSAGES).map((t) => t.message),
+            outfits: (last?.recs ?? []).map((rec) => ({
+              item_ids: rec.item_ids,
+              explanation: rec.explanation,
+            })),
+          }
+        : undefined;
+
+      try {
+        const res = await fetch("/api/outfits", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ occasion_text: turn.message, previous }),
+          signal: ac.signal,
+        });
+        const body = await res.json();
+        if (ac.signal.aborted) return;
+
+        if (!res.ok) {
+          patchTurn(turn.id, { status: "error", error: body.error ?? "Recommendation failed" });
+        } else if (body.declined) {
+          patchTurn(turn.id, { status: "declined", declineMessage: body.message });
+        } else {
+          patchTurn(turn.id, {
+            status: "done",
+            recs: body.recommendations,
+            items: body.items,
+            weather: body.weather,
+          });
+        }
+      } catch (err) {
+        if (ac.signal.aborted) return;
+        patchTurn(turn.id, {
           status: "error",
-          error: body.error ?? "Recommendation failed",
-        }));
-        return;
+          error: err instanceof Error ? err.message : "Recommendation failed",
+        });
       }
+    },
+    [patchTurn],
+  );
 
+  const send = useCallback(
+    async (message?: string) => {
+      const text = (message ?? state.draft).trim();
+      if (text.length < 2 || state.turns.some((t) => t.status === "loading")) return;
+
+      const turn: Turn = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        message: text,
+        status: "loading",
+        error: null,
+        weather: null,
+        items: {},
+        recs: [],
+        declineMessage: null,
+      };
       setState((prev) => ({
         ...prev,
-        status: "done",
-        recs: body.recommendations,
-        items: body.items,
-        weather: body.weather,
-        sentFeedback: {},
+        draft: message === undefined ? "" : prev.draft,
+        turns: [...prev.turns, turn],
+        seen: false,
       }));
-    } catch (err) {
-      if (ac.signal.aborted) return;
-      setState((prev) => ({
-        ...prev,
-        status: "error",
-        error: err instanceof Error ? err.message : "Recommendation failed",
-      }));
-    }
-  }, [state.occasion, state.date]);
+      await run(turn, state.turns);
+    },
+    [state.draft, state.turns, run],
+  );
+
+  const stop = useCallback(() => {
+    controller.current?.abort();
+    setState((prev) => ({
+      ...prev,
+      turns: prev.turns.map((turn) =>
+        turn.status === "loading"
+          ? { ...turn, status: "error", error: "Stopped before it finished." }
+          : turn,
+      ),
+    }));
+  }, []);
+
+  // Re-runs the latest turn when it failed
+  const retry = useCallback(async () => {
+    const last = state.turns[state.turns.length - 1];
+    if (!last || last.status !== "error") return;
+    patchTurn(last.id, { status: "loading", error: null });
+    setState((prev) => ({ ...prev, seen: false }));
+    await run(last, state.turns.slice(0, -1));
+  }, [state.turns, run, patchTurn]);
+
+  const clear = useCallback(() => {
+    controller.current?.abort();
+    setState((prev) => ({ ...initial, sentFeedback: prev.sentFeedback }));
+  }, []);
 
   const sendFeedback = useCallback(
     async (recommendationId: string, action: FeedbackAction, picked?: Reason[]) => {
@@ -188,10 +238,21 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const api = useMemo<Api>(
-    () => ({ ...state, setOccasion, setDate, recommend, sendFeedback, markSeen }),
-    [state, setOccasion, setDate, recommend, sendFeedback, markSeen],
-  );
+  const api = useMemo<Api>(() => {
+    const latest = state.turns[state.turns.length - 1] ?? null;
+    return {
+      ...state,
+      latest,
+      busy: latest?.status === "loading",
+      setDraft,
+      send,
+      stop,
+      retry,
+      clear,
+      sendFeedback,
+      markSeen,
+    };
+  }, [state, setDraft, send, stop, retry, clear, sendFeedback, markSeen]);
 
   return <PlannerContext.Provider value={api}>{children}</PlannerContext.Provider>;
 }

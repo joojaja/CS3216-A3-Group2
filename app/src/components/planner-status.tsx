@@ -5,30 +5,40 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { usePlanner } from "@/components/planner-context";
 
-// Shows the state of an outfit request while the user is on another tab:
-// outfits being built, or a finished result they have not looked at yet.
-// Hidden on the planner page itself, where the result is visible.
+// Shows the state of the latest outfit request while the user is on another
+// tab: outfits being built, or a reply they have not looked at yet. Hidden on
+// the planner page itself, where the thread is visible.
 export function PlannerStatus({ variant }: { variant: "rail" | "bar" }) {
   const pathname = usePathname();
-  const { status, seen, requestedFor, recs } = usePlanner();
+  const { latest, seen } = usePlanner();
 
-  const working = status === "loading";
-  const failed = status === "error";
-  const show = pathname !== "/planner" && (working || (!seen && (status === "done" || failed)));
+  const working = latest?.status === "loading";
+  const failed = latest?.status === "error";
+  const declined = latest?.status === "declined";
+  const show = pathname !== "/planner" && latest !== null && (working || !seen);
 
-  const title = working ? "Building outfits" : failed ? "Couldn't build outfits" : "Outfits ready";
+  const title = working
+    ? "Building outfits"
+    : failed
+      ? "Couldn't build outfits"
+      : declined
+        ? "Reply ready"
+        : "Outfits ready";
   // The rail is narrow, so the second line doubles as the call to action
   // there; the wider mobile bar has room for the occasion and a button
-  const count = `${recs.length} outfit${recs.length === 1 ? "" : "s"}`;
+  const message = latest?.message ?? "";
+  const count = `${latest?.recs.length ?? 0} outfit${latest?.recs.length === 1 ? "" : "s"}`;
   const detail = working
-    ? `For “${requestedFor}”`
+    ? `For “${message}”`
     : variant === "rail"
       ? failed
         ? "Open to try again"
-        : "Open to see them"
+        : "Open to see it"
       : failed
-        ? `“${requestedFor}” did not work`
-        : `${count} for “${requestedFor}”`;
+        ? `“${message}” did not work`
+        : declined
+          ? `Reply to “${message}”`
+          : `${count} for “${message}”`;
   const action = working ? "View" : failed ? "Retry" : "Open";
 
   return (
