@@ -42,7 +42,9 @@ npm run dev
 
 ### Gemini setup
 
-Get a free API key from Google AI Studio and put it in `GOOGLE_GENERATIVE_AI_API_KEY`.
+Get an API key from Google AI Studio and put it in `GOOGLE_GENERATIVE_AI_API_KEY`. Everything works on the free tier except the two image edits, which need a billing account linked to the project.
+
+The tier belongs to the Google project, not the key, so linking billing makes every call from that project paid. To keep the outfit planner on the free tier once billing is on, create a second API key under a separate project with no billing account and put it in `GOOGLE_GENERATIVE_AI_FREE_API_KEY`. The planner is text only and uses that key; photo analysis, purchase checks and image edits stay on the paid key, where Google does not use the uploads to improve its models. Without the second key, the planner falls back to the main one.
 
 ### Background removal
 

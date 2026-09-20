@@ -1,7 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { outfitSelectionSchema } from "@/lib/schemas/ai";
-import { getModel, reportAiError, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
+import { getModel, hasFreeKey, MODEL_ID, reportAiError, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
 import { getSingaporeForecast } from "@/lib/weather";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -139,11 +139,17 @@ Rules:
 ${UNTRUSTED_CONTENT_RULE}`;
 
   try {
-    const { object } = await generateObject({
-      model: getModel(),
+    // Text only, nothing from the paid tier is needed, so this is the one
+    // call that can run on the free-tier project when a key for it is set
+    const started = Date.now();
+    const { object, usage } = await generateObject({
+      model: getModel("free"),
       schema: outfitSelectionSchema,
       prompt,
     });
+    console.log(
+      `[ai:outfits] ${MODEL_ID} tier=${hasFreeKey() ? "free" : "paid"} ${Date.now() - started}ms tokens=${usage.totalTokens ?? "?"}`,
+    );
 
     if (!object.is_outfit_request) {
       return Response.json({
