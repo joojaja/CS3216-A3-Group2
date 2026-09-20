@@ -8,6 +8,7 @@ export default function EvaluatorPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Purchase check"
         title="Should I buy it?"
         description="Upload a product photo or screenshot. We will check it against what you already own before you spend."
       />

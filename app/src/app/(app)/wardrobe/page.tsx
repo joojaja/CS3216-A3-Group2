@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const addButton = (
   <Link
     href="/wardrobe/new"
-    className="hidden rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cobalt-deep md:inline-block"
+    className="hidden rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:bg-accent-deep md:inline-block"
   >
     Add item
   </Link>
@@ -26,7 +26,7 @@ const fab = (
   <Link
     href="/wardrobe/new"
     aria-label="Add item"
-    className="fixed right-4 bottom-[76px] z-20 grid size-[54px] place-items-center rounded-full bg-tangerine text-white shadow-[0_6px_18px_rgba(255,107,44,0.38)] md:hidden"
+    className="fixed right-4 bottom-[76px] z-20 grid size-[54px] place-items-center rounded-full bg-accent text-ink shadow-[0_6px_18px_rgba(183,102,80,0.35)] md:hidden"
   >
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="size-6">
       <path d="M12 5v14M5 12h14" />
@@ -41,6 +41,7 @@ export default async function WardrobePage() {
     return (
       <>
         <PageHeader
+          eyebrow="Wardrobe"
           title="Your wardrobe"
           description={`${demoItems.length} demo items. Connect Supabase to see your own.`}
           action={addButton}
@@ -89,6 +90,7 @@ export default async function WardrobePage() {
   return (
     <>
       <PageHeader
+        eyebrow="Wardrobe"
         title="Your wardrobe"
         description={
           count === 0
@@ -107,15 +109,20 @@ export default async function WardrobePage() {
         />
 
         {count === 0 ? (
-          <div className="rounded-xl border border-dashed border-line bg-wash/60 p-8 text-center md:p-12">
-            <p className="font-medium">Your wardrobe is empty</p>
-            <p className="mx-auto mt-1 max-w-[46ch] text-sm text-mute">
+          <div className="rounded-2xl border border-line bg-card p-8 text-center shadow-[0_12px_32px_#24282308] md:p-12">
+            <span className="block text-[11px] font-semibold tracking-[0.15em] uppercase text-mute">
+              Start here
+            </span>
+            <p className="mt-3 font-serif text-[28px] leading-[1.1] tracking-[-0.03em] md:text-[34px]">
+              Your wardrobe is empty.
+            </p>
+            <p className="mx-auto mt-3 max-w-[46ch] text-sm leading-relaxed text-mute">
               Photograph a few pieces of clothing to get started. AI will draft
               the details and you confirm them.
             </p>
             <Link
               href="/wardrobe/new"
-              className="mt-5 inline-block rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white"
+              className="mt-6 inline-block rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep"
             >
               Add your first item
             </Link>
