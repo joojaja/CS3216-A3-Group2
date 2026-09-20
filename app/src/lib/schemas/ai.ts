@@ -61,6 +61,27 @@ export const clothingAttributesSchema = z.object({
 
 export type ClothingAttributes = z.infer<typeof clothingAttributesSchema>;
 
+// What the user can edit. The confidence fields describe the AI's draft
+// rather than the garment, so they are never edited directly
+export type EditableAttributes = Omit<ClothingAttributes, "confidence_notes" | "uncertain_fields">;
+
+export const editableAttributesSchema = clothingAttributesSchema.omit({
+  confidence_notes: true,
+  uncertain_fields: true,
+});
+
+// Where the garment sits in a photo, on Gemini's native 0 to 1000 grid with
+// the origin at the top left. Used to crop when on-device segmentation fails
+export const garmentLocationSchema = z.object({
+  found: z.boolean(),
+  ymin: z.number().int().min(0).max(1000),
+  xmin: z.number().int().min(0).max(1000),
+  ymax: z.number().int().min(0).max(1000),
+  xmax: z.number().int().min(0).max(1000),
+});
+
+export type GarmentLocation = z.infer<typeof garmentLocationSchema>;
+
 export const occasionConstraintsSchema = z.object({
   occasion_type: z.string(),
   formality: z.enum(FORMALITY_LEVELS),

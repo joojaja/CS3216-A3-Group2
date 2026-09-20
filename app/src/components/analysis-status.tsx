@@ -10,21 +10,37 @@ import { useAnalysis } from "@/components/analysis-context";
 // Hidden on the add-item page itself, where the full form is visible.
 export function AnalysisStatus({ variant }: { variant: "rail" | "bar" }) {
   const pathname = usePathname();
-  const { step, file, preview } = useAnalysis();
+  const { step, file, preview, bg, crop, enhance } = useAnalysis();
 
-  const show =
-    pathname !== "/wardrobe/new" && file !== null && (step === "analyzing" || step === "review");
-
+  const editing = enhance.isolate.status === "running" || enhance.iron.status === "running";
+  const removing = (bg.status === "running" || crop.status === "running" || editing) && step === "pick";
   const analyzing = step === "analyzing";
-  const title = analyzing ? "Analysing your photo" : "Photo analysed";
+  const show =
+    pathname !== "/wardrobe/new" &&
+    file !== null &&
+    (removing || analyzing || step === "review");
+
+  // Both removal and analysis show a spinner; only the wording differs
+  const working = removing || analyzing;
+  const title = removing
+    ? "Preparing your photo"
+    : analyzing
+      ? "Analysing your photo"
+      : "Photo analysed";
   // The rail is narrow, so the second line doubles as the call to action
   // there and the separate button is only shown on the wider mobile bar
-  const detail = analyzing
-    ? "You can keep browsing"
-    : variant === "rail"
-      ? "Open to review it"
-      : "Waiting for your review";
-  const action = analyzing ? "View" : "Review";
+  const detail = removing
+    ? editing
+      ? "Editing with the image model"
+      : crop.status === "running"
+        ? "Cropping to the garment"
+        : "Removing the background"
+    : analyzing
+      ? "You can keep browsing"
+      : variant === "rail"
+        ? "Open to review it"
+        : "Waiting for your review";
+  const action = working ? "View" : "Review";
 
   return (
     <AnimatePresence>
@@ -47,12 +63,12 @@ export function AnalysisStatus({ variant }: { variant: "rail" | "bar" }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={preview} alt="" className="size-full object-cover" />
               )}
-              {analyzing && (
+              {working && (
                 <span className="absolute inset-0 grid place-items-center bg-cobalt-deep/50">
                   <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                 </span>
               )}
-              {!analyzing && (
+              {!working && (
                 <span className="absolute -right-0.5 -bottom-0.5 grid size-4 place-items-center rounded-full bg-ok">
                   <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" className="size-2.5">
                     <path d="M5 12l5 5L20 7" />
@@ -67,7 +83,7 @@ export function AnalysisStatus({ variant }: { variant: "rail" | "bar" }) {
             {variant === "bar" && (
               <span
                 className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-medium ${
-                  analyzing ? "bg-white/15 text-white" : "bg-tangerine text-white"
+                  working ? "bg-white/15 text-white" : "bg-tangerine text-white"
                 }`}
               >
                 {action}
