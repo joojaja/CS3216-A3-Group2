@@ -48,6 +48,10 @@ When an AI call fails, the user sees a short generic message ending in a six-cha
 
 The tier belongs to the Google project, not the key, so linking billing makes every call from that project paid. The outfit planner is text only and runs on `GOOGLE_GENERATIVE_AI_FREE_API_KEY`, a key from a separate project with no billing account. It never falls back to the main key: if the free key is missing, the planner reports that AI is not configured rather than spending. Photo analysis, purchase checks and image edits stay on the main key, where Google does not use the uploads to improve its models. Both keys are required.
 
+### Sample wardrobe
+
+To test the planner and the purchase check without photographing anything, run `npm run seed:wardrobe` from `app/`. It signs in with your own account (the password is prompted and never echoed) and adds 23 confirmed items: a minimalist, neutral-palette wardrobe for Singapore, from linen shirts and tailored shorts to an unlined blazer for air-conditioned rooms, sandals for rain, a canvas tote, one activewear piece and one pyjama set the planner should learn to leave alone. Attributes are written directly, so no AI call is made and nothing is spent. Each item gets a generated tile image in the same style as the app's placeholders. The samples are marked in `user_notes`; `npm run seed:wardrobe -- --remove` deletes only them, and `-- --reset` replaces them. Set `SEED_EMAIL` and `SEED_PASSWORD` to run it without prompts.
+
 ### Background removal
 
 Photos are cut out and placed on white before analysis. This runs entirely in the browser through `@imgly/background-removal` (AGPL-3.0) on `onnxruntime-web`, so the photo never leaves the device for this step. The first use downloads a 40 MB model from the IMG.LY CDN, which the browser then caches. Users can switch back to the original photo at any point, and HEIC photos skip the step because browsers other than Safari cannot decode them.
