@@ -53,7 +53,7 @@ export function AttributeFields({
 }) {
   function cls(name: keyof EditableAttributes) {
     return `${inputClass} ${
-      tagFor(name) === "low" ? "border-warn-line bg-[#FFFBEF]" : "border-line bg-white"
+      tagFor(name) === "low" ? "border-warn-line bg-[#faf6ea]" : "border-line bg-white"
     } disabled:opacity-60`;
   }
 
