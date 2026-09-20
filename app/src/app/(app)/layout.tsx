@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Rail, type RailUser } from "@/components/rail";
 import { ToastProvider } from "@/components/toast";
 import { AnalysisProvider } from "@/components/analysis-context";
+import { PlannerProvider } from "@/components/planner-context";
 import { createClient } from "@/lib/supabase/server";
 import { getSingaporeForecast } from "@/lib/weather";
 
@@ -33,15 +34,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <ToastProvider>
       <AnalysisProvider>
-        <div className="grid h-dvh grid-rows-[1fr_auto] md:grid-cols-[232px_1fr] md:grid-rows-1">
-          <Rail
-            user={user}
-            weather={forecast ? { short: forecast.short, source: forecast.source } : null}
-          />
-          <main className="order-first overflow-hidden md:order-none">
-            <div className="h-full overflow-y-auto">{children}</div>
-          </main>
-        </div>
+        <PlannerProvider>
+          <div className="grid h-dvh grid-rows-[1fr_auto] md:grid-cols-[232px_1fr] md:grid-rows-1">
+            <Rail
+              user={user}
+              weather={forecast ? { short: forecast.short, source: forecast.source } : null}
+            />
+            <main className="order-first overflow-hidden md:order-none">
+              <div className="h-full overflow-y-auto">{children}</div>
+            </main>
+          </div>
+        </PlannerProvider>
       </AnalysisProvider>
     </ToastProvider>
   );
