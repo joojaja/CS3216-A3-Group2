@@ -41,7 +41,7 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
       {/* Desktop rail */}
       <aside className="hidden h-full flex-col bg-cobalt pt-6 text-white md:flex">
         <Link href="/wardrobe" className="px-6 pb-6 text-xl font-semibold tracking-tight">
-          Drape
+          Wearabouts
         </Link>
         <nav className="relative flex flex-col">
           {active >= 0 && (

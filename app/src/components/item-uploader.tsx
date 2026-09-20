@@ -12,7 +12,7 @@ import { AttributeFields, inputClass, type Tag } from "@/components/attribute-fi
 // or corrects -> save. The AI output is a suggestion; the confirmed form is
 // what gets stored. All state lives in AnalysisProvider so it survives
 // switching tabs.
-export function ItemUploader() {
+export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {}) {
   const router = useRouter();
   const { toast } = useToast();
   const {
@@ -52,9 +52,11 @@ export function ItemUploader() {
     reset,
   } = useAnalysis();
   const inputRef = useRef<HTMLInputElement>(null);
+  const saveInFlight = useRef(false);
 
   async function save() {
-    if (!file) return;
+    if (!file || saveInFlight.current) return;
+    saveInFlight.current = true;
     setStep("saving");
     setError(null);
 
@@ -66,19 +68,26 @@ export function ItemUploader() {
     // is the shot itself, a cutout, a crop or an AI rendering
     form.set("image_source", choice);
 
-    const res = await fetch("/api/items", { method: "POST", body: form });
-    const body = await res.json();
-
-    if (!res.ok) {
-      setError(body.error ?? "Could not save item");
+    try {
+      const res = await fetch("/api/items", { method: "POST", body: form });
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body.error ?? "Could not save item");
+        setStep("review");
+        return;
+      }
+      if (typeof body.id !== "string") throw new Error("Invalid save response");
+      reset();
+      if (onSaved) { onSaved(body.id); return; }
+      toast("Saved to your wardrobe");
+      router.push("/wardrobe");
+      router.refresh();
+    } catch {
+      setError("We couldn't confirm the save. Your edits are still here. Check your wardrobe before retrying if your connection dropped.");
       setStep("review");
-      return;
+    } finally {
+      saveInFlight.current = false;
     }
-
-    reset();
-    toast("Saved to your wardrobe");
-    router.push("/wardrobe");
-    router.refresh();
   }
 
   const uncertain = new Set(attrs.uncertain_fields);
@@ -258,7 +267,7 @@ export function ItemUploader() {
       </div>
 
       <div className="grid gap-4 content-start">
-        {error && <p className="text-sm text-bad">{error}</p>}
+        {error && <p role="alert" className="text-sm text-bad">{error}</p>}
 
         {step === "pick" && (
           <div className="flex flex-wrap items-center gap-2.5">
@@ -289,7 +298,7 @@ export function ItemUploader() {
 
         {step === "analyzing" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid gap-4">
-            <p className="flex items-center gap-3 text-sm text-mute">
+            <p role="status" className="flex items-center gap-3 text-sm text-mute">
               <span className="size-[18px] animate-spin rounded-full border-[2.5px] border-line border-t-cobalt" />
               Extracting attributes. This takes a few seconds.
             </p>
