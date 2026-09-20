@@ -7,8 +7,23 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const requestSchema = z.object({
-  occasion_text: z.string().min(3).max(1000),
+  occasion_text: z.string().min(2).max(1000),
   requested_date: z.string().optional(),
+  // The conversation so far, so a short follow-up such as "more formal" can
+  // adjust the last outfits instead of being read as a new occasion
+  previous: z
+    .object({
+      messages: z.array(z.string().max(1000)).max(6),
+      outfits: z
+        .array(
+          z.object({
+            item_ids: z.array(z.uuid()).max(8),
+            explanation: z.string().max(1000),
+          }),
+        )
+        .max(3),
+    })
+    .optional(),
 });
 
 type WardrobeRow = {
@@ -83,9 +98,27 @@ export async function POST(request: Request) {
     )
     .join("\n");
 
-  const prompt = `You are the outfit recommendation engine for a wardrobe app used in Singapore.
+  const previous = input.previous;
+  const conversation = previous
+    ? `Earlier messages from the user in this conversation, oldest first:
+${previous.messages.map((message, i) => `${i + 1}. "${message}"`).join("\n")}
 
-Occasion request from the user: "${input.occasion_text}"
+Outfits you suggested most recently:
+${
+  previous.outfits.length
+    ? previous.outfits
+        .map((outfit, i) => `${i + 1}. items ${outfit.item_ids.join(", ")}: ${outfit.explanation}`)
+        .join("\n")
+    : "none"
+}
+
+New message from the user: "${input.occasion_text}"
+If the new message adjusts the earlier request (for example "more formal", "not the sneakers", "show another option"), keep the earlier occasion and apply the adjustment. If it describes a different occasion, plan for that instead. Do not repeat an outfit you already suggested unless asked to.`
+    : `Occasion request from the user: "${input.occasion_text}"`;
+
+  const prompt = `You are the outfit recommendation engine for a wardrobe app used in Singapore. You only ever answer by choosing outfits from the user's own wardrobe.
+
+${conversation}
 Requested date: ${input.requested_date ?? "not specified"}
 Singapore forecast: ${forecast?.summary ?? "unavailable, assume hot and humid tropical weather with possible rain"}
 User preferences: ${JSON.stringify(profile ?? {})}
@@ -94,7 +127,8 @@ Available wardrobe items (id: description):
 ${itemList}
 
 Rules:
-- Return between 1 and 3 complete outfits
+- If the message is not a request to choose or adjust an outfit from this wardrobe (for example general fashion questions, shopping advice, requests to buy things, or unrelated topics), set is_outfit_request to false, return no outfits, and write one short plain sentence in decline_message saying you can only plan outfits from their wardrobe and inviting them to describe an occasion
+- Otherwise set is_outfit_request to true, leave decline_message empty and return between 1 and 3 complete outfits
 - You may only use item IDs from the list above. Never invent IDs
 - A complete outfit covers the body: typically a top and bottom plus footwear, or a dress plus footwear
 - Penalize heavy or warm items when the forecast is hot; flag rain risk where relevant
@@ -110,6 +144,15 @@ ${UNTRUSTED_CONTENT_RULE}`;
       schema: outfitSelectionSchema,
       prompt,
     });
+
+    if (!object.is_outfit_request) {
+      return Response.json({
+        declined: true,
+        message:
+          object.decline_message.trim() ||
+          "I can only plan outfits from your wardrobe. Describe an occasion and I will suggest something.",
+      });
+    }
 
     const validIds = new Set((items as WardrobeRow[]).map((item) => item.id));
     const outfits = object.outfits
