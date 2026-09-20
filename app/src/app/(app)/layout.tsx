@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { Rail, type RailUser } from "@/components/rail";
 import { ToastProvider } from "@/components/toast";
 import { AnalysisProvider } from "@/components/analysis-context";
 import { createClient } from "@/lib/supabase/server";
 import { getSingaporeForecast } from "@/lib/weather";
+
+export const metadata: Metadata = { robots: { index: false, follow: false }, alternates: { canonical: null } };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
