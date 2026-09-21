@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { trackFunnel } from "@/lib/analytics";
+
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import type { ClothingAttributes, PurchaseEvaluation } from "@/lib/schemas/ai";
 import { GarmentIcon, tintFor } from "@/components/garment-icon";
@@ -40,7 +42,13 @@ export function PurchaseEvaluator() {
   const [result, setResult] = useState<Result | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
   function pickFile(next: File | null) {
+    if (next && (next.size > 8 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp", "image/heic"].includes(next.type))) {
+      setError("Choose a JPEG, PNG, WebP or HEIC image up to 8 MB.");
+      return;
+    }
     setFile(next);
     setResult(null);
     setError(null);
@@ -48,24 +56,30 @@ export function PurchaseEvaluator() {
   }
 
   async function evaluate() {
-    if (!file) return;
+    if (!file || loading) return;
     setLoading(true);
     setError(null);
 
     const form = new FormData();
     form.set("image", file);
 
-    const res = await fetch("/api/purchases/evaluate", { method: "POST", body: form });
-    const body = await res.json();
-
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(body.error ?? "Evaluation failed");
-      return;
+    trackFunnel("purchase_requested");
+    try {
+      const res = await fetch("/api/purchases/evaluate", { method: "POST", body: form });
+      const body = await res.json();
+      if (!res.ok) {
+        trackFunnel("purchase_failed");
+        setError(body.error ?? "Evaluation failed. Please try again.");
+        return;
+      }
+      setResult(body);
+      trackFunnel("purchase_evaluated");
+    } catch {
+      trackFunnel("purchase_failed");
+      setError("We couldn't finish the comparison. Your photo is still here. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setResult(body);
   }
 
   const uncertain = new Set(result?.attributes.uncertain_fields ?? []);
@@ -112,7 +126,7 @@ export function PurchaseEvaluator() {
       </div>
 
       <div className="grid content-start gap-4">
-        {error && <p className="text-sm text-bad">{error}</p>}
+        {error && <p role="alert" className="text-sm text-bad">{error}</p>}
 
         {!result && !loading && (
           <div>

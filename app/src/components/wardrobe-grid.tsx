@@ -32,6 +32,7 @@ export function WardrobeGrid({ items }: { items: WardrobeItem[] }) {
             <button
               key={f.key}
               type="button"
+              aria-pressed={filter === f.key}
               onClick={() => setFilter(f.key)}
               className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] transition ${
                 filter === f.key

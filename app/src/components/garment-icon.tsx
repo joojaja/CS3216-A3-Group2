@@ -72,30 +72,30 @@ export function GarmentIcon({
 // Tints for placeholder tiles, keyed by the item's primary colour where we
 // recognise it, otherwise a neutral wash.
 const TINTS: Record<string, [string, string]> = {
-  white: ["#ecebe3", "#384436"],
-  "off-white": ["#ecebe3", "#384436"],
-  cream: ["#f5efdf", "#8a6a1f"],
-  black: ["#e4e4dc", "#1a1c19"],
-  grey: ["#e4e4dc", "#4a4f47"],
-  gray: ["#e4e4dc", "#4a4f47"],
-  navy: ["#dfe3e8", "#2f3f5c"],
-  blue: ["#dfe3e8", "#2f3f5c"],
-  indigo: ["#dde1ea", "#3b4a6b"],
-  denim: ["#dde1ea", "#3b4a6b"],
-  green: ["#e2e8dc", "#55704f"],
-  sage: ["#e2e8dc", "#55704f"],
-  olive: ["#e6e8d6", "#5b6b2f"],
-  red: ["#f1dcd7", "#a32e30"],
-  pink: ["#f3dfe0", "#a4506a"],
-  rose: ["#f3dfe0", "#a4506a"],
-  orange: ["#f6e2d6", "#b76650"],
-  apricot: ["#f6e2d6", "#b76650"],
-  yellow: ["#f5edd2", "#8a6a1f"],
-  butter: ["#f5edd2", "#8a6a1f"],
-  brown: ["#eddfd2", "#6b4a2e"],
-  beige: ["#efe6d6", "#7d6647"],
-  tan: ["#efe6d6", "#7d6647"],
-  purple: ["#e8dfe9", "#5b3f6b"],
+  white: ["#ECEAE2", "#666D61"],
+  "off-white": ["#ECEAE2", "#666D61"],
+  cream: ["#FFF6E5", "#A46B00"],
+  black: ["#E7E6E0", "#292D28"],
+  grey: ["#E7E6E0", "#62675F"],
+  gray: ["#E7E6E0", "#62675F"],
+  navy: ["#E0E5E7", "#3A5264"],
+  blue: ["#E0E5E7", "#3A5264"],
+  indigo: ["#DEE4E7", "#666D61"],
+  denim: ["#DEE4E7", "#666D61"],
+  green: ["#E5EADD", "#55704F"],
+  sage: ["#E5EADD", "#55704F"],
+  olive: ["#EAF0DC", "#4E6B1F"],
+  red: ["#FBE4E2", "#B3261E"],
+  pink: ["#FBDDE8", "#B33A69"],
+  rose: ["#FBDDE8", "#B33A69"],
+  orange: ["#F3E3D9", "#B87962"],
+  apricot: ["#F3E3D9", "#B87962"],
+  yellow: ["#FFF1CC", "#A46B00"],
+  butter: ["#FFF1CC", "#A46B00"],
+  brown: ["#F1E4DA", "#7A4A25"],
+  beige: ["#F5EDE2", "#8A6A45"],
+  tan: ["#F5EDE2", "#8A6A45"],
+  purple: ["#E7DAF2", "#5B2C86"],
 };
 
 export function tintFor(colour?: string | null): { bg: string; fg: string } {
@@ -103,6 +103,6 @@ export function tintFor(colour?: string | null): { bg: string; fg: string } {
   const hit =
     TINTS[key] ??
     Object.entries(TINTS).find(([name]) => key.includes(name))?.[1] ??
-    (["#ecebe3", "#384436"] as [string, string]);
+    (["#ECEAE2", "#666D61"] as [string, string]);
   return { bg: hit[0], fg: hit[1] };
 }

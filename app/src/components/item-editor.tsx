@@ -1,5 +1,7 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -45,36 +47,47 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
   async function save() {
     setBusy("save");
     setError(null);
-    const res = await fetch(`/api/items?id=${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ attributes: attrs, user_notes: notes }),
-    });
-    const body = await res.json();
-    setBusy(null);
-
-    if (!res.ok) {
-      setError(body.error ?? "Could not save changes");
-      return;
+    try {
+      const res = await fetch(`/api/items?id=${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attributes: attrs, user_notes: notes }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body.error ?? "Could not save changes");
+        return;
+      }
+      setSaved({ attrs, notes });
+      trackFunnel("item_updated");
+      toast("Changes saved");
+      router.refresh();
+    } catch {
+      setError("Could not confirm the save. Your edits are still here. Please check your connection and retry.");
+    } finally {
+      setBusy(null);
     }
-    setSaved({ attrs, notes });
-    toast("Changes saved");
-    router.refresh();
   }
 
   async function remove() {
     if (!confirm("Delete this item and its photo? This cannot be undone.")) return;
     setBusy("delete");
     setError(null);
-    const res = await fetch(`/api/items?id=${item.id}`, { method: "DELETE" });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/items?id=${item.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        setError("Could not delete the item. Try again.");
+        return;
+      }
+      toast("Item removed");
+      trackFunnel("item_deleted");
+      router.push("/wardrobe");
+      router.refresh();
+    } catch {
+      setError("Could not confirm deletion. Check your wardrobe before trying again.");
+    } finally {
       setBusy(null);
-      setError("Could not delete the item. Try again.");
-      return;
     }
-    toast("Item removed");
-    router.push("/wardrobe");
-    router.refresh();
   }
 
   const tint = tintFor(item.primary_colour);

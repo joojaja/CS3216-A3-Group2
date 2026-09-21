@@ -25,7 +25,7 @@ const EXAMPLES = [
 // The thread and any running request live in PlannerProvider, so they survive
 // switching tabs.
 export function OutfitPlanner() {
-  const { turns, latest, seen, markSeen, send } = usePlanner();
+  const { turns, latest, seen, markSeen, setDraft } = usePlanner();
   const bottom = useRef<HTMLDivElement>(null);
 
   // Being on this page is what counts as having seen the reply, which
@@ -47,7 +47,7 @@ export function OutfitPlanner() {
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-[880px] flex-1 px-5 py-5 md:px-9 md:py-6">
         {turns.length === 0 ? (
-          <Intro onPick={(text) => void send(text)} />
+          <Intro onPick={setDraft} />
         ) : (
           <div className="grid gap-7">
             {turns.map((turn, index) => (
@@ -74,13 +74,8 @@ function Intro({ onPick }: { onPick: (text: string) => void }) {
       animate={{ opacity: 1, y: 0 }}
       className="mx-auto max-w-[560px] py-10 text-center md:py-16"
     >
-      <span className="block text-[11px] font-semibold tracking-[0.15em] uppercase text-mute">
-        Start a plan
-      </span>
-      <h2 className="mt-3 font-serif text-[30px] leading-[1.08] tracking-[-0.04em] md:text-[36px]">
-        What is the occasion?
-      </h2>
-      <p className="mt-3 text-[14.5px] leading-relaxed text-mute">
+      <h2 className="text-lg font-semibold tracking-tight">What is the occasion?</h2>
+      <p className="mt-2 text-[14.5px] leading-relaxed text-mute">
         Describe where you are going and when. You get up to three outfits from your own
         wardrobe, each with its reasoning. Then adjust them in a follow-up: more formal, not
         the sneakers, show another option.
@@ -91,7 +86,7 @@ function Intro({ onPick }: { onPick: (text: string) => void }) {
             key={example}
             type="button"
             onClick={() => onPick(example)}
-            className="min-h-[42px] rounded-full border border-line bg-card px-4 py-2 text-[13px] transition hover:border-cobalt hover:bg-soft"
+            className="rounded-full border border-line px-3.5 py-2 text-[13px] transition hover:border-cobalt hover:bg-wash"
           >
             {example}
           </button>
@@ -119,7 +114,8 @@ function TurnView({
       transition={{ duration: 0.35, ease: [0.2, 0.8, 0.3, 1] }}
       className="grid gap-4"
     >
-      <p className="ml-auto max-w-[min(85%,560px)] rounded-2xl rounded-br-md bg-cobalt px-4 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap text-white">
+      <p className="rounded-2xl border border-line bg-wash px-5 py-4 text-[14.5px] leading-relaxed whitespace-pre-wrap text-ink">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-mute">Your occasion</span>
         {turn.message}
       </p>
 
@@ -142,24 +138,16 @@ function TurnView({
       )}
 
       {turn.status === "error" && (
-        <div className="grid max-w-[560px] gap-2.5 rounded-2xl rounded-bl-md bg-bad-light px-4 py-3 text-[14px] text-bad">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex-1">{turn.error}</span>
-            {isLatest && (
-              <button
-                type="button"
-                onClick={() => void retry()}
-                className="rounded-lg border border-bad-line bg-white px-3 py-1.5 text-[13px] font-medium"
-              >
-                Try again
-              </button>
-            )}
-          </div>
-          {/* Only present when the server runs in development */}
-          {turn.errorDetail && (
-            <pre className="overflow-x-auto rounded-lg border border-bad-line bg-white/70 px-3 py-2 text-[12px] leading-relaxed whitespace-pre-wrap break-words text-bad/90">
-              <b className="font-semibold">Development only.</b> {turn.errorDetail}
-            </pre>
+        <div className="flex max-w-[560px] flex-wrap items-center gap-3 rounded-2xl rounded-bl-md bg-bad-light px-4 py-3 text-[14px] text-bad">
+          <span className="flex-1">{turn.error}</span>
+          {isLatest && (
+            <button
+              type="button"
+              onClick={() => void retry()}
+              className="rounded-lg border border-bad-line bg-white px-3 py-1.5 text-[13px] font-medium"
+            >
+              Try again
+            </button>
           )}
         </div>
       )}
@@ -235,11 +223,9 @@ function OutfitCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.4, ease: [0.2, 0.8, 0.3, 1] }}
-      className="grid gap-3.5 rounded-xl border border-line bg-card p-5 shadow-[0_12px_32px_#24282308]"
+      className="grid gap-3.5 rounded-xl border border-line p-5"
     >
-      <h3 className="text-[10px] font-semibold tracking-[0.13em] uppercase text-mute">
-        Outfit {index + 1}
-      </h3>
+      <h3 className="text-base font-semibold">Outfit {index + 1}</h3>
 
       <div className="flex gap-3 pb-5">
         {rec.item_ids.map((id, i) => {
@@ -258,18 +244,7 @@ function OutfitCard({
               className="relative grid aspect-[3/4] w-full max-w-[120px] place-items-center rounded-[10px]"
               style={{ background: tint.bg, color: tint.fg }}
             >
-              {item?.signed_image_url ? (
-                // Supabase signed URLs expire and come from the configured project,
-                // so use the browser image element instead of a fixed Next.js host rule.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.signed_image_url}
-                  alt={label}
-                  className="size-full rounded-[10px] bg-white object-contain"
-                />
-              ) : (
-                <GarmentIcon kind={item?.category ?? "top"} className="w-[52%]" />
-              )}
+              <GarmentIcon kind={item?.category ?? "top"} className="w-[52%]" />
               <span className="absolute inset-x-0 -bottom-5 text-center text-xs text-mute capitalize">
                 {label}
               </span>
@@ -279,9 +254,7 @@ function OutfitCard({
       </div>
 
       <div className="rounded-xl bg-wash px-4 py-3.5 text-[14.5px] leading-relaxed text-body">
-        <b className="mb-1 block text-[10px] font-semibold tracking-[0.13em] uppercase text-ink">
-          Why this
-        </b>
+        <b className="block font-semibold text-ink">Why this</b>
         {rec.explanation}
       </div>
 
@@ -306,7 +279,7 @@ function OutfitCard({
               <button
                 type="button"
                 onClick={() => give("wore")}
-                className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep"
+                className="rounded-lg bg-tangerine px-4 py-2.5 text-sm font-medium text-white transition hover:brightness-95"
               >
                 Wear this
               </button>
@@ -315,7 +288,7 @@ function OutfitCard({
                   type="button"
                   onClick={onAnother}
                   disabled={busy}
-                  className="rounded-lg border border-line px-5 py-3 text-sm font-medium transition hover:bg-soft disabled:opacity-40"
+                  className="rounded-lg border border-line px-4 py-2.5 text-sm font-medium transition hover:bg-wash disabled:opacity-40"
                 >
                   Show another
                 </button>
@@ -325,7 +298,7 @@ function OutfitCard({
                   type="button"
                   aria-label="I like this outfit"
                   onClick={() => give("liked")}
-                  className="grid size-[44px] place-items-center rounded-full border border-line transition hover:border-cobalt"
+                  className="grid size-[38px] place-items-center rounded-full border border-line transition hover:border-cobalt"
                 >
                   <ThumbIcon />
                 </button>
@@ -337,7 +310,7 @@ function OutfitCard({
                     setReasonsOpen((open) => !open);
                     setReasons(new Set());
                   }}
-                  className={`grid size-[44px] place-items-center rounded-full border transition ${
+                  className={`grid size-[38px] place-items-center rounded-full border transition ${
                     reasonsOpen ? "border-ink bg-ink text-white" : "border-line hover:border-cobalt"
                   }`}
                 >
@@ -395,7 +368,7 @@ function OutfitCard({
                         type="button"
                         disabled={reasons.size === 0}
                         onClick={() => give("rejected", [...reasons])}
-                        className="rounded-lg bg-accent px-3.5 py-2 text-sm font-semibold text-ink disabled:opacity-40"
+                        className="rounded-lg bg-cobalt px-3.5 py-2 text-sm font-medium text-white disabled:opacity-40"
                       >
                         Send feedback
                       </button>
@@ -431,7 +404,7 @@ function Composer() {
   }
 
   return (
-    <div className="sticky bottom-0 mt-auto border-t border-line bg-paper/95 px-5 pt-3 pb-3 backdrop-blur md:px-9">
+    <div className="sticky bottom-0 mt-auto border-t border-line bg-white/95 px-5 pt-3 pb-3 backdrop-blur md:px-9">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -456,7 +429,7 @@ function Composer() {
               ? "Adjust the outfits or describe a new occasion"
               : "Describe the occasion, for example a casual outdoor lunch tomorrow"
           }
-          className="max-h-40 min-h-0 flex-1 resize-none bg-transparent py-2 text-[14.5px] leading-relaxed focus:outline-none"
+          className="max-h-40 flex-1 resize-none bg-transparent py-2 text-[14.5px] leading-relaxed focus:outline-none"
         />
         {busy ? (
           <button
@@ -472,9 +445,9 @@ function Composer() {
         ) : (
           <button
             type="submit"
-            aria-label="Send"
+            aria-label="Plan outfits"
             disabled={!canSend}
-            className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-ink transition hover:bg-accent-deep disabled:opacity-40"
+            className="grid size-9 shrink-0 place-items-center rounded-xl bg-cobalt text-white transition hover:bg-cobalt-deep disabled:opacity-40"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="size-[18px]">
               <path d="M12 19V5M5 12l7-7 7 7" />

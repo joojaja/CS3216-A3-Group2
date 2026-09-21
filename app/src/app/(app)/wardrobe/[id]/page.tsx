@@ -61,7 +61,6 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   return (
     <>
       <PageHeader
-        eyebrow="Wardrobe item"
         title={titleOf(item)}
         description={
           live
@@ -71,7 +70,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         action={
           <Link
             href="/wardrobe"
-            className="inline-block rounded-lg border border-line px-5 py-3 text-sm font-medium transition hover:bg-soft"
+            className="inline-block rounded-lg border border-line px-4 py-2.5 text-sm font-medium transition hover:bg-wash"
           >
             Back to wardrobe
           </Link>
