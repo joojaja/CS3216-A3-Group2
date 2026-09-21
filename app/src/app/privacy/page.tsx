@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PrivacyBackButton } from "@/components/privacy-back-button";
 import "../landing.css";
 import "../onboarding/onboarding.css";
 
@@ -17,6 +18,7 @@ export default function PrivacyPage() {
         <Link href="/login">Sign in</Link>
       </header>
       <article className="privacy-copy">
+        <PrivacyBackButton />
         <h1>Your wardrobe stays yours.</h1>
         <p>
           Wearabouts stores your wardrobe photos and preferences in your private
@@ -52,9 +54,6 @@ export default function PrivacyPage() {
           upload sensitive documents or images you do not have permission to
           use.
         </p>
-        <Link className="onboarding-secondary" href="/">
-          Back to Wearabouts
-        </Link>
       </article>
     </main>
   );
