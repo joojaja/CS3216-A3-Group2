@@ -258,7 +258,18 @@ function OutfitCard({
               className="relative grid aspect-[3/4] w-full max-w-[120px] place-items-center rounded-[10px]"
               style={{ background: tint.bg, color: tint.fg }}
             >
-              <GarmentIcon kind={item?.category ?? "top"} className="w-[52%]" />
+              {item?.signed_image_url ? (
+                // Supabase signed URLs expire and come from the configured project,
+                // so use the browser image element instead of a fixed Next.js host rule.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.signed_image_url}
+                  alt={label}
+                  className="size-full rounded-[10px] bg-white object-contain"
+                />
+              ) : (
+                <GarmentIcon kind={item?.category ?? "top"} className="w-[52%]" />
+              )}
               <span className="absolute inset-x-0 -bottom-5 text-center text-xs text-mute capitalize">
                 {label}
               </span>
