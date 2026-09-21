@@ -12,7 +12,7 @@ export default function PrivacyPage() {
     <main className="drape-public onboarding-page">
       <header className="onboarding-header">
         <Link className="onboarding-wordmark" href="/">
-          Wearabouts.
+          Wearabouts
         </Link>
         <Link href="/login">Sign in</Link>
       </header>

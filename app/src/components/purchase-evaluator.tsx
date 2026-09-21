@@ -41,6 +41,7 @@ export function PurchaseEvaluator() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
@@ -53,6 +54,12 @@ export function PurchaseEvaluator() {
     setResult(null);
     setError(null);
     setPreview(next ? URL.createObjectURL(next) : null);
+  }
+
+  function handlePhoto(next: File | null) {
+    pickFile(next);
+    if (inputRef.current) inputRef.current.value = "";
+    if (cameraRef.current) cameraRef.current.value = "";
   }
 
   async function evaluate() {
@@ -115,9 +122,35 @@ export function PurchaseEvaluator() {
           ref={inputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/heic"
-          onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
           className="sr-only"
         />
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
+          className="sr-only"
+        />
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => cameraRef.current?.click()}
+            disabled={loading}
+            className="rounded-lg bg-cobalt px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+          >
+            Take photo
+          </button>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={loading}
+            className="rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink transition hover:border-cobalt hover:text-cobalt disabled:opacity-40"
+          >
+            Choose image
+          </button>
+        </div>
         <p className="mt-2.5 text-xs leading-relaxed text-mute">
           {file
             ? `${file.name}, ${(file.size / 1024 / 1024).toFixed(1)} MB`
