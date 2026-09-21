@@ -25,7 +25,7 @@ export function ConfidenceTag({ tag }: { tag: Tag }) {
         tag === "low" ? "bg-warn-light text-warn" : "bg-cobalt-light text-cobalt-deep"
       }`}
     >
-      {tag === "low" ? "Check this" : "AI drafted"}
+      {tag === "low" ? "Check this" : "AI analysed"}
     </span>
   );
 }
