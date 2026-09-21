@@ -13,6 +13,13 @@ const uiFont = localFont({
   display: "swap",
 });
 
+// Fraunces, the landing page heading face, exposed as the app's font-serif
+const serifFont = localFont({
+  src: [{ path: "../../public/landing/font-1.woff", weight: "400" }],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -53,7 +60,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${uiFont.variable} h-full antialiased`}>
+    <html lang="en" className={`${uiFont.variable} ${serifFont.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {children}
         <AnalyticsConsent />
