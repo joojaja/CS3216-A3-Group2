@@ -44,7 +44,7 @@ function sourceText(chart: SizeChart) {
   return `${chart.brand} size guide`;
 }
 
-function ChartTable({ chart, unit, highlight }: { chart: SizeChart; unit: Unit; highlight?: number }) {
+export function ChartTable({ chart, unit, highlight }: { chart: SizeChart; unit: Unit; highlight?: number }) {
   const rows = toBodyRows(chart);
   const keys = MEASUREMENTS.map((m) => m.key).filter((k) => rows.some((r) => r.ranges[k]));
   return (

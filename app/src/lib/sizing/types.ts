@@ -44,3 +44,24 @@ export type SizeChart = {
   rows: { label: string; ranges: Partial<Record<MeasurementKey, [number, number]>> }[];
   source: { type: "product" | "stored" | "web"; url?: string; retrievedAt: string };
 };
+
+// What the app understood about the item being bought. Every entry point
+// (screenshot, manual picker, later the assistant and links) produces one,
+// and the user can correct any field before a size is matched.
+export type PurchaseContext = {
+  source: "screenshot" | "manual" | "assistant" | "link";
+  brand: string | null;
+  productName: string | null;
+  category: SizingCategory | null;
+  sizeRange: SizeRange | "unisex" | null;
+  // Only when the input carried the product's own size chart, already
+  // validated. Null when there was none or it failed the checks
+  chart: SizeChart | null;
+  extraction: {
+    confidence: "high" | "medium" | "low";
+    uncertainFields: string[];
+    isProductPage: boolean;
+    // Why a chart seen in the screenshot was not used, if one was dropped
+    chartDropped?: string;
+  } | null;
+};

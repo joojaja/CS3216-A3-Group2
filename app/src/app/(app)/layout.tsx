@@ -3,6 +3,7 @@ import { Rail, type RailUser } from "@/components/rail";
 import { ToastProvider } from "@/components/toast";
 import { AnalysisProvider } from "@/components/analysis-context";
 import { PlannerProvider } from "@/components/planner-context";
+import { SizingProvider } from "@/components/sizing-context";
 import { createClient } from "@/lib/supabase/server";
 import { getSingaporeForecast } from "@/lib/weather";
 
@@ -35,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <ToastProvider>
       <AnalysisProvider>
         <PlannerProvider>
+          <SizingProvider>
           <div className="grid h-dvh grid-rows-[1fr_auto] md:grid-cols-[232px_1fr] md:grid-rows-1">
             <Rail
               user={user}
@@ -44,6 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <div className="h-full overflow-y-auto">{children}</div>
             </main>
           </div>
+          </SizingProvider>
         </PlannerProvider>
       </AnalysisProvider>
     </ToastProvider>
