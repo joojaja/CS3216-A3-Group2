@@ -13,8 +13,11 @@ export type SingaporeForecast = {
   // Calendar date in Singapore (YYYY-MM-DD) that the forecast is for
   date: string;
   summary: string;
-  // Compact form for the navigation rail, e.g. "31 to 33°C. Thundery showers"
+  // Compact condition summary retained for non-rail consumers.
   short: string;
+  temperature: string | null;
+  humidity: string | null;
+  condition: string | null;
   source: string;
   fetchedAt: string;
 };
@@ -65,7 +68,16 @@ function toForecast(
     .filter(Boolean)
     .join(". ");
 
-  return { date, summary, short, source, fetchedAt: new Date().toISOString() };
+  return {
+    date,
+    summary,
+    short,
+    temperature,
+    humidity,
+    condition,
+    source,
+    fetchedAt: new Date().toISOString(),
+  };
 }
 
 async function fetchRecord(url: string) {
