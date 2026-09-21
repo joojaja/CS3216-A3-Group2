@@ -120,3 +120,16 @@ export const purchaseEvaluationSchema = z.object({
 });
 
 export type PurchaseEvaluation = z.infer<typeof purchaseEvaluationSchema>;
+
+export const exploreSelectionSchema = z.object({
+  recommendations: z
+    .array(
+      z.object({
+        product_id: z.string().min(1),
+        reason: z.string().min(1).max(240),
+      }),
+    )
+    .length(10),
+});
+
+export type ExploreSelection = z.infer<typeof exploreSelectionSchema>;

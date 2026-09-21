@@ -32,6 +32,7 @@ drop table if exists public.recommendation_feedback cascade;
 drop table if exists public.outfit_recommendations cascade;
 drop table if exists public.outfit_requests cascade;
 drop table if exists public.purchase_evaluations cascade;
+drop table if exists public.explore_feed_cache cascade;
 drop table if exists public.wardrobe_items cascade;
 drop table if exists public.user_profiles cascade;
 drop table if exists public.catalogue_items cascade;
@@ -171,6 +172,17 @@ create table public.purchase_evaluations (
 
 create index purchase_evaluations_user_idx on public.purchase_evaluations (user_id);
 
+-- Explore feed ---------------------------------------------------------------
+
+-- One generated feed per user. The selected catalogue IDs and short reasons
+-- are stored as JSON because the feed is generated once after item five.
+create table public.explore_feed_cache (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  wardrobe_item_ids uuid[] not null,
+  recommendations jsonb not null,
+  created_at timestamptz not null default now()
+);
+
 -- Curated catalogue ----------------------------------------------------------
 
 create table public.catalogue_items (
@@ -199,6 +211,7 @@ alter table public.outfit_requests enable row level security;
 alter table public.outfit_recommendations enable row level security;
 alter table public.recommendation_feedback enable row level security;
 alter table public.purchase_evaluations enable row level security;
+alter table public.explore_feed_cache enable row level security;
 alter table public.catalogue_items enable row level security;
 
 create policy "own profile" on public.user_profiles
@@ -227,6 +240,11 @@ create policy "own feedback" on public.recommendation_feedback
   with check ((select auth.uid()) = user_id);
 
 create policy "own purchase evaluations" on public.purchase_evaluations
+  for all to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
+
+create policy "own explore feed" on public.explore_feed_cache
   for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
