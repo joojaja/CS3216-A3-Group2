@@ -43,7 +43,8 @@ function typedFrom(profile: MeasurementProfile | null, unit: Unit) {
   ) as Record<MeasurementKey, string>;
 }
 
-function Choice<T extends string | null>({
+// Toggle buttons for a single choice. Shared with the sizing picker
+export function Choice<T extends string | null>({
   legend,
   options,
   value,
@@ -85,9 +86,12 @@ type Props = {
   // category needs, and a single field for "we need one more"
   fields?: MeasurementKey[];
   onSaved?: (profile: MeasurementProfile) => void;
+  // False in the unconfigured demo: the numbers are used for this visit
+  // only and nothing is sent to the server
+  persist?: boolean;
 };
 
-export function MeasurementWizard({ initial, fields, onSaved }: Props) {
+export function MeasurementWizard({ initial, fields, onSaved, persist = true }: Props) {
   const steps = fields ?? MEASUREMENTS.map((m) => m.key);
   const single = steps.length === 1;
   const summaryIndex = steps.length;
@@ -143,6 +147,10 @@ export function MeasurementWizard({ initial, fields, onSaved }: Props) {
   function save() {
     setSaveError(null);
     const profile = buildProfile();
+    if (!persist) {
+      onSaved?.(profile);
+      return;
+    }
     startTransition(async () => {
       try {
         const result = await saveMeasurements(profile);
