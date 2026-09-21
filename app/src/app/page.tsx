@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { siteUrl, siteDescription } from "@/lib/site";
 import Image from "next/image";
 import "./landing.css";
 import LandingStory from "@/components/landing-story";
@@ -25,6 +26,10 @@ const features = [
 export default function LandingPage() {
   return (
     <main className="drape-public">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org", "@type": "WebSite", name: "Wearabouts",
+        url: siteUrl, description: siteDescription, inLanguage: "en-SG",
+      }).replace(/</g, "\\u003c") }} />
       <a className="drape-skip" href="#main-content">
         Skip to content
       </a>

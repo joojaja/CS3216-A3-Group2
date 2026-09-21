@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cobalt: #2549e8;
-  --color-cobalt-deep: #1733ae;
-  --color-cobalt-light: #dce4ff;
-  --color-cobalt-faint: #c6d2ff;
-  --color-tangerine: #ff6b2c;
-  --color-tangerine-light: #ffe6d9;
-  --color-wash: #eef1fb;
-  --color-line: #d8def2;
-  --color-ink: #12163a;
-  --color-mute: #5a618c;
-  --color-body: #30365e;
+  --color-cobalt: #384b35;
+  --color-cobalt-deep: #263724;
+  --color-cobalt-light: #e4e9dc;
+  --color-cobalt-faint: #d5d9cf;
+  --color-tangerine: #e59b87;
+  --color-tangerine-light: #f6e3dc;
+  --color-wash: #eae9e1;
+  --color-line: #d4d5cb;
+  --color-ink: #1a1c19;
+  --color-mute: #656a61;
+  --color-body: #41473e;
   --color-ok: #1b7a48;
   --color-ok-light: #e6f6ec;
   --color-warn: #a46b00;
@@ -65,7 +65,7 @@
 }
 
 body {
-  background: #ffffff;
+  background: #f6f3ec;
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
 }
@@ -75,7 +75,7 @@ body {
     background: linear-gradient(
       100deg,
       var(--color-wash) 30%,
-      #e4e9f9 50%,
+      #f6f3ec 50%,
       var(--color-wash) 70%
     );
     background-size: 240% 100%;
@@ -162,4 +162,42 @@ body {
   .analytics-banner > div {
     justify-content: flex-end;
   }
+}
+
+@font-face {
+  font-family: WearaboutsEditorial;
+  src: url("/landing/font-1.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+.wearabouts-app { background: #f6f3ec; }
+.app-page-header { background: #f6f3ec; }
+.app-page-header h1 { font-family: WearaboutsEditorial, Georgia, serif; font-weight: 400; font-size: clamp(32px, 3.5vw, 48px); letter-spacing: -.045em; line-height: 1.12; }
+.app-page-header p { line-height: 1.65; margin-top: 12px; }
+.app-rail { background: #171916; }
+.app-wordmark { letter-spacing: -1.3px; font-size: 25px; }
+.app-wordmark span { font-weight: 400; }
+.wearabouts-app main { min-width: 0; }
+.wearabouts-app main > div > div:not(.flex), .wearabouts-app main > div > section { max-width: 1440px; margin-inline: auto; }
+.wearabouts-app main h2 { font-family: WearaboutsEditorial, Georgia, serif; font-size: 28px; font-weight: 400; letter-spacing: -.035em; }
+.wearabouts-app main :is(article, aside, form.rounded-2xl) { background-color: #fcfbf7; }
+.wearabouts-app main :is(.rounded-xl, .rounded-2xl) { border-radius: 20px; }
+.wearabouts-app main :is(button, a).bg-cobalt,
+.wearabouts-app :is(button, a).bg-tangerine { background: #e59b87; color: #1a1c19; }
+.wearabouts-app main :is(button, a).bg-cobalt:hover,
+.wearabouts-app :is(button, a).bg-tangerine:hover { background: #dc8c77; }
+.wearabouts-app main :is(button, input, select) { min-height: 44px; }
+.wearabouts-app main :is(button, input, select, textarea).rounded-lg { border-radius: 12px; }
+.wearabouts-app :focus-visible { outline: 3px solid #7f473b; outline-offset: 3px; }
+.wearabouts-app main :is(input, select, textarea) { font-size: 16px; }
+.app-skip { position: fixed; left: 16px; top: -80px; z-index: 120; background: #e59b87; color: #1a1c19; padding: 12px 20px; border-radius: 12px; }
+.app-skip:focus { top: 12px; }
+.app-mobile-header { background: #f6f3ec; border-bottom: 1px solid #d4d5cb; padding: 16px 20px; }
+.app-stats > div { background: #eae9e1; border-color: transparent; border-radius: 18px; padding: 20px; }
+.app-stats b { font-family: WearaboutsEditorial, Georgia, serif; font-weight: 400; font-size: 34px; }
+.app-mobile-nav { padding-bottom: max(6px, env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .app-page-header { padding-top: 40px; padding-bottom: 28px; } }
+@media (max-width: 767px) { .app-stats > div { padding: 14px 10px; } .wearabouts-app main h2 { font-size: 25px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
