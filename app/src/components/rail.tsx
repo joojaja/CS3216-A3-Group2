@@ -16,7 +16,11 @@ const links = [
 ];
 
 export type RailUser = { name: string; email: string } | null;
-export type RailWeather = { short: string; source: string } | null;
+export type RailWeather = {
+  temperature: string | null;
+  humidity: string | null;
+  condition: string | null;
+} | null;
 
 // Longest matching href wins, so /wardrobe/new lights up Add item rather
 // than Wardrobe.
@@ -80,11 +84,50 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
           <PlannerStatus variant="rail" />
         </div>
 
-        <div className="border-t border-line px-6 py-4 text-[13px] leading-relaxed text-mute">
+        <div className="border-t border-line px-4 py-4">
           <b className="mb-1 block text-[11px] font-semibold tracking-[0.15em] uppercase text-ink">
-            Singapore, now
+            Singapore weather
           </b>
-          {weather ? `${weather.short}. ${weather.source}.` : "Forecast unavailable right now."}
+          {weather ? (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="rounded-xl bg-soft px-3 py-3 text-ink">
+                <ThermometerIcon className="size-5 text-tangerine" />
+                <span className="mt-2 block text-[10px] font-medium tracking-wide text-mute uppercase">
+                  Temperature
+                </span>
+                <strong className="mt-0.5 block text-[15px] font-semibold">
+                  {weather.temperature ? `${weather.temperature}°C` : "Unavailable"}
+                </strong>
+              </div>
+              <div className="rounded-xl bg-soft px-3 py-3 text-ink">
+                <DropletIcon className="size-5 text-cobalt" />
+                <span className="mt-2 block text-[10px] font-medium tracking-wide text-mute uppercase">
+                  Humidity
+                </span>
+                <strong className="mt-0.5 block text-[15px] font-semibold">
+                  {weather.humidity ? `${weather.humidity}%` : "Unavailable"}
+                </strong>
+              </div>
+              {weather.condition && (
+                <div className="col-span-2 flex items-center gap-3 rounded-xl bg-soft px-3 py-3 text-ink">
+                  <WeatherConditionIcon
+                    condition={weather.condition}
+                    className="size-6 shrink-0 text-tangerine"
+                  />
+                  <span>
+                    <span className="block text-[10px] font-medium tracking-wide text-mute uppercase">
+                      Weather
+                    </span>
+                    <strong className="mt-0.5 block text-[14px] font-semibold leading-snug">
+                      {weather.condition}
+                    </strong>
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-mute">Weather unavailable right now.</p>
+          )}
         </div>
 
         <div className="flex items-center gap-3 border-t border-line px-6 py-4">
@@ -191,6 +234,58 @@ function UserIcon({ className }: IconProps) {
     <svg viewBox="0 0 24 24" className={className} {...stroke}>
       <circle cx="12" cy="8" r="4" />
       <path d="M4 21a8 8 0 0116 0" />
+    </svg>
+  );
+}
+
+function ThermometerIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...stroke} aria-hidden="true">
+      <path d="M9 14.8V5a3 3 0 016 0v9.8a5 5 0 11-6 0z" />
+      <path d="M12 7v9" />
+    </svg>
+  );
+}
+
+function DropletIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...stroke} aria-hidden="true">
+      <path d="M12 3s6 6.4 6 11a6 6 0 11-12 0c0-4.6 6-11 6-11z" />
+    </svg>
+  );
+}
+
+function WeatherConditionIcon({
+  condition,
+  className,
+}: IconProps & { condition: string }) {
+  if (/thunder/i.test(condition)) {
+    return (
+      <svg viewBox="0 0 24 24" className={className} {...stroke} aria-hidden="true">
+        <path d="M7 17a4 4 0 01-.4-8A6 6 0 0118 10a3.5 3.5 0 01-.5 7H7z" />
+        <path d="M13 14l-2 4h3l-2 3" />
+      </svg>
+    );
+  }
+  if (/rain|shower|drizzle/i.test(condition)) {
+    return (
+      <svg viewBox="0 0 24 24" className={className} {...stroke} aria-hidden="true">
+        <path d="M7 15a4 4 0 01-.4-8A6 6 0 0118 8a3.5 3.5 0 01-.5 7H7z" />
+        <path d="M8 18l-1 2M13 18l-1 2M18 18l-1 2" />
+      </svg>
+    );
+  }
+  if (/sun|fair|clear/i.test(condition)) {
+    return (
+      <svg viewBox="0 0 24 24" className={className} {...stroke} aria-hidden="true">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...stroke} aria-hidden="true">
+      <path d="M6.5 18a4.5 4.5 0 01-.4-9A6 6 0 0118 10a4 4 0 01-1 8H6.5z" />
     </svg>
   );
 }
