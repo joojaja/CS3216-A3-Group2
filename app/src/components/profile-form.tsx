@@ -1,5 +1,7 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics";
+
 import { useActionState, useEffect, useRef } from "react";
 import { saveProfile, type ProfileFormState } from "@/lib/actions/profile";
 import { useToast } from "@/components/toast";
@@ -47,12 +49,13 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   useEffect(() => {
     if (state.saved && state !== lastSaved.current) {
       lastSaved.current = state;
+      trackFunnel("preferences_saved");
       toast("Preferences saved");
     }
   }, [state, toast]);
 
   return (
-    <form action={action} className="grid gap-3.5">
+    <form action={action} className="grid gap-5 rounded-2xl border border-line p-5 md:p-7">
       <Field label="Display name" name="display_name" defaultValue={profile.display_name ?? ""} />
       <div className="grid gap-3.5 sm:grid-cols-2">
         <Field
@@ -94,7 +97,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         />
       </label>
 
-      {state.error && <p className="text-sm text-bad">{state.error}</p>}
+      {state.error && <p role="alert" className="text-sm text-bad">{state.error}</p>}
 
       <div>
         <button

@@ -1,5 +1,5 @@
+import Link from "next/link";
 import type { Metadata } from "next";
-import { MotionConfig } from "motion/react";
 import { Rail, type RailUser } from "@/components/rail";
 import { ToastProvider } from "@/components/toast";
 import { AnalysisProvider } from "@/components/analysis-context";
@@ -33,30 +33,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <MotionConfig reducedMotion="user">
-      <ToastProvider>
-        <AnalysisProvider>
-          <PlannerProvider>
-            <div className="app-shell grid h-dvh grid-rows-[1fr_auto] md:grid-cols-[232px_1fr] md:grid-rows-1">
-              <Rail
-                user={user}
-                weather={
-                  forecast
-                    ? {
-                        temperature: forecast.temperature,
-                        humidity: forecast.humidity,
-                        condition: forecast.condition,
-                      }
-                    : null
-                }
-              />
-              <main className="order-first overflow-hidden md:order-none">
-                <div className="h-full overflow-y-auto">{children}</div>
-              </main>
-            </div>
-          </PlannerProvider>
-        </AnalysisProvider>
-      </ToastProvider>
-    </MotionConfig>
+    <ToastProvider>
+      <AnalysisProvider>
+        <PlannerProvider>
+          <div className="wearabouts-app grid h-dvh grid-rows-[1fr_auto] md:grid-cols-[232px_1fr] md:grid-rows-1">
+            <a className="app-skip" href="#app-content">Skip to content</a>
+            <Rail
+              user={user}
+              weather={forecast ? { short: forecast.short, source: forecast.source } : null}
+            />
+            <main id="app-content" tabIndex={-1} className="order-first overflow-hidden md:order-none">
+              <div className="h-full overflow-y-auto"><div className="app-mobile-header flex items-center justify-between md:hidden"><Link href="/" className="app-wordmark font-semibold">wear<span>abouts.</span></Link><Link href="/privacy" className="text-xs text-mute">Privacy</Link></div>{children}</div>
+            </main>
+          </div>
+        </PlannerProvider>
+      </AnalysisProvider>
+    </ToastProvider>
   );
 }
