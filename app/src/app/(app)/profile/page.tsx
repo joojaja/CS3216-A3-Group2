@@ -5,12 +5,14 @@ import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "@/components/profile-form";
 import { PageHeader } from "@/components/page-header";
 import { SetupNotice } from "@/components/setup-notice";
+import { isMissingGenderColumn } from "@/lib/profile-gender";
 
 export const metadata: Metadata = { title: "Profile" };
 export const dynamic = "force-dynamic";
 
 const emptyProfile = {
   display_name: "",
+  gender: null,
   preferred_styles: [] as string[],
   preferred_colours: [] as string[],
   disliked_colours: [] as string[],
@@ -56,13 +58,24 @@ export default async function ProfilePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
+  const profileWithGender = await supabase
     .from("user_profiles")
     .select(
-      "display_name, preferred_styles, preferred_colours, disliked_colours, common_occasions, preference_notes, sizes",
+      "display_name, gender, preferred_styles, preferred_colours, disliked_colours, common_occasions, preference_notes, sizes",
     )
     .eq("user_id", user?.id)
     .maybeSingle();
+  let profile = profileWithGender.data;
+  if (isMissingGenderColumn(profileWithGender.error)) {
+    const fallback = await supabase
+      .from("user_profiles")
+      .select(
+        "display_name, preferred_styles, preferred_colours, disliked_colours, common_occasions, preference_notes, sizes",
+      )
+      .eq("user_id", user?.id)
+      .maybeSingle();
+    profile = fallback.data ? { ...fallback.data, gender: null } : null;
+  }
 
   return (
     <>

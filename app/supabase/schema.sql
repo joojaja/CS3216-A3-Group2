@@ -53,6 +53,8 @@ create extension if not exists "pgcrypto";
 create table public.user_profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
   display_name text,
+  gender text constraint user_profiles_gender_check
+    check (gender in ('male', 'female', 'others')),
   preferred_styles text[] not null default '{}',
   preferred_colours text[] not null default '{}',
   disliked_colours text[] not null default '{}',
