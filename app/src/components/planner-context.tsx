@@ -1,5 +1,7 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics";
+
 import {
   createContext,
   useCallback,
@@ -14,7 +16,6 @@ export type RecommendedItem = {
   category: string;
   subcategory: string | null;
   primary_colour: string | null;
-  signed_image_url?: string | null;
 };
 
 export type Recommendation = {
@@ -44,8 +45,6 @@ export type Turn = {
   message: string;
   status: TurnStatus;
   error: string | null;
-  // The real cause of a failure. The server only sends it in development
-  errorDetail: string | null;
   weather: string | null;
   items: Record<string, RecommendedItem>;
   recs: Recommendation[];
@@ -129,6 +128,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
           }
         : undefined;
 
+      trackFunnel("outfit_requested");
       try {
         const res = await fetch("/api/outfits", {
           method: "POST",
@@ -140,14 +140,12 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         if (ac.signal.aborted) return;
 
         if (!res.ok) {
-          patchTurn(turn.id, {
-            status: "error",
-            error: body.error ?? "Recommendation failed",
-            errorDetail: typeof body.debug === "string" ? body.debug : null,
-          });
+          trackFunnel("outfit_failed");
+          patchTurn(turn.id, { status: "error", error: body.error ?? "Recommendation failed" });
         } else if (body.declined) {
           patchTurn(turn.id, { status: "declined", declineMessage: body.message });
         } else {
+          trackFunnel("outfits_generated");
           patchTurn(turn.id, {
             status: "done",
             recs: body.recommendations,
@@ -160,7 +158,6 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         patchTurn(turn.id, {
           status: "error",
           error: err instanceof Error ? err.message : "Recommendation failed",
-          errorDetail: null,
         });
       }
     },
@@ -177,7 +174,6 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         message: text,
         status: "loading",
         error: null,
-        errorDetail: null,
         weather: null,
         items: {},
         recs: [],
@@ -200,7 +196,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
       ...prev,
       turns: prev.turns.map((turn) =>
         turn.status === "loading"
-          ? { ...turn, status: "error", error: "Stopped before it finished.", errorDetail: null }
+          ? { ...turn, status: "error", error: "Stopped before it finished." }
           : turn,
       ),
     }));
@@ -210,7 +206,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
   const retry = useCallback(async () => {
     const last = state.turns[state.turns.length - 1];
     if (!last || last.status !== "error") return;
-    patchTurn(last.id, { status: "loading", error: null, errorDetail: null });
+    patchTurn(last.id, { status: "loading", error: null });
     setState((prev) => ({ ...prev, seen: false }));
     await run(last, state.turns.slice(0, -1));
   }, [state.turns, run, patchTurn]);
@@ -238,6 +234,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         }),
       });
       if (!res.ok) return false;
+      trackFunnel("feedback_saved");
       setState((prev) => ({
         ...prev,
         sentFeedback: { ...prev.sentFeedback, [recommendationId]: action },
