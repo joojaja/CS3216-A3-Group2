@@ -158,7 +158,7 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
             type="button"
             onClick={save}
             disabled={!live || !dirty || busy !== null}
-            className="rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+            className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep disabled:opacity-40"
           >
             {busy === "save" ? "Saving..." : "Save changes"}
           </button>

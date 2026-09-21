@@ -30,7 +30,7 @@ const LABEL_COPY: Record<string, string> = {
 const LABEL_STYLE: Record<string, string> = {
   likely_redundant: "bg-bad-light text-bad border-bad-line",
   potentially_useful: "bg-warn-light text-warn border-warn-line",
-  fills_wardrobe_gap: "bg-ok-light text-ok border-[#B6E3C6]",
+  fills_wardrobe_gap: "bg-ok-light text-ok border-[#c5cfba]",
   insufficient_information: "bg-wash text-mute border-line",
 };
 
@@ -41,6 +41,7 @@ export function PurchaseEvaluator() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
@@ -53,6 +54,12 @@ export function PurchaseEvaluator() {
     setResult(null);
     setError(null);
     setPreview(next ? URL.createObjectURL(next) : null);
+  }
+
+  function handlePhoto(next: File | null) {
+    pickFile(next);
+    if (inputRef.current) inputRef.current.value = "";
+    if (cameraRef.current) cameraRef.current.value = "";
   }
 
   async function evaluate() {
@@ -107,7 +114,7 @@ export function PurchaseEvaluator() {
           {loading && (
             <>
               <span className="absolute inset-0 z-10 animate-veil bg-ink/40" />
-              <span className="absolute inset-x-0 top-0 z-20 h-[3px] animate-beam bg-white shadow-[0_0_18px_4px_rgba(255,107,44,0.55)]" />
+              <span className="absolute inset-x-0 top-0 z-20 h-[3px] animate-beam bg-white shadow-[0_0_18px_4px_rgba(229,155,135,0.75)]" />
             </>
           )}
         </button>
@@ -115,9 +122,35 @@ export function PurchaseEvaluator() {
           ref={inputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/heic"
-          onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
           className="sr-only"
         />
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
+          className="sr-only"
+        />
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => cameraRef.current?.click()}
+            disabled={loading}
+            className="rounded-lg bg-cobalt px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+          >
+            Take photo
+          </button>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={loading}
+            className="rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink transition hover:border-cobalt hover:text-cobalt disabled:opacity-40"
+          >
+            Choose image
+          </button>
+        </div>
         <p className="mt-2.5 text-xs leading-relaxed text-mute">
           {file
             ? `${file.name}, ${(file.size / 1024 / 1024).toFixed(1)} MB`
@@ -133,7 +166,7 @@ export function PurchaseEvaluator() {
             <button
               onClick={evaluate}
               disabled={!file}
-              className="rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+              className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep disabled:opacity-40"
             >
               Check against my wardrobe
             </button>
@@ -186,7 +219,7 @@ export function PurchaseEvaluator() {
             </div>
 
             {/* What the model read, so the verdict can be checked */}
-            <div className="overflow-hidden rounded-xl border border-line text-sm">
+            <div className="overflow-hidden rounded-xl border border-line bg-card text-sm">
               <Row
                 label="What Wearabouts read"
                 value={[result.attributes.primary_colour, result.attributes.subcategory]
@@ -220,7 +253,7 @@ export function PurchaseEvaluator() {
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 + i * 0.08 }}
-                        className="flex items-center gap-3 rounded-[10px] border border-line px-3 py-2 text-sm capitalize"
+                        className="flex items-center gap-3 rounded-[10px] border border-line bg-card px-3 py-2 text-sm capitalize"
                       >
                         <span
                           className="grid size-10 shrink-0 place-items-center rounded-lg"
@@ -252,7 +285,7 @@ export function PurchaseEvaluator() {
               <button
                 type="button"
                 onClick={() => pickFile(null)}
-                className="rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-white"
+                className="rounded-lg border border-line px-5 py-3 text-sm font-medium transition hover:bg-soft"
               >
                 Check another item
               </button>

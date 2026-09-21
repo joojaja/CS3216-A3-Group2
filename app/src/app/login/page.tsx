@@ -15,7 +15,7 @@ export default function LoginPage() {
   return (
     <main className="drape-public onboarding-page auth-page">
       <section className="auth-editorial">
-        <Link href="/">Wearabouts.</Link>
+        <Link href="/">Wearabouts</Link>
         <div>
           <h2>
             Your wardrobe,
