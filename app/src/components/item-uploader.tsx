@@ -1,5 +1,7 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics";
+
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -77,6 +79,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
         return;
       }
       if (typeof body.id !== "string") throw new Error("Invalid save response");
+      trackFunnel("item_saved");
       reset();
       if (onSaved) { onSaved(body.id); return; }
       toast("Saved to your wardrobe");

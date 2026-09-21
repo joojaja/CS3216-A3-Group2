@@ -25,7 +25,7 @@ const EXAMPLES = [
 // The thread and any running request live in PlannerProvider, so they survive
 // switching tabs.
 export function OutfitPlanner() {
-  const { turns, latest, seen, markSeen, send } = usePlanner();
+  const { turns, latest, seen, markSeen, setDraft } = usePlanner();
   const bottom = useRef<HTMLDivElement>(null);
 
   // Being on this page is what counts as having seen the reply, which
@@ -47,7 +47,7 @@ export function OutfitPlanner() {
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-[880px] flex-1 px-5 py-5 md:px-9 md:py-6">
         {turns.length === 0 ? (
-          <Intro onPick={(text) => void send(text)} />
+          <Intro onPick={setDraft} />
         ) : (
           <div className="grid gap-7">
             {turns.map((turn, index) => (
@@ -114,7 +114,8 @@ function TurnView({
       transition={{ duration: 0.35, ease: [0.2, 0.8, 0.3, 1] }}
       className="grid gap-4"
     >
-      <p className="ml-auto max-w-[min(85%,560px)] rounded-2xl rounded-br-md bg-cobalt px-4 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap text-white">
+      <p className="rounded-2xl border border-line bg-wash px-5 py-4 text-[14.5px] leading-relaxed whitespace-pre-wrap text-ink">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-mute">Your occasion</span>
         {turn.message}
       </p>
 
@@ -444,7 +445,7 @@ function Composer() {
         ) : (
           <button
             type="submit"
-            aria-label="Send"
+            aria-label="Plan outfits"
             disabled={!canSend}
             className="grid size-9 shrink-0 place-items-center rounded-xl bg-cobalt text-white transition hover:bg-cobalt-deep disabled:opacity-40"
           >
