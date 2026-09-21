@@ -31,6 +31,17 @@ export default function PrivacyPage() {
           sent to Google Gemini. Photos can contain personal details, so upload
           only what you want analysed.
         </p>
+        <h2>Measurements and sizing</h2>
+        <p>
+          Body measurements you enter are stored on your account and only you
+          can read them. They are never sent to an AI model: sizes are worked
+          out in the app by comparing your measurements with brand size
+          charts. If you upload a shopping screenshot to find your size, it is
+          sent to Google Gemini to read the brand, product and size chart, and
+          Wearabouts does not save it. Size suggestions are guidance, not a
+          guarantee. You can edit or delete your measurements at any time
+          from your profile.
+        </p>
         <h2>Your choices</h2>
         <p>
           AI details are suggestions. Review and correct them before saving. You

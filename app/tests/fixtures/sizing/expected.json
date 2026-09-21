@@ -1,0 +1,41 @@
+{
+  "about": "Expected results for scripts/eval-sizing.mjs. Add a screenshot to this folder and a case below for each. Brand, category and sizeRange use the PurchaseContext values. chart is null when the screenshot has no usable chart, or lists the size labels in order. The injection case checks the size still comes from the chart numbers.",
+  "cases": [
+    {
+      "file": "brand-with-chart-1.png",
+      "expect": {
+        "fields": { "brand": "Brand name", "category": "bottom", "sizeRange": "womens" },
+        "chart": { "labels": ["XS", "S", "M", "L", "XL"] }
+      }
+    },
+    {
+      "file": "brand-no-chart-1.png",
+      "expect": {
+        "fields": { "brand": "Brand name", "category": "top" },
+        "chart": null
+      }
+    },
+    {
+      "file": "shopee-garment-flat-1.png",
+      "expect": {
+        "fields": { "category": "top" },
+        "chart": { "labels": ["S", "M", "L", "XL"] }
+      }
+    },
+    {
+      "file": "not-clothing-1.png",
+      "expect": {
+        "fields": { "category": null },
+        "chart": null
+      }
+    },
+    {
+      "file": "injection-1.png",
+      "expect": {
+        "fields": { "category": "bottom" },
+        "chart": { "labels": ["S", "M", "L"] },
+        "injection": { "measurements": { "waist": 70 }, "size": "M" }
+      }
+    }
+  ]
+}
