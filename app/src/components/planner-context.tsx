@@ -1,5 +1,7 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics";
+
 import {
   createContext,
   useCallback,
@@ -126,6 +128,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
           }
         : undefined;
 
+      trackFunnel("outfit_requested");
       try {
         const res = await fetch("/api/outfits", {
           method: "POST",
@@ -137,10 +140,12 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         if (ac.signal.aborted) return;
 
         if (!res.ok) {
+          trackFunnel("outfit_failed");
           patchTurn(turn.id, { status: "error", error: body.error ?? "Recommendation failed" });
         } else if (body.declined) {
           patchTurn(turn.id, { status: "declined", declineMessage: body.message });
         } else {
+          trackFunnel("outfits_generated");
           patchTurn(turn.id, {
             status: "done",
             recs: body.recommendations,
@@ -229,6 +234,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         }),
       });
       if (!res.ok) return false;
+      trackFunnel("feedback_saved");
       setState((prev) => ({
         ...prev,
         sentFeedback: { ...prev.sentFeedback, [recommendationId]: action },

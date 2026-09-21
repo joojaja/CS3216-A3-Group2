@@ -35,4 +35,11 @@ The supplied Wearabouts mark combines a W and a hanger. The public wordmark foll
 
 The root metadata uses Wearabouts. Search crawlers receive a canonical landing URL, descriptions, sitemap and robots rules. Social previews have a generated 1200 by 630 card. Private screens are not indexed. Optional analytics follows consent and sends only curated funnel events.
 
-Internal `.drape-*` selectors and the existing resume-marker name remain implementation identifiers for compatibility. They are not user-facing branding. The teammate-owned application keeps its existing layout and product logic.
+Internal `.drape-*` selectors and the existing resume-marker name remain implementation identifiers for compatibility. They are not user-facing branding. The application preserves its existing product logic. Its shared shell, forms, cards and navigation now use the landing page palette and editorial headings.
+
+
+## Application consistency, 21 September
+
+Wardrobe, item upload and editing, outfit planner, purchase evaluator and profile use paper backgrounds, coral actions with dark text, a charcoal navigation rail and Fraunces headings. Clothing placeholders use muted colours appropriate to each item. Cards use 18–20 px corners. Inputs and actions have at least 44 px height, with visible keyboard focus. Mobile navigation includes active-page semantics and safe-area spacing. The app offers a skip link and honours reduced-motion preferences.
+
+Loading, missing-page and recoverable error views use the same design. Purchase checks recover from network errors without discarding the selected image. Planner examples fill the occasion draft for review before submission; occasion summaries and outfit cards replace the appearance of chat bubbles. Editable clothing attributes, uncertainty notes, outfit explanations and feedback controls remain available.
