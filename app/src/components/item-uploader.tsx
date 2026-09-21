@@ -54,7 +54,14 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     reset,
   } = useAnalysis();
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const saveInFlight = useRef(false);
+
+  function handlePhoto(file: File | null) {
+    pickFile(file);
+    if (inputRef.current) inputRef.current.value = "";
+    if (cameraRef.current) cameraRef.current.value = "";
+  }
 
   async function save() {
     if (!file || saveInFlight.current) return;
@@ -179,9 +186,36 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
           ref={inputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/heic"
-          onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
           className="sr-only"
         />
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
+          className="sr-only"
+        />
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => cameraRef.current?.click()}
+            disabled={busy}
+            className="rounded-lg bg-cobalt px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+          >
+            Take photo
+          </button>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={busy}
+            className="rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink transition hover:border-cobalt hover:text-cobalt disabled:opacity-40"
+          >
+            Choose photo
+          </button>
+        </div>
 
         {/* Every available version, once there is a choice to make */}
         <AnimatePresence>
