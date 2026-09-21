@@ -127,7 +127,7 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
       >
         {ai?.notes && (
           <div className="rounded-xl bg-wash px-4 py-3.5 text-[14px] leading-relaxed text-body">
-            <b className="block font-semibold text-ink">What the AI drafted when this was added</b>
+            <b className="block font-semibold text-ink">What the AI analysed when this was added</b>
             {ai.notes}
             {flagged.length > 0 && (
               <span className="mt-1.5 block text-mute">
@@ -158,7 +158,7 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
             type="button"
             onClick={save}
             disabled={!live || !dirty || busy !== null}
-            className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep disabled:opacity-40"
+            className="rounded-lg bg-cobalt px-5 py-3 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-40"
           >
             {busy === "save" ? "Saving..." : "Save changes"}
           </button>

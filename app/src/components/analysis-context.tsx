@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -11,11 +12,9 @@ import {
 import type { ClothingAttributes, EditableAttributes } from "@/lib/schemas/ai";
 import {
   cleanGarmentPhoto,
-  cropGarmentPhoto,
   NothingDetectedError,
   UnsupportedImageError,
   type CleanProgress,
-  type NormalizedBox,
 } from "@/lib/image/clean";
 
 // The add-item flow lives here rather than in the page component so it
@@ -153,7 +152,10 @@ function revoke(state: State) {
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>(initial);
   const controller = useRef<AbortController | null>(null);
+  const cleanController = useRef<AbortController | null>(null);
+  const enhanceController = useRef<AbortController | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const stateRef = useRef(state);
   // The removal library cannot be aborted, so results are tagged with the
   // generation they belong to and stale ones are ignored
   const generation = useRef(0);
@@ -163,11 +165,30 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     timers.current = [];
   };
 
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(
+    () => () => {
+      controller.current?.abort();
+      cleanController.current?.abort();
+      enhanceController.current?.abort();
+      generation.current++;
+      timers.current.forEach(clearTimeout);
+      revoke(stateRef.current);
+    },
+    [],
+  );
+
   // Image model edit. "isolate" cuts the garment onto white, "iron" also
   // flattens it like a catalogue photo. Always works from the original photo
-  // so repeated edits do not compound. Paid per call, so it runs on request
-  // or as the first fallback when the free on-device cutout fails.
+  // so repeated edits do not compound. This is paid and only runs after an
+  // explicit user action.
   const runEnhance = useCallback(async (file: File, mode: EnhanceMode, gen: number) => {
+    enhanceController.current?.abort();
+    const ac = new AbortController();
+    enhanceController.current = ac;
     setState((prev) => ({
       ...prev,
       enhance: { ...prev.enhance, [mode]: { status: "running", message: null } },
@@ -176,7 +197,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const form = new FormData();
       form.set("image", file);
       form.set("mode", mode);
-      const res = await fetch("/api/items/enhance", { method: "POST", body: form });
+      const res = await fetch("/api/items/enhance", {
+        method: "POST",
+        body: form,
+        signal: ac.signal,
+      });
       if (gen !== generation.current) return false;
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -201,6 +226,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       });
       return true;
     } catch (err) {
+      if (ac.signal.aborted) return false;
       if (gen !== generation.current) return false;
       setState((prev) => ({
         ...prev,
@@ -213,45 +239,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         },
       }));
       return false;
-    }
-  }, []);
-
-  // Last line of defence: ask the server where the garment is and crop to
-  // it. The tile then frames the item even though the background stays.
-  const runCrop = useCallback(async (file: File, gen: number) => {
-    setState((prev) => ({ ...prev, crop: { status: "running" } }));
-    try {
-      const form = new FormData();
-      form.set("image", file);
-      const res = await fetch("/api/items/locate", { method: "POST", body: form });
-      const body: { found?: boolean; box?: NormalizedBox; error?: string } = await res.json();
-      if (gen !== generation.current) return;
-      if (!res.ok || !body.found || !body.box) throw new Error(body.error ?? "not found");
-
-      const cropped = await cropGarmentPhoto(file, body.box);
-      if (gen !== generation.current) return;
-      setState((prev) => {
-        if (prev.croppedPreview) URL.revokeObjectURL(prev.croppedPreview);
-        return {
-          ...prev,
-          cropped,
-          croppedPreview: URL.createObjectURL(cropped),
-          choice: "cropped",
-          crop: { status: "done" },
-          bg: {
-            ...prev.bg,
-            message:
-              "Couldn't separate the garment from the background, so the photo was cropped to it instead.",
-          },
-        };
-      });
-    } catch {
-      if (gen !== generation.current) return;
-      setState((prev) => ({ ...prev, crop: { status: "failed" } }));
+    } finally {
+      if (enhanceController.current === ac) enhanceController.current = null;
     }
   }, []);
 
   const runClean = useCallback((file: File) => {
+    cleanController.current?.abort();
+    const ac = new AbortController();
+    cleanController.current = ac;
     const gen = ++generation.current;
     setState((prev) => ({
       ...prev,
@@ -268,7 +264,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             ? { ...prev.bg, phase: "download", progress: p.total ? p.loaded / p.total : 0 }
             : { ...prev.bg, phase: "process", progress: 1 },
       }));
-    })
+    }, ac.signal)
       .then((cleaned) => {
         if (gen !== generation.current) return;
         setState((prev) => {
@@ -283,31 +279,32 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         });
       })
       .catch((err: unknown) => {
+        if (ac.signal.aborted) return;
         if (gen !== generation.current) return;
         const unsupported = err instanceof UnsupportedImageError;
         const message = unsupported
           ? "This browser cannot decode HEIC photos, so the original will be used."
           : err instanceof NothingDetectedError
-            ? "Couldn't separate the garment from the background. Try a plain surface that contrasts with the item."
+            ? "Couldn't separate the garment from the background. Using the original. Try a plain surface that contrasts with the item."
             : "Background removal did not work for this photo. Using the original.";
         setState((prev) => ({
           ...prev,
           choice: "original",
           bg: { status: unsupported ? "unsupported" : "failed", phase: "process", progress: 0, message },
         }));
-        // HEIC cannot be decoded in the browser, so neither fallback can
-        // run. Otherwise try the image model first, then a plain crop
-        if (!unsupported) {
-          void runEnhance(file, "isolate", gen).then((done) => {
-            if (!done && gen === generation.current) void runCrop(file, gen);
-          });
-        }
+      })
+      .finally(() => {
+        if (cleanController.current === ac) cleanController.current = null;
       });
-  }, [runCrop, runEnhance]);
+  }, []);
 
   const reset = useCallback(() => {
     controller.current?.abort();
     controller.current = null;
+    cleanController.current?.abort();
+    cleanController.current = null;
+    enhanceController.current?.abort();
+    enhanceController.current = null;
     generation.current++;
     clearTimers();
     setState((prev) => {
@@ -320,6 +317,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     (file: File | null) => {
       controller.current?.abort();
       controller.current = null;
+      cleanController.current?.abort();
+      cleanController.current = null;
       generation.current++;
       clearTimers();
       setState((prev) => {
@@ -358,6 +357,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   );
 
   const skipClean = useCallback(() => {
+    cleanController.current?.abort();
+    cleanController.current = null;
     generation.current++;
     setState((prev) => ({
       ...prev,
