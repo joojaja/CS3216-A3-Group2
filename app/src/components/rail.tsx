@@ -9,7 +9,7 @@ import { PlannerStatus } from "@/components/planner-status";
 
 const links = [
   { href: "/wardrobe", label: "Wardrobe", short: "Wardrobe", icon: HomeIcon },
-  { href: "/wardrobe/new", label: "Add item", short: "Add", icon: PlusIcon },
+  { href: "/explore", label: "Explore", short: "Explore", icon: ExploreIcon },
   { href: "/planner", label: "Outfit planner", short: "Planner", icon: ClockIcon },
   { href: "/evaluator", label: "Should I buy it?", short: "Buy?", icon: BagIcon },
   { href: "/profile", label: "Profile", short: "Profile", icon: UserIcon },
@@ -18,8 +18,7 @@ const links = [
 export type RailUser = { name: string; email: string } | null;
 export type RailWeather = { short: string; source: string } | null;
 
-// Longest matching href wins, so /wardrobe/new lights up Add item rather
-// than Wardrobe.
+// Nested wardrobe pages, including Add item, stay under the Wardrobe tab.
 function activeIndex(pathname: string) {
   let best = -1;
   let bestLength = 0;
@@ -142,10 +141,11 @@ function HomeIcon({ className }: IconProps) {
     </svg>
   );
 }
-function PlusIcon({ className }: IconProps) {
+function ExploreIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...stroke}>
-      <path d="M12 5v14M5 12h14" />
+      <circle cx="12" cy="12" r="8" />
+      <path d="M15.5 8.5l-2 5-5 2 2-5z" />
     </svg>
   );
 }
