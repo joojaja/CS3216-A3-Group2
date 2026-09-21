@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
 process.env.NODE_ENV = "development";
-const { reportAiError, aiFailure, getModel, AI_ERROR_LOG } = await import("../src/lib/ai/gemini.ts");
+const { reportAiError, aiFailure, getModel, getRagModel, AI_ERROR_LOG } = await import("../src/lib/ai/gemini.ts");
 
 // Shapes mirror what the AI SDK throws: a retry wrapper around the provider
 // error, and a schema failure wrapping the validation error
@@ -110,6 +110,27 @@ test("a free-tier call never falls back to the paid key", () => {
   } finally {
     if (saved.paid === undefined) delete process.env.GOOGLE_GENERATIVE_AI_API_KEY; else process.env.GOOGLE_GENERATIVE_AI_API_KEY = saved.paid;
     if (saved.free !== undefined) process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY = saved.free;
+  }
+});
+
+test("the Explore RAG call never falls back to another Gemini key", () => {
+  const saved = {
+    paid: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    free: process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY,
+    rag: process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY,
+  };
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = "paid-key-that-must-not-be-used";
+  process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY = "other-free-key-that-must-not-be-used";
+  delete process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY;
+  try {
+    assert.throws(() => getRagModel(), /GOOGLE_GENERATIVE_AI_RAG_API_KEY is not set/);
+  } finally {
+    if (saved.paid === undefined) delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    else process.env.GOOGLE_GENERATIVE_AI_API_KEY = saved.paid;
+    if (saved.free === undefined) delete process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY;
+    else process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY = saved.free;
+    if (saved.rag === undefined) delete process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY;
+    else process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY = saved.rag;
   }
 });
 
