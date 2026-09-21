@@ -29,6 +29,16 @@ export function getModel(tier: Tier = "paid") {
   return createGoogleGenerativeAI({ apiKey: apiKey(tier) })(MODEL_ID);
 }
 
+export const RAG_MODEL_ID = process.env.GEMINI_RAG_MODEL ?? MODEL_ID;
+
+// Explore has its own free-project key. It never falls back to either the
+// general free key or the paid image key.
+export function getRagModel() {
+  const key = process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY;
+  if (!key) throw new Error("GOOGLE_GENERATIVE_AI_RAG_API_KEY is not set");
+  return createGoogleGenerativeAI({ apiKey: key })(RAG_MODEL_ID);
+}
+
 // Image editing model (Nano Banana). Paid tier only: about US$0.03 per
 // image, so every call is user-initiated or a last-resort fallback.
 export const IMAGE_MODEL_ID = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-lite-image";
@@ -78,6 +88,7 @@ const FAILURE_MESSAGE: Record<string, string> = {
   enhance: "Could not edit the photo. Please try again.",
   outfits: "Could not build outfits this time. Please try again.",
   evaluate: "Could not evaluate this item. Please try again.",
+  explore: "Could not build your Explore feed. Please try again.",
 };
 
 // Where failures are written in development, so they can be read even when
