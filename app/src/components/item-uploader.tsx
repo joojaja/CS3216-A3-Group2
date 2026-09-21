@@ -54,7 +54,14 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     reset,
   } = useAnalysis();
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const saveInFlight = useRef(false);
+
+  function handlePhoto(file: File | null) {
+    pickFile(file);
+    if (inputRef.current) inputRef.current.value = "";
+    if (cameraRef.current) cameraRef.current.value = "";
+  }
 
   async function save() {
     if (!file || saveInFlight.current) return;
@@ -142,14 +149,14 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
             <img src={preview} alt="Item preview" className="size-full object-cover" />
           ) : (
             <span className="px-5 text-sm leading-relaxed text-mute">
-              <GarmentIcon kind="shirt" className="mx-auto mb-3 w-12 text-cobalt" />
+              <GarmentIcon kind="shirt" className="mx-auto mb-3 w-12 text-tangerine" />
               Choose a photo
             </span>
           )}
           {step === "analyzing" && (
             <>
               <span className="absolute inset-0 z-10 animate-veil bg-ink/40" />
-              <span className="absolute inset-x-0 top-0 z-20 h-[3px] animate-beam bg-white shadow-[0_0_18px_4px_rgba(37,73,232,0.55)]" />
+              <span className="absolute inset-x-0 top-0 z-20 h-[3px] animate-beam bg-white shadow-[0_0_18px_4px_rgba(229,155,135,0.75)]" />
             </>
           )}
           {preparing && (
@@ -179,9 +186,36 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
           ref={inputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/heic"
-          onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
           className="sr-only"
         />
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
+          className="sr-only"
+        />
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => cameraRef.current?.click()}
+            disabled={busy}
+            className="rounded-lg bg-cobalt px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+          >
+            Take photo
+          </button>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={busy}
+            className="rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink transition hover:border-cobalt hover:text-cobalt disabled:opacity-40"
+          >
+            Choose photo
+          </button>
+        </div>
 
         {/* Every available version, once there is a choice to make */}
         <AnimatePresence>
@@ -277,7 +311,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
             <button
               onClick={analyze}
               disabled={!file || preparing}
-              className="rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+              className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep disabled:opacity-40"
             >
               Analyze with AI
             </button>
@@ -382,7 +416,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
                 <button
                   onClick={save}
                   disabled={step === "saving"}
-                  className="rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cobalt-deep disabled:opacity-50"
+                  className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep disabled:opacity-50"
                 >
                   {step === "saving" ? "Saving..." : "Confirm and save to wardrobe"}
                 </button>
