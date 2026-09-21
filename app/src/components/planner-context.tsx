@@ -14,6 +14,7 @@ export type RecommendedItem = {
   category: string;
   subcategory: string | null;
   primary_colour: string | null;
+  signed_image_url?: string | null;
 };
 
 export type Recommendation = {
