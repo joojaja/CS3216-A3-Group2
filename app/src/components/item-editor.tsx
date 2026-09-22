@@ -8,7 +8,6 @@ import { motion } from "motion/react";
 import type { WardrobeItem } from "@/lib/types";
 import type { EditableAttributes } from "@/lib/schemas/ai";
 import { AttributeFields, inputClass } from "@/components/attribute-fields";
-import { GarmentIcon, tintFor } from "@/components/garment-icon";
 import { useToast } from "@/components/toast";
 
 // Turns a stored row into the editable shape. Nullable columns become empty
@@ -90,7 +89,6 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
     }
   }
 
-  const tint = tintFor(item.primary_colour);
   const ai = item.ai_confidence;
   const flagged = ai?.uncertain_fields?.filter(Boolean) ?? [];
 
@@ -106,11 +104,8 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
               className="aspect-square w-full object-cover md:aspect-[4/5]"
             />
           ) : (
-            <div
-              className="grid aspect-square w-full place-items-center md:aspect-[4/5]"
-              style={{ background: tint.bg, color: tint.fg }}
-            >
-              <GarmentIcon kind={item.category} className="w-[46%]" />
+            <div className="grid aspect-square w-full place-items-center bg-wash px-4 text-center text-sm text-mute md:aspect-[4/5]">
+              Photo unavailable
             </div>
           )}
         </div>

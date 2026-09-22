@@ -4,16 +4,15 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import type { WardrobeItem } from "@/lib/types";
-import { GarmentIcon, tintFor } from "@/components/garment-icon";
 
-const FILTERS: { key: string; label: string; icon: string }[] = [
-  { key: "all", label: "Everything", icon: "all" },
-  { key: "top", label: "Tops", icon: "top" },
-  { key: "bottom", label: "Bottoms", icon: "bottom" },
-  { key: "footwear", label: "Footwear", icon: "footwear" },
-  { key: "outerwear", label: "Outerwear", icon: "outerwear" },
-  { key: "dress", label: "Dresses", icon: "dress" },
-  { key: "accessory", label: "Accessories", icon: "accessory" },
+const FILTERS: { key: string; label: string }[] = [
+  { key: "all", label: "Everything" },
+  { key: "top", label: "Tops" },
+  { key: "bottom", label: "Bottoms" },
+  { key: "footwear", label: "Footwear" },
+  { key: "outerwear", label: "Outerwear" },
+  { key: "dress", label: "Dresses" },
+  { key: "accessory", label: "Accessories" },
 ];
 
 // Each card opens the item's own page, where it can be edited or deleted.
@@ -40,7 +39,6 @@ export function WardrobeGrid({ items }: { items: WardrobeItem[] }) {
                   : "border-line text-mute hover:border-cobalt hover:text-ink"
               }`}
             >
-              <GarmentIcon kind={f.icon} className="size-[15px]" strokeWidth={4} />
               {f.label}
             </button>
           ))}
@@ -50,7 +48,6 @@ export function WardrobeGrid({ items }: { items: WardrobeItem[] }) {
       <motion.div layout className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <AnimatePresence mode="popLayout">
           {visible.map((item, index) => {
-            const tint = tintFor(item.primary_colour);
             const name = [item.primary_colour, item.subcategory ?? item.category]
               .filter(Boolean)
               .join(" ");
@@ -74,11 +71,8 @@ export function WardrobeGrid({ items }: { items: WardrobeItem[] }) {
                       className="aspect-square w-full bg-white object-cover"
                     />
                   ) : (
-                    <div
-                      className="grid aspect-square w-full place-items-center"
-                      style={{ background: tint.bg, color: tint.fg }}
-                    >
-                      <GarmentIcon kind={item.category} className="w-[48%]" />
+                    <div className="grid aspect-square w-full place-items-center bg-wash px-4 text-center text-sm text-mute">
+                      Photo unavailable
                     </div>
                   )}
                   <div className="p-3">
