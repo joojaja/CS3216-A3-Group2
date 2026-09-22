@@ -8,9 +8,10 @@ import { StyleArchetypes, type StyleThumb } from "@/components/style-archetypes"
 import { demoItems } from "@/lib/demo-items";
 import { itemName } from "@/lib/outfits/daily-rules";
 import { buildPalette } from "@/lib/style/palette";
-import { ruleArchetypes, type StyleGrouping } from "@/lib/style/archetypes";
+import { ruleArchetypes, styleItems, type StyleGrouping } from "@/lib/style/archetypes";
 import { colourFamily } from "@/lib/style/colour-families";
-import { loadStyleData, type StyleRow } from "@/lib/style/server";
+import { orderStyleItems } from "@/lib/style/archetype-prompt";
+import { cachedGroupingFor, loadStyleData, readStyleCache, type StyleRow } from "@/lib/style/server";
 
 export const metadata: Metadata = { title: "My Style" };
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function StylePage() {
 
   let items: StyleRow[];
   let preferredStyles: string[] = [];
+  let cached: StyleGrouping | null = null;
   const urlByPath = new Map<string, string>();
 
   if (!supabase) {
@@ -32,7 +34,9 @@ export default async function StylePage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const data = user ? await loadStyleData(supabase, user.id) : null;
+    const [data, cacheRow] = user
+      ? await Promise.all([loadStyleData(supabase, user.id), readStyleCache(supabase, user.id)])
+      : [null, null];
     if (!data) {
       return (
         <>
@@ -45,6 +49,10 @@ export default async function StylePage() {
     }
     items = data.items;
     preferredStyles = data.preferredStyles;
+
+    // The same hash the API route computes, so a cached grouping for an
+    // unchanged wardrobe shows straight away with no model call
+    cached = cachedGroupingFor(cacheRow, orderStyleItems(styleItems(items)));
 
     const paths = items.map((item) => item.image_path).filter(Boolean);
     const { data: signed } = paths.length
@@ -91,7 +99,10 @@ export default async function StylePage() {
   );
 
   const palette = buildPalette(items);
-  const grouping: StyleGrouping = { archetypes: ruleArchetypes(items), source: "rules" };
+  const grouping: StyleGrouping = cached ?? { archetypes: ruleArchetypes(items), source: "rules" };
+  // The AI grouping needs a signed-in user and the free-tier key. Without
+  // either, the rule groups are the whole answer
+  const aiAvailable = Boolean(supabase && process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY);
 
   return (
     <>
@@ -112,8 +123,8 @@ export default async function StylePage() {
               thumbs={thumbs}
               itemCount={items.length}
               preferredStyles={preferredStyles}
-              refine={false}
-              aiAvailable={false}
+              refine={aiAvailable && !cached}
+              aiAvailable={aiAvailable}
             />
           ) : (
             <p className="text-[14px] text-body">

@@ -197,3 +197,16 @@ export const dailyPicksSchema = z.object({
 });
 
 export type DailyPicks = z.infer<typeof dailyPicksSchema>;
+
+// My Style grouping. Deliberately loose: group count, name and description
+// length, and item numbers are all checked in validateStyleGroups, so a
+// near miss gets one repair retry instead of failing inside the SDK
+export const styleGroupsSchema = z.object({
+  groups: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+      items: z.array(z.number().int()),
+    }),
+  ),
+});
