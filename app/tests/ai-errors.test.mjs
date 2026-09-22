@@ -36,6 +36,15 @@ test("rate limits read as busy too", () => {
   assert.equal(reportAiError("outfits", apiError(429, "Resource has been exhausted")), "The AI service is busy right now. Wait a moment and try again.");
 });
 
+test("free accounts see the Premium option when outfit AI credits run out", () => {
+  assert.equal(
+    reportAiError("outfits", apiError(429, "Resource has been exhausted"), {
+      accountTier: "free",
+    }),
+    "The free-tier outfit planner has run out of AI credits. Upgrade to Premium for uninterrupted outfit planning.",
+  );
+});
+
 test("schema failures show the route's own message and log the raw model output", () => {
   const zod = Object.assign(new Error('[{"path":["outfits",0,"item_ids"],"message":"Invalid UUID"}]'), { name: "ZodError" });
   const validation = Object.assign(new Error("Type validation failed"), { name: "AI_TypeValidationError", cause: zod });

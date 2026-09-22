@@ -1,6 +1,8 @@
 export const GENDER_VALUES = ["male", "female", "others"] as const;
 export type Gender = (typeof GENDER_VALUES)[number];
 
+export const DEFAULT_GENDER: Gender = "male";
+
 export const genderOptions: { value: Gender; label: string }[] = [
   { value: "male", label: "Male" },
   { value: "female", label: "Female" },

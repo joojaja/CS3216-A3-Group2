@@ -6,6 +6,11 @@ import { ProfileForm } from "@/components/profile-form";
 import { PageHeader } from "@/components/page-header";
 import { SetupNotice } from "@/components/setup-notice";
 import { isMissingGenderColumn } from "@/lib/profile-gender";
+import {
+  FREE_BEAUTIFY_CREDITS,
+  readAccountEntitlement,
+  type AccountTier,
+} from "@/lib/account-entitlements";
 
 export const metadata: Metadata = { title: "Profile" };
 export const dynamic = "force-dynamic";
@@ -21,8 +26,44 @@ const emptyProfile = {
   sizes: null,
 };
 
-const dataBox = (
+function ProfileSidebar({
+  accountTier,
+  beautifyCreditsRemaining,
+}: {
+  accountTier: AccountTier;
+  beautifyCreditsRemaining: number;
+}) {
+  return (
   <div className="grid gap-4">
+    <aside className="rounded-xl border border-cobalt/25 bg-cobalt-light/45 px-4.5 py-4 text-sm">
+      <div className="flex items-center justify-between gap-3">
+        <b className="font-semibold">
+          {accountTier === "premium" ? "Premium Tier" : "Free Tier"}
+        </b>
+        {accountTier === "free" && (
+          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-cobalt">
+            {beautifyCreditsRemaining} Beautify edits left
+          </span>
+        )}
+      </div>
+      {accountTier === "free" && (
+        <>
+          <h2 className="mt-4 text-base font-semibold text-ink">Unlock Premium</h2>
+          <ul className="mt-2 grid list-disc gap-1.5 pl-5 leading-relaxed text-body">
+            <li>More Beautify edits</li>
+            <li>Refresh your Explore recommendations</li>
+            <li>Uninterrupted outfit planning</li>
+          </ul>
+          <button
+            type="button"
+            disabled
+            className="mt-4 w-full cursor-not-allowed rounded-lg bg-line px-4 py-2.5 font-semibold text-mute"
+          >
+            Planned feature
+          </button>
+        </>
+      )}
+    </aside>
     <aside className="rounded-xl border border-line px-4.5 py-4 text-sm">
       <b className="block font-semibold">Body measurements</b>
       <p className="mt-1.5 leading-relaxed text-mute">
@@ -45,7 +86,8 @@ const dataBox = (
       <form action={signOut} className="mt-5"><button className="rounded-lg border border-line px-4 py-2.5">Sign out</button></form>
     </aside>
   </div>
-);
+  );
+}
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -61,7 +103,10 @@ export default async function ProfilePage() {
           <SetupNotice />
           <div className="mt-5 grid gap-6 md:grid-cols-[1fr_300px] md:items-start">
             <ProfileForm profile={emptyProfile} />
-            {dataBox}
+            <ProfileSidebar
+              accountTier="free"
+              beautifyCreditsRemaining={FREE_BEAUTIFY_CREDITS}
+            />
           </div>
         </div>
       </>
@@ -71,6 +116,13 @@ export default async function ProfilePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: entitlementRow } = await supabase
+    .from("account_entitlements")
+    .select("account_tier, beautify_credits_remaining")
+    .eq("user_id", user?.id)
+    .maybeSingle();
+  const entitlement = readAccountEntitlement(entitlementRow);
 
   const profileWithGender = await supabase
     .from("user_profiles")
@@ -100,7 +152,10 @@ export default async function ProfilePage() {
       <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
         <div className="grid gap-6 md:grid-cols-[1fr_300px] md:items-start">
           <ProfileForm profile={profile ?? emptyProfile} />
-          {dataBox}
+          <ProfileSidebar
+            accountTier={entitlement.accountTier}
+            beautifyCreditsRemaining={entitlement.beautifyCreditsRemaining}
+          />
         </div>
       </div>
     </>

@@ -5,6 +5,10 @@ import { EXPLORE_CATALOGUE, retrieveExploreCandidates } from "@/lib/explore/cata
 import { exploreSelectionSchema } from "@/lib/schemas/ai";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  EXPLORE_REFRESH_LIMIT_MESSAGE,
+  readAccountEntitlement,
+} from "@/lib/account-entitlements";
 
 const CACHE_VERSION = "explore_feed_v1";
 const MINIMUM_ITEMS = 5;
@@ -67,7 +71,7 @@ function fallbackSelection(
   return valid.slice(0, 10);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient();
   if (!supabase) {
     return Response.json({ error: "Service is not configured" }, { status: 503 });
@@ -77,6 +81,28 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const refreshRequested = new URL(request.url).searchParams.get("refresh") === "1";
+  if (refreshRequested) {
+    const { data: entitlementRow } = await supabase
+      .from("account_entitlements")
+      .select("account_tier, beautify_credits_remaining")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const entitlement = readAccountEntitlement(entitlementRow);
+
+    if (entitlement.accountTier === "free") {
+      return Response.json(
+        { error: EXPLORE_REFRESH_LIMIT_MESSAGE, code: "premium_required" },
+        { status: 403 },
+      );
+    }
+
+    return Response.json(
+      { error: "Explore refresh is planned for Premium accounts." },
+      { status: 501 },
+    );
+  }
 
   const { data: wardrobe, error: wardrobeError } = await supabase
     .from("wardrobe_items")
