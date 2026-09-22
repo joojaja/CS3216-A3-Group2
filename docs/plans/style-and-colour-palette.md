@@ -1,6 +1,16 @@
 # Style archetypes and colour palette
 
-Status: plan only, not started. Written 22 September 2026.
+Status: built on `chian/colour-palette`, 22 September 2026. Before deploying, run `app/supabase/migrations/20260922_style_archetypes.sql` in the Supabase SQL editor. Until it runs, the page still works, but every visit without a cache row calls the model (rate-limited to six a minute per user).
+
+## Where the build differs from this plan
+
+- **Item numbers, not IDs.** The model sees and returns item numbers (1 to N, in id order), and code maps them back to IDs. This is the approach the daily feed already uses. The model never sees a UUID, so it cannot invent one.
+- **Default temperature.** The call does not set temperature 0. The cache already makes an unchanged wardrobe show the same result, and Regroup needs some variation to be useful.
+- **Regroup asks for a different grouping.** It sends the current names and asks for another grouping that also fits. If the call fails, the current AI grouping stays and the user sees a message.
+- **Descriptions stay visible.** The main style's description shows under its name, and each other group's description shows under its bar. The info button explains how the groups were made, with different text for the AI and rule versions.
+- **Unrecognised colours count toward shares.** They form a "Not recognised" row, so the palette always adds up to 100% of items.
+- **New table name.** The cache table is `style_archetypes`, created by `20260922_style_archetypes.sql`.
+- **Route and navigation.** `/style` is added to the protected routes in `app/src/lib/supabase/proxy.ts`, and Regroup sends a `style_regrouped` analytics event.
 
 This plan covers the style archetype and colour palette part of the style profile. It follows the "My Style" screenshots shared in the planning chat, with changes where our data or principles differ.
 
