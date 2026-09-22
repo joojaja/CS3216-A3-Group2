@@ -12,6 +12,7 @@ const links = [
   { href: "/explore", label: "Explore", short: "Explore", icon: ExploreIcon },
   { href: "/planner", label: "Outfit planner", short: "Planner", icon: ClockIcon },
   { href: "/evaluator", label: "Should I buy it?", short: "Buy?", icon: BagIcon },
+  { href: "/sizing", label: "Find my size", short: "Size", icon: TapeIcon },
   { href: "/profile", label: "Profile", short: "Profile", icon: UserIcon },
 ];
 
@@ -101,10 +102,10 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
       <div className="md:hidden">
         <AnalysisStatus variant="bar" />
         <PlannerStatus variant="bar" />
-        <nav aria-label="Main navigation" className="app-mobile-nav relative grid grid-cols-5 bg-ink pb-1.5">
+        <nav aria-label="Main navigation" className="app-mobile-nav relative grid grid-cols-6 bg-ink pb-1.5">
         {active >= 0 && (
           <motion.div
-            className="absolute top-0 left-0 h-[3px] w-1/5 rounded-b-[3px] bg-tangerine"
+            className="absolute top-0 left-0 h-[3px] w-1/6 rounded-b-[3px] bg-tangerine"
             initial={false}
             animate={{ x: `${active * 100}%` }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
@@ -162,6 +163,16 @@ function BagIcon({ className }: IconProps) {
     <svg viewBox="0 0 24 24" className={className} {...stroke}>
       <path d="M4 7h16l-1.5 13h-13z" />
       <path d="M9 7a3 3 0 016 0" />
+    </svg>
+  );
+}
+// A tape measure: the case with its tape pulled out to the right
+function TapeIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...stroke}>
+      <circle cx="9" cy="12" r="6" />
+      <circle cx="9" cy="12" r="1.5" />
+      <path d="M15 15h6v3h-6M17.5 15v1.5M19.5 15v1.5" />
     </svg>
   );
 }
