@@ -7,7 +7,7 @@ import { GENDER_VALUES, isMissingGenderColumn } from "@/lib/profile-gender";
 
 const profileSchema = z.object({
   display_name: z.string().max(120),
-  gender: z.enum(GENDER_VALUES).nullable(),
+  gender: z.enum(GENDER_VALUES),
   preferred_styles: z.array(z.string()),
   preferred_colours: z.array(z.string()),
   disliked_colours: z.array(z.string()),
@@ -20,7 +20,11 @@ const profileSchema = z.object({
   }),
 });
 
-export type ProfileFormState = { error?: string; saved?: boolean };
+export type ProfileFormState = {
+  error?: string;
+  saved?: boolean;
+  gender?: (typeof GENDER_VALUES)[number];
+};
 
 export async function saveProfile(
   _prev: ProfileFormState,
@@ -42,7 +46,7 @@ export async function saveProfile(
 
   const parsed = profileSchema.safeParse({
     display_name: String(formData.get("display_name") ?? ""),
-    gender: String(formData.get("gender") ?? "") || null,
+    gender: String(formData.get("gender") ?? ""),
     preferred_styles: list("preferred_styles"),
     preferred_colours: list("preferred_colours"),
     disliked_colours: list("disliked_colours"),
@@ -94,5 +98,5 @@ export async function saveProfile(
   if (error) return { error: "Could not save profile" };
 
   revalidatePath("/profile");
-  return { saved: true };
+  return { saved: true, gender: parsed.data.gender };
 }

@@ -16,6 +16,7 @@ import {
   UnsupportedImageError,
   type CleanProgress,
 } from "@/lib/image/clean";
+import type { AccountTier } from "@/lib/account-entitlements";
 
 // The add-item flow lives here rather than in the page component so it
 // survives navigation. The (app) layout stays mounted while the user moves
@@ -94,6 +95,8 @@ type Api = State & {
   // The file and preview that analysis and saving will use
   file: File | null;
   preview: string | null;
+  accountTier: AccountTier;
+  beautifyCreditsRemaining: number | null;
   pickFile: (file: File | null) => void;
   chooseImage: (which: ImageChoice) => void;
   skipClean: () => void;
@@ -151,6 +154,10 @@ function revoke(state: State) {
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>(initial);
+  const [accountTier, setAccountTier] = useState<AccountTier>("free");
+  const [beautifyCreditsRemaining, setBeautifyCreditsRemaining] = useState<
+    number | null
+  >(null);
   const controller = useRef<AbortController | null>(null);
   const cleanController = useRef<AbortController | null>(null);
   const enhanceController = useRef<AbortController | null>(null);
@@ -181,6 +188,24 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/items/enhance", { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const body = await response.json();
+        if (body.account_tier === "premium") setAccountTier("premium");
+        if (
+          typeof body.beautify_credits_remaining === "number" &&
+          body.beautify_credits_remaining >= 0
+        ) {
+          setBeautifyCreditsRemaining(body.beautify_credits_remaining);
+        }
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+
   // Image model edit. "isolate" cuts the garment onto white, "iron" also
   // flattens it like a catalogue photo. Always works from the original photo
   // so repeated edits do not compound. This is paid and only runs after an
@@ -205,7 +230,22 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       if (gen !== generation.current) return false;
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        if (body.account_tier === "premium") setAccountTier("premium");
+        if (
+          typeof body.beautify_credits_remaining === "number" &&
+          body.beautify_credits_remaining >= 0
+        ) {
+          setBeautifyCreditsRemaining(body.beautify_credits_remaining);
+        }
         throw new Error(body.error ?? "Image edit failed");
+      }
+      const responseTier = res.headers.get("X-Account-Tier");
+      const responseCredits = Number(
+        res.headers.get("X-Beautify-Credits-Remaining"),
+      );
+      if (responseTier === "premium") setAccountTier("premium");
+      if (Number.isInteger(responseCredits) && responseCredits >= 0) {
+        setBeautifyCreditsRemaining(responseCredits);
       }
       const blob = await res.blob();
       if (gen !== generation.current) return false;
@@ -453,6 +493,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       ...state,
       file,
       preview,
+      accountTier,
+      beautifyCreditsRemaining,
       pickFile,
       chooseImage,
       skipClean,
@@ -465,7 +507,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setError,
       reset,
     }),
-    [state, file, preview, pickFile, chooseImage, skipClean, retryClean, requestEdit, analyze, setField, setNotes, setStep, setError, reset],
+    [state, file, preview, accountTier, beautifyCreditsRemaining, pickFile, chooseImage, skipClean, retryClean, requestEdit, analyze, setField, setNotes, setStep, setError, reset],
   );
 
   return <AnalysisContext.Provider value={api}>{children}</AnalysisContext.Provider>;

@@ -2,10 +2,14 @@
 
 import { trackFunnel } from "@/lib/analytics";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { saveProfile, type ProfileFormState } from "@/lib/actions/profile";
 import { useToast } from "@/components/toast";
-import { genderOptions, type Gender } from "@/lib/profile-gender";
+import {
+  DEFAULT_GENDER,
+  genderOptions,
+  type Gender,
+} from "@/lib/profile-gender";
 
 type Profile = {
   display_name: string | null;
@@ -43,6 +47,9 @@ function Field({
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const { toast } = useToast();
+  const [gender, setGender] = useState<Gender>(
+    profile.gender ?? DEFAULT_GENDER,
+  );
   const [state, action, pending] = useActionState<ProfileFormState, FormData>(saveProfile, {});
   const lastSaved = useRef<ProfileFormState | null>(null);
 
@@ -51,6 +58,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   useEffect(() => {
     if (state.saved && state !== lastSaved.current) {
       lastSaved.current = state;
+      if (state.gender) setGender(state.gender);
       trackFunnel("preferences_saved");
       toast("Preferences saved");
     }
@@ -60,9 +68,13 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     <form action={action} className="grid gap-5 rounded-2xl border border-line p-5 md:p-7">
       <Field label="Display name" name="display_name" defaultValue={profile.display_name ?? ""} />
       <label className="block text-[13.5px] font-medium">
-        Gender <span className="font-normal text-mute">Optional</span>
-        <select name="gender" defaultValue={profile.gender ?? ""} className={inputClass}>
-          <option value="">Prefer not to say</option>
+        Gender
+        <select
+          name="gender"
+          value={gender}
+          onChange={(event) => setGender(event.target.value as Gender)}
+          className={inputClass}
+        >
           {genderOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -116,7 +128,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep disabled:opacity-50"
+          className="rounded-lg bg-cobalt px-5 py-3 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-50"
         >
           {pending ? "Saving..." : "Save preferences"}
         </button>
