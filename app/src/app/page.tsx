@@ -2,25 +2,14 @@ import Link from "next/link";
 import { siteUrl, siteDescription } from "@/lib/site";
 import Image from "next/image";
 import "./landing.css";
+import "./landing-cinematic.css";
 import LandingStory from "@/components/landing-story";
 
-const features = [
-  [
-    "Your wardrobe, remembered",
-    "Add a piece, review the suggested details, and keep the version you confirm.",
-  ],
-  [
-    "Weather-aware outfits",
-    "Plan for Singapore heat, humidity and rain with recommendations built from your own clothes.",
-  ],
-  [
-    "A reason with every outfit",
-    "See the occasion, weather and colour signals that shaped each suggestion.",
-  ],
-  [
-    "Check before you buy",
-    "Compare a prospective piece with what you own before it becomes another forgotten purchase.",
-  ],
+const featureRows = [
+  ["01 · Build your wardrobe", "Your clothes, finally searchable.", "Add a piece, review the suggested details, and keep the version you confirm.", "/landing/feature-wardrobe.webp", "Six realistic wardrobe product photos: an ivory shirt, olive trousers, black T-shirt, beige overshirt, white sneakers and blue Oxford shirt"],
+  ["02 · Dress for the day", "Tell it where life is taking you.", "Plan around Singapore heat, humidity and rain with recommendations built from your own clothes.", "/landing/feature-weather.webp", "A man in Singapore wearing an ivory overshirt, black T-shirt, olive trousers and white sneakers"],
+  ["03 · Explore your style", "Inspiration you can actually recreate.", "See curated looks matched to your confirmed wardrobe and personal style.", "/landing/feature-style.webp", "Four curated Singapore smart-casual looks personalised to the same style profile"],
+  ["04 · Check before buying", "Know whether a new piece earns its place.", "Compare a prospective piece with what you own before it becomes another forgotten purchase.", "/landing/feature-purchase.webp", "Wearabouts purchase analysis for a light blue jersey, including redundancy and wardrobe compatibility"],
 ];
 
 export default function LandingPage() {
@@ -40,23 +29,8 @@ export default function LandingPage() {
             href="/"
             aria-label="Wearabouts home"
           >
-            <svg
-              className="drape-logo-mark"
-              viewBox="0 0 40 40"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 12 12 31 20 20 28 31 36 12M12 15l8-6c4-4-2-9-5-5"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>
-              <b>wear</b>abouts
-            </span>
+            <Image src="/landing/brand-mark.png" alt="" width={48} height={32} />
+            <span>Wearabouts</span>
           </Link>
           <div className="drape-links">
             <a href="#story">How it works</a>
@@ -89,151 +63,42 @@ export default function LandingPage() {
       <div id="main-content">
         <section className="drape-hero" aria-labelledby="hero-title">
           <div className="drape-container">
-            <h1 id="hero-title">
-              Know what to wear, <em>wherever.</em>
-            </h1>
+            <span className="drape-eyebrow">Your wardrobe, wherever life takes you</span>
+            <h1 id="hero-title">Know what to wear, <em>wherever.</em></h1>
             <figure>
               <Image
-                src="/landing/narrative-1.webp"
-                alt="A person considering clothes in a warm walk-in wardrobe"
-                width={1125}
-                height={868}
+                src="/landing/hero.png"
+                alt="A woman in a black blazer and cream trousers beside pieces from her wardrobe"
+                width={1731}
+                height={909}
                 priority
                 sizes="(max-width: 640px) calc(100vw - 44px), min(1240px, calc(100vw - 72px))"
               />
-              <figcaption>Your wardrobe, wherever life takes you.</figcaption>
+              <figcaption><Link className="drape-button" href="/login?mode=signup&next=/onboarding">Get early access <span aria-hidden="true">↗</span></Link><a href="#story">See how it works <span aria-hidden="true">↓</span></a></figcaption>
             </figure>
           </div>
         </section>
         <section className="drape-bridge" aria-label="Wearabouts proposition">
           <div className="drape-container">
-            <span className="drape-eyebrow">Wearabouts</span>
             <h2>
-              Turn the clothes you already own into outfits for today, any
-              occasion and smarter decisions about what to buy next.
+              Wearabouts turns the clothes you already own into outfits for today, any occasion and smarter decisions about what to buy next.
             </h2>
           </div>
         </section>
         <LandingStory />
-        <section id="after-story" className="drape-section drape-problem">
-          <div className="drape-container drape-narrow">
-            <span className="drape-eyebrow">Less wardrobe friction</span>
-            <h2>
-              Your clothes are already doing enough.
-              <br />
-              Your memory shouldn&apos;t have to.
-            </h2>
-            <div className="drape-questions">
-              <p>What works for dinner tonight?</p>
-              <p>What suits the weather outside?</p>
-              <p>Is this new piece actually useful?</p>
-            </div>
-            <p className="drape-muted">
-              Wearabouts gives the wardrobe you already own a clear next move.
-            </p>
-          </div>
-        </section>
         <section id="features" className="drape-section drape-feature-section">
           <div className="drape-container">
             <div className="drape-feature-heading">
-              <span className="drape-eyebrow">
-                Designed around your wardrobe
-              </span>
-              <h2>Every suggestion earns its place.</h2>
-              <p>
-                Wearabouts combines your plans, your confirmed wardrobe and
-                Singapore weather, then shows the signals behind the result.
-              </p>
+              <span className="drape-eyebrow">Inside Wearabouts</span>
+              <h2>From a full wardrobe to one clear decision.</h2>
             </div>
-            <div className="drape-feature-grid">
-              {features.map(([title, body], index) => (
-                <article key={title}>
-                  <span className="drape-feature-number">0{index + 1}</span>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
+            <div className="drape-feature-tour">
+              {featureRows.map(([label, title, body, src, alt], index) => (
+                <article className={index % 2 ? "is-reversed" : ""} key={label}>
+                  <div className="drape-feature-visual"><Image src={src} alt={alt} width={index === 3 ? 1600 : 1400} height={index === 3 ? 983 : 933} /></div>
+                  <div className="drape-feature-copy"><span className="drape-feature-number">{label}</span><h3>{title}</h3><p>{body}</p>{index === 1 && <span className="drape-weather-chip">Singapore · 31°C · Light rain</span>}{index === 2 && <div className="drape-badges"><span>Matched to your style</span><span>Looks you can recreate</span></div>}</div>
                 </article>
               ))}
-            </div>
-          </div>
-        </section>
-        <section className="drape-section drape-explain">
-          <div className="drape-container drape-explain-grid">
-            <div>
-              <span className="drape-eyebrow">Why this outfit works</span>
-              <h2>A clear answer, with the reasoning beside it.</h2>
-              <p>
-                Recommendations stay understandable. You can see what the
-                occasion asks for, what the forecast changes and which pieces
-                are doing the work.
-              </p>
-              <Link
-                className="drape-text-link"
-                href="/login?mode=signup&next=/onboarding"
-              >
-                Build your wardrobe <span aria-hidden="true">↗</span>
-              </Link>
-            </div>
-            <div className="drape-reason-card">
-              <Image
-                src="/landing/narrative-5.webp"
-                alt="A selected outfit ready to wear"
-                width={1122}
-                height={1402}
-                sizes="(max-width: 640px) calc(100vw - 44px), 50vw"
-              />
-              <div className="drape-reason-copy">
-                <span className="drape-card-label">Example recommendation</span>
-                <strong>Dinner-ready, breathable for the walk</strong>
-                <div className="drape-reasons">
-                  <span>Occasion · smart casual</span>
-                  <span>Weather · warm evening</span>
-                  <span>Movement · walkable</span>
-                </div>
-                <small>
-                  Example signals shown for illustration. Wearabouts uses your
-                  confirmed items and current forecast.
-                </small>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section className="drape-section drape-purchase">
-          <div className="drape-container drape-purchase-grid">
-            <div>
-              <span className="drape-eyebrow">The next decision</span>
-              <h2>Buy for the wardrobe you have.</h2>
-              <p>
-                Before something new becomes another forgotten purchase, compare
-                it with the pieces you already own.
-              </p>
-              <Link
-                className="drape-button"
-                href="/login?mode=signup&next=/onboarding"
-              >
-                Check a piece <span aria-hidden="true">↗</span>
-              </Link>
-            </div>
-            <div className="drape-purchase-card">
-              <span className="drape-card-label">
-                Illustrative purchase check
-              </span>
-              <strong>A lightweight overshirt</strong>
-              <div className="drape-purchase-row">
-                <span>Similar owned items</span>
-                <b>Review together</b>
-              </div>
-              <div className="drape-purchase-row">
-                <span>Possible pairings</span>
-                <b>Shown from your wardrobe</b>
-              </div>
-              <div className="drape-purchase-row">
-                <span>Decision</span>
-                <b>Yours to make</b>
-              </div>
-              <small>
-                This example explains the evidence Wearabouts would show. It is
-                not a live verdict.
-              </small>
             </div>
           </div>
         </section>
@@ -293,12 +158,10 @@ export default function LandingPage() {
         </section>
         <section id="join" className="drape-join">
           <div className="drape-container drape-narrow">
-            <span className="drape-eyebrow">Private by default</span>
-            <h2>Make more of what you already own.</h2>
+            <span className="drape-eyebrow">Dress for what is next</span>
+            <h2>Your easiest outfit starts here.</h2>
             <p>
-              Your wardrobe photos and preferences belong to you. AI suggestions
-              can be wrong, so you stay in control of every confirmed item and
-              final decision.
+              Start with the clothes you already own. Review every suggestion, understand the reason and decide what earns a place next.
             </p>
             <Link
               className="drape-button"
@@ -312,23 +175,8 @@ export default function LandingPage() {
       <footer className="drape-footer">
         <div className="drape-container">
           <Link className="drape-wordmark" href="/">
-            <svg
-              className="drape-logo-mark"
-              viewBox="0 0 40 40"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 12 12 31 20 20 28 31 36 12M12 15l8-6c4-4-2-9-5-5"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>
-              <b>wear</b>abouts
-            </span>
+            <Image src="/landing/brand-mark.png" alt="" width={48} height={32} />
+            <span>Wearabouts</span>
           </Link>
           <Link href="/privacy">Privacy and data</Link>
           <small>Made with Singapore in mind.</small>
