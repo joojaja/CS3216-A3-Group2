@@ -11,6 +11,8 @@ test("authentication preserves supported internal destinations", () => {
     "/planner",
     "/profile",
     "/evaluator",
+    "/sizing",
+    "/profile/measurements",
   ]) {
     assert.equal(safeAuthDestination(path), path);
   }
