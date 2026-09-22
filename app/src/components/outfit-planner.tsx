@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useToast } from "@/components/toast";
+import { FeedbackReasons } from "@/components/feedback-reasons";
 import {
-  FEEDBACK_REASONS,
   usePlanner,
   type FeedbackAction,
   type Reason,
@@ -196,7 +196,6 @@ function OutfitCard({
   const { sentFeedback, sendFeedback, busy, saved, toggleSave } = usePlanner();
   const isSaved = rec.id ? Boolean(saved[rec.id]) : false;
   const [reasonsOpen, setReasonsOpen] = useState(false);
-  const [reasons, setReasons] = useState<Set<Reason>>(new Set());
   const feedback = rec.id ? sentFeedback[rec.id] : null;
 
   async function give(action: FeedbackAction, picked?: Reason[]) {
@@ -204,20 +203,10 @@ function OutfitCard({
     const ok = await sendFeedback(rec.id, action, picked);
     if (ok) {
       setReasonsOpen(false);
-      setReasons(new Set());
       toast(action === "wore" ? "Marked as worn" : "Feedback recorded");
     } else {
       toast("Could not save feedback");
     }
-  }
-
-  function toggleReason(value: Reason) {
-    setReasons((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      return next;
-    });
   }
 
   return (
@@ -347,7 +336,6 @@ function OutfitCard({
                   aria-expanded={reasonsOpen}
                   onClick={() => {
                     setReasonsOpen((open) => !open);
-                    setReasons(new Set());
                   }}
                   className={`grid size-[38px] place-items-center rounded-full border transition ${
                     reasonsOpen ? "border-ink bg-ink text-white" : "border-line hover:border-cobalt"
@@ -369,51 +357,10 @@ function OutfitCard({
                 transition={{ duration: 0.25, ease: [0.2, 0.8, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <div className="grid gap-3 rounded-xl bg-wash p-3.5">
-                  <b className="text-[13.5px] font-semibold">
-                    What did not work? Select all that apply.
-                  </b>
-                  <div className="flex flex-wrap gap-1.5">
-                    {FEEDBACK_REASONS.map((reason) => {
-                      const on = reasons.has(reason.value);
-                      return (
-                        <button
-                          key={reason.value}
-                          type="button"
-                          aria-pressed={on}
-                          onClick={() => toggleReason(reason.value)}
-                          className={`rounded-full border px-3 py-1.5 text-[13px] transition ${
-                            on
-                              ? "border-cobalt bg-cobalt text-white"
-                              : "border-line bg-white hover:border-cobalt"
-                          }`}
-                        >
-                          {reason.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-mute">Your feedback shapes future suggestions.</p>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setReasonsOpen(false)}
-                        className="rounded-lg border border-line bg-white px-3.5 py-2 text-sm"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        disabled={reasons.size === 0}
-                        onClick={() => give("rejected", [...reasons])}
-                        className="rounded-lg bg-cobalt px-3.5 py-2 text-sm font-medium text-white disabled:opacity-40"
-                      >
-                        Send feedback
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <FeedbackReasons
+                  onCancel={() => setReasonsOpen(false)}
+                  onSubmit={(picked) => give("rejected", picked)}
+                />
               </motion.div>
             )}
           </AnimatePresence>

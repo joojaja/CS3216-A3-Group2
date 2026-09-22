@@ -1,6 +1,6 @@
 # Daily outfits and saved outfits plan
 
-Written 22 September 2026 on branch `chian/daily-outfit-cards`. This is a plan only. No code has changed.
+Written 22 September 2026 on branch `chian/daily-outfit-cards`. The build follows this plan slice by slice. The "Implementation notes" section at the end lists where the code differs from it.
 
 The brief is a starting point, so this plan disagrees with it in several places. Every disagreement sits under a "Differs from the brief" heading, and every assumption carries an id (A1, A2 and so on) so the team can correct it by number.
 
@@ -345,3 +345,18 @@ The saved outfit does not copy the item ids, the source or the explanation. It r
 8. **LLM explanations in slice 2 or 3.** Ship slice 2 with template explanations only and add the LLM step in slice 3? That keeps slice 2 free of any model calls.
 9. **Mock-up before building.** Should a static mock-up of the card, using a few real cleaned wardrobe images, come first? It would show whether the multiply blend in 1.7 looks right before anyone builds the feed.
 10. **Assumptions A1 to A8.** Please confirm or correct, especially A1 (where jumpsuits are classified) and A8 (whether the Supabase plan can resize images).
+
+## Implementation notes
+
+Added 22 September 2026 while building. These are the places where the code differs from the plan above, and why.
+
+- **The feedback table needed a database change.** `recommendation_feedback` has a check constraint that only allows `wore`, `liked` and `rejected`. Section 1.3 said the database needed no change. `supabase/migrations/20260922_daily_outfits.sql` replaces the constraint to add `dismissed`.
+- **The outfit insert policy needed widening.** The policy on `outfit_recommendations` required every row to point at the user's own outfit request. The migration replaces it, so a row must point at the user's own request or the user's own daily batch. A check constraint makes sure it points at exactly one.
+- **`daily_outfit_batches` has no `status` or `missing_roles` columns.** When no outfit can be built, nothing is stored and the route works out what is missing on every open. So the only rows are batches that have outfits.
+- **Skips are left out of item scores entirely.** `buildFeedbackContext` gives `dismissed` a weight of 0, and a skip never replaces an earlier real response to the same outfit. The daily rules still push a skipped combination down through the 7-day repeat penalty.
+- **Saves count like a like.** `buildFeedbackContext` takes the saved recommendation ids as a third argument. `loadFeedbackContext` in `src/lib/outfits/server.ts` now loads feedback and saves for both the planner and the daily feed. The planner route uses it instead of its own query.
+- **The rules add outerwear only on rainy days, and only items tagged for rain.** The daily feed does not know whether the user will be indoors, so the `air_conditioned` and `cool_evening` cases from section 1.1 are left out.
+- **The rules add at most 1 accessory and 1 bag per outfit,** rotated across the three cards. The collage still has room for 3 extras, for planner outfits that include more.
+- **Deleted items in a saved outfit show as a "1 item deleted" label** on the collage, not a hatched tile in the slot. Once an item is deleted, its category is unknown, so there is no slot to put a tile in.
+- **Close on the daily view always goes to `/wardrobe`,** rather than back in history, so a direct link never takes the user out of the app.
+- **Migrations to run, in order:** `20260922_saved_outfits.sql`, then `20260922_daily_outfits.sql`. Until both have run, the saved page shows a load error and the daily feed shows "Daily outfits are not available right now."

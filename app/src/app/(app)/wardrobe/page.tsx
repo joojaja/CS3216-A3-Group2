@@ -6,6 +6,7 @@ import { StatsStrip } from "@/components/stats-strip";
 import { PageHeader } from "@/components/page-header";
 import { SetupNotice } from "@/components/setup-notice";
 import { WardrobeTabs } from "@/components/wardrobe-tabs";
+import { DailyStrip } from "@/components/daily-strip";
 import type { WardrobeItem } from "@/lib/types";
 import { demoItems } from "@/lib/demo-items";
 
@@ -49,6 +50,7 @@ export default async function WardrobePage() {
         <div className="px-5 py-5 md:px-9 md:py-6">
           <SetupNotice />
           <div className="mt-5">
+            <DailyStrip />
             <WardrobeTabs active="items" savedCount={null} />
             <StatsStrip
               stats={[
@@ -102,6 +104,7 @@ export default async function WardrobePage() {
         action={addButton}
       />
       <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
+        {count > 0 && <DailyStrip />}
         <WardrobeTabs active="items" savedCount={savedCount ?? null} />
         <StatsStrip
           stats={[
