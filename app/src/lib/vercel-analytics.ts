@@ -1,4 +1,4 @@
-// Redact private paths before Vercel Web Analytics sends an event.
+// Redact URLs before Vercel Web Analytics or Speed Insights sends an event.
 // Returns the absolute URL with query and hash removed, or null to drop the event.
 export function redactAnalyticsUrl(url: string): string | null {
   let parsed: URL;
@@ -14,4 +14,22 @@ export function redactAnalyticsUrl(url: string): string | null {
       ? "/wardrobe/item"
       : path;
   return `${parsed.origin}${safePath}`;
+}
+
+export function redactSpeedInsightsEvent<T extends { url: string; route?: string }>(
+  event: T,
+): T | null {
+  const url = redactAnalyticsUrl(event.url);
+  if (url === null) return null;
+
+  const route = event.route
+    ? redactAnalyticsUrl(new URL(event.route, url).toString())
+    : undefined;
+  if (route === null) return null;
+
+  return {
+    ...event,
+    url,
+    ...(route ? { route: new URL(route).pathname } : {}),
+  };
 }

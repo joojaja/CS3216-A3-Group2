@@ -38,11 +38,15 @@ export default function PrivacyPage() {
           items and their photos from your wardrobe. Full account deletion is
           not available in the app yet.
         </p>
-        <h2>Optional usage analytics</h2>
+        <h2>Usage analytics</h2>
         <p>
-          Vercel Web Analytics and Speed Insights record anonymous page visits
-          and page load speed for every visitor. They use no cookies and no
-          personal identifiers. Item pages are reported only as /wardrobe/item.
+          Vercel Web Analytics records page visits. Speed Insights records page
+          paths and loading metrics, with details such as browser, device type,
+          network speed and country. Vercel says these services do not use
+          cookies or store information that can identify a visitor or rebuild a
+          browsing session. Wearabouts removes query strings and fragments,
+          drops authentication routes and replaces wardrobe item URLs with
+          /wardrobe/item before sending data.
         </p>
         <p>
           If enabled by the team and accepted by you, Google Analytics measures
