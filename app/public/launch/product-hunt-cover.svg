@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1270" height="760" viewBox="0 0 1270 760" role="img" aria-labelledby="title desc">
+  <title id="title">Wearabouts, make more outfits from the clothes you own</title>
+  <desc id="desc">Wearabouts helps plan outfits from a private wardrobe using Singapore weather and compare a possible purchase with clothes already owned.</desc>
+  <rect width="1270" height="760" fill="#f6f3ec"/>
+  <circle cx="1110" cy="155" r="245" fill="#e9e2d3"/>
+  <circle cx="121" cy="708" r="250" fill="#ead0c4" opacity=".68"/>
+  <g transform="translate(94 78)" fill="none" stroke="#242823" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 18 16 47 28 31 40 47 52 18M16 22l12-9c6-6-3-12-8-7"/>
+  </g>
+  <text x="171" y="124" fill="#242823" font-family="Arial, sans-serif" font-size="39" font-weight="600">wearabouts</text>
+  <text x="96" y="310" fill="#242823" font-family="Georgia, serif" font-size="82" font-weight="400">Make more outfits</text>
+  <text x="96" y="408" fill="#242823" font-family="Georgia, serif" font-size="82" font-weight="400">from the clothes</text>
+  <text x="96" y="506" fill="#242823" font-family="Georgia, serif" font-size="82" font-weight="400">you already own.</text>
+  <text x="100" y="593" fill="#55704f" font-family="Arial, sans-serif" font-size="27">A private wardrobe planner for Singapore weather.</text>
+  <g transform="translate(101 657)" fill="none" stroke="#55704f" stroke-width="3">
+    <path d="M0 0h43l9 14-9 14H0L-9 14z"/>
+  </g>
+  <text x="163" y="679" fill="#44483f" font-family="Arial, sans-serif" font-size="21">Plan what to wear. Check before you buy.</text>
+</svg>

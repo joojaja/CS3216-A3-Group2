@@ -1,9 +1,18 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const alt =
   "Wearabouts. Make more of the clothes you own. A private wardrobe assistant for Singapore.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+const fraunces = await readFile(
+  join(process.cwd(), "public/landing/font-1.woff"),
+);
+const inter = await readFile(
+  join(process.cwd(), "public/landing/font-2.woff"),
+);
 
 export default function Image() {
   return new ImageResponse(
@@ -13,23 +22,40 @@ export default function Image() {
           display: "flex",
           width: "100%",
           height: "100%",
-          background: "#f6f3ec",
-          color: "#242823",
+          background: "#F6F3EC",
+          color: "#1A1C19",
           padding: 72,
           flexDirection: "column",
           justifyContent: "space-between",
+          fontFamily: "Inter",
         }}
       >
-        <div style={{ display: "flex", fontSize: 42 }}>
-          Wearabouts<span style={{ color: "#b76650" }}>.</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <svg width="64" height="64" viewBox="0 0 48 48">
+            <g
+              transform="translate(4 6)"
+              fill="none"
+              stroke="#242823"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 12 12 31 20 20 28 31 36 12M12 15l8-6c4-4-2-9-5-5" />
+            </g>
+          </svg>
+          <div style={{ display: "flex", fontFamily: "Fraunces", fontSize: 44 }}>
+            <span>wear</span>
+            <span style={{ opacity: 0.6 }}>abouts</span>
+          </div>
         </div>
         <div
           style={{
             display: "flex",
-            fontSize: 80,
-            maxWidth: 950,
+            fontFamily: "Fraunces",
+            fontSize: 84,
+            maxWidth: 900,
             lineHeight: 1.05,
-            letterSpacing: -4,
+            letterSpacing: -3,
           }}
         >
           Make more of the clothes you own.
@@ -41,14 +67,15 @@ export default function Image() {
             alignItems: "center",
           }}
         >
-          <span style={{ fontSize: 25, color: "#656a61" }}>
-            Your wardrobe. Your plans. Singapore weather.
+          <span style={{ fontSize: 25, color: "#55704F" }}>
+            Private wardrobe. Singapore weather. Check before you buy.
           </span>
           <span
             style={{
-              background: "#e59b87",
+              background: "#E59B87",
+              color: "#1A1C19",
               padding: "18px 28px",
-              borderRadius: 12,
+              borderRadius: 999,
               fontSize: 24,
             }}
           >
@@ -57,6 +84,12 @@ export default function Image() {
         </div>
       </div>
     ),
-    size,
+    {
+      ...size,
+      fonts: [
+        { name: "Fraunces", data: fraunces, weight: 400, style: "normal" },
+        { name: "Inter", data: inter, weight: 400, style: "normal" },
+      ],
+    },
   );
 }
