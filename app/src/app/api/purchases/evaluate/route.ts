@@ -38,6 +38,7 @@ type WardrobeRow = {
   secondary_colours: string[];
   pattern: string | null;
   formality: string | null;
+  image_path: string;
 };
 
 function similarity(
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
   const { data: items } = await supabase
     .from("wardrobe_items")
     .select(
-      "id, category, subcategory, primary_colour, secondary_colours, pattern, formality",
+      "id, image_path, category, subcategory, primary_colour, secondary_colours, pattern, formality",
     )
     .eq("user_id", user.id)
     .eq("attributes_confirmed", true);
@@ -158,7 +159,7 @@ ${UNTRUSTED_CONTENT_RULE}`;
       validIds.has(id),
     );
 
-    await supabase.from("purchase_evaluations").insert({
+    const { error: saveError } = await supabase.from("purchase_evaluations").insert({
       user_id: user.id,
       extracted_attributes: attrs,
       similar_wardrobe_item_ids: similarIds,
@@ -167,13 +168,30 @@ ${UNTRUSTED_CONTENT_RULE}`;
       decision_label: verdict.decision_label,
       explanation: verdict.explanation,
     });
+    if (saveError) {
+      console.error("[purchases:save]", saveError.code);
+      return Response.json({ error: "Could not save this evaluation." }, { status: 500 });
+    }
+
+    const similarItems = similarIds
+      .map((id) => (items as WardrobeRow[] | null)?.find((item) => item.id === id))
+      .filter((item): item is WardrobeRow => Boolean(item));
+    const { data: signedImages } = similarItems.length
+      ? await supabase.storage
+          .from("wardrobe-images")
+          .createSignedUrls(similarItems.map((item) => item.image_path), 3600)
+      : { data: [] };
+    const imageUrlByPath = new Map(
+      (signedImages ?? []).map((entry) => [entry.path, entry.signedUrl]),
+    );
 
     return Response.json({
       attributes: attrs,
       evaluation: { ...verdict, similar_item_ids: similarIds },
-      similar_items: similarIds
-        .map((id) => (items as WardrobeRow[] | null)?.find((i) => i.id === id))
-        .filter(Boolean),
+      similar_items: similarItems.map(({ image_path, ...item }) => ({
+        ...item,
+        signed_image_url: imageUrlByPath.get(image_path) ?? null,
+      })),
     });
   } catch (error) {
     return aiFailure("evaluate", error, { model: MODEL_ID, key: "paid" });

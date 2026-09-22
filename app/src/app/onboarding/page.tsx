@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { emptyOnboardingProfile } from "@/lib/onboarding";
 import { OnboardingFlow } from "@/components/onboarding-flow";
+import { isMissingGenderColumn } from "@/lib/profile-gender";
 import "../landing.css";
 import "./onboarding.css";
 
@@ -29,7 +30,7 @@ export default async function OnboardingPage() {
       supabase
         .from("user_profiles")
         .select(
-          "display_name, preferred_styles, preferred_colours, disliked_colours, common_occasions, preference_notes, sizes",
+          "display_name, gender, preferred_styles, preferred_colours, disliked_colours, common_occasions, preference_notes, sizes",
         )
         .eq("user_id", user.id)
         .maybeSingle(),
@@ -41,8 +42,22 @@ export default async function OnboardingPage() {
         .limit(1),
     ]);
     if (itemsResult.data?.length) redirect("/wardrobe");
-    loadError = Boolean(profileResult.error || itemsResult.error);
-    profile = profileResult.data ?? emptyOnboardingProfile;
+    if (isMissingGenderColumn(profileResult.error)) {
+      const fallback = await supabase
+        .from("user_profiles")
+        .select(
+          "display_name, preferred_styles, preferred_colours, disliked_colours, common_occasions, preference_notes, sizes",
+        )
+        .eq("user_id", user.id)
+        .maybeSingle();
+      loadError = Boolean(fallback.error || itemsResult.error);
+      profile = fallback.data
+        ? { ...fallback.data, gender: null }
+        : emptyOnboardingProfile;
+    } else {
+      loadError = Boolean(profileResult.error || itemsResult.error);
+      profile = profileResult.data ?? emptyOnboardingProfile;
+    }
     resumeUpload = user.user_metadata?.drape_preferences_saved === true;
   }
   return (

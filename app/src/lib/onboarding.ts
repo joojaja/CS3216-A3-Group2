@@ -1,5 +1,8 @@
+import type { Gender } from "@/lib/profile-gender";
+
 export type OnboardingProfile = {
   display_name: string | null;
+  gender: Gender | null;
   preferred_styles: string[];
   preferred_colours: string[];
   disliked_colours: string[];
@@ -10,6 +13,7 @@ export type OnboardingProfile = {
 
 export const emptyOnboardingProfile: OnboardingProfile = {
   display_name: "",
+  gender: null,
   preferred_styles: [],
   preferred_colours: [],
   disliked_colours: [],
