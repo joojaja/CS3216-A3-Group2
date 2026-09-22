@@ -1,5 +1,58 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  buildFeedbackContext,
+  type FeedbackContext,
+  type StoredOutfitFeedback,
+  type StoredOutfitRecommendation,
+} from "@/lib/outfit-feedback";
 import type { CollageItem, SavedOutfitView } from "@/lib/outfits/types";
+
+// Recent feedback and saved outfits for one user, turned into per-item
+// scores and a prompt line. Shared by the planner and the daily feed so a
+// "too warm" in one shapes the next pick in the other. Skips are left out of
+// the query, so they never crowd real responses out of the limit.
+export async function loadFeedbackContext(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<FeedbackContext> {
+  const [feedbackResult, savedResult] = await Promise.all([
+    supabase
+      .from("recommendation_feedback")
+      .select("recommendation_id, action, reason, free_text, created_at")
+      .eq("user_id", userId)
+      .neq("action", "dismissed")
+      .order("created_at", { ascending: false })
+      .limit(40),
+    // Errors until the saved_outfits migration has run, which just means no saves
+    supabase
+      .from("saved_outfits")
+      .select("recommendation_id")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+  ]);
+
+  const feedbackRows = (feedbackResult.data ?? []) as StoredOutfitFeedback[];
+  const savedIds = ((savedResult.data ?? []) as { recommendation_id: string }[]).map(
+    (row) => row.recommendation_id,
+  );
+  const recommendationIds = [
+    ...new Set([...feedbackRows.map((feedback) => feedback.recommendation_id), ...savedIds]),
+  ];
+  const recommendationResult = recommendationIds.length
+    ? await supabase
+        .from("outfit_recommendations")
+        .select("id, wardrobe_item_ids")
+        .eq("user_id", userId)
+        .in("id", recommendationIds)
+    : { data: [] };
+
+  return buildFeedbackContext(
+    feedbackRows,
+    (recommendationResult.data ?? []) as StoredOutfitRecommendation[],
+    savedIds,
+  );
+}
 
 // Signed image links last an hour, matching the wardrobe page
 const SIGNED_URL_SECONDS = 3600;
@@ -59,7 +112,9 @@ type SavedRow = {
     wardrobe_item_ids: string[];
     explanation: string | null;
     warnings: string[] | null;
+    source: "planner" | "daily" | null;
     request: { occasion_text: string; weather_snapshot: { short?: string } | null } | null;
+    daily_batch: { feed_date: string; weather_snapshot: { short?: string } | null } | null;
   } | null;
 };
 
@@ -71,7 +126,7 @@ export async function loadSavedOutfits(
   const { data, error } = await supabase
     .from("saved_outfits")
     .select(
-      "created_at, recommendation:outfit_recommendations(id, wardrobe_item_ids, explanation, warnings, request:outfit_requests(occasion_text, weather_snapshot))",
+      "created_at, recommendation:outfit_recommendations(id, wardrobe_item_ids, explanation, warnings, source, request:outfit_requests(occasion_text, weather_snapshot), daily_batch:daily_outfit_batches(feed_date, weather_snapshot))",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -96,10 +151,11 @@ export async function loadSavedOutfits(
     return {
       recommendationId: rec.id,
       savedAt: row.created_at,
-      source: "planner",
+      source: rec.source === "daily" ? "daily" : "planner",
       occasion: rec.request?.occasion_text ?? null,
-      feedDate: null,
-      weather: rec.request?.weather_snapshot?.short ?? null,
+      feedDate: rec.daily_batch?.feed_date ?? null,
+      weather:
+        rec.request?.weather_snapshot?.short ?? rec.daily_batch?.weather_snapshot?.short ?? null,
       explanation: rec.explanation,
       warnings: rec.warnings ?? [],
       items: present,

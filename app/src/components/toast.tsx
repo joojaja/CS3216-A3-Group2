@@ -50,7 +50,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.32, ease: [0.2, 0.8, 0.3, 1] }}
             role="status"
-            className="fixed top-4 right-4 left-4 z-50 flex items-center gap-2.5 rounded-xl bg-ink px-4 py-3 text-sm text-white shadow-lg sm:left-auto"
+            className="fixed top-4 right-4 left-4 z-50 flex items-center gap-2.5 rounded-xl bg-ink px-4 py-3 text-sm text-white shadow-lg ring-1 ring-white/25 sm:left-auto"
           >
             <span className="grid size-5 shrink-0 place-items-center rounded-full bg-ok">
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" className="size-3">

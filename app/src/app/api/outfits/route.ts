@@ -6,11 +6,7 @@ import { aiFailure, getModel, MODEL_ID, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/
 import { getSingaporeForecast } from "@/lib/weather";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
-import {
-  buildFeedbackContext,
-  type StoredOutfitFeedback,
-  type StoredOutfitRecommendation,
-} from "@/lib/outfit-feedback";
+import { loadFeedbackContext } from "@/lib/outfits/server";
 
 const requestSchema = z.object({
   occasion_text: z.string().min(2).max(1000),
@@ -73,7 +69,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const [itemsResult, profileResult, feedbackResult] = await Promise.all([
+  const [itemsResult, profileResult, feedbackContext] = await Promise.all([
     supabase
       .from("wardrobe_items")
       .select(
@@ -88,12 +84,7 @@ export async function POST(request: Request) {
       )
       .eq("user_id", user.id)
       .maybeSingle(),
-    supabase
-      .from("recommendation_feedback")
-      .select("recommendation_id, action, reason, free_text, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(40),
+    loadFeedbackContext(supabase, user.id),
   ]);
 
   if (itemsResult.error) {
@@ -102,21 +93,6 @@ export async function POST(request: Request) {
 
   const items = itemsResult.data;
   const profile = profileResult.data;
-  const feedbackRows = (feedbackResult.data ?? []) as StoredOutfitFeedback[];
-  const recommendationIds = [
-    ...new Set(feedbackRows.map((feedback) => feedback.recommendation_id)),
-  ];
-  const recommendationResult = recommendationIds.length
-    ? await supabase
-        .from("outfit_recommendations")
-        .select("id, wardrobe_item_ids")
-        .eq("user_id", user.id)
-        .in("id", recommendationIds)
-    : { data: [], error: null };
-  const feedbackContext = buildFeedbackContext(
-    feedbackRows,
-    (recommendationResult.data ?? []) as StoredOutfitRecommendation[],
-  );
 
   const forecast = await getSingaporeForecast();
 
