@@ -196,6 +196,20 @@ create index if not exists recommendation_feedback_user_idx
 create index if not exists recommendation_feedback_recommendation_idx
   on public.recommendation_feedback (recommendation_id);
 
+-- Saved outfits. Points at a recommendation from the planner or the daily
+-- feed and reads its items, explanation and source from there
+create table if not exists public.saved_outfits (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  recommendation_id uuid not null
+    references public.outfit_recommendations (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint saved_outfits_user_recommendation_key unique (user_id, recommendation_id)
+);
+
+create index if not exists saved_outfits_recommendation_idx
+  on public.saved_outfits (recommendation_id);
+
 -- Purchase evaluation --------------------------------------------------------
 
 create table if not exists public.purchase_evaluations (
@@ -283,6 +297,7 @@ alter table public.measurement_profiles enable row level security;
 alter table public.size_chart_flags enable row level security;
 alter table public.explore_feed_cache enable row level security;
 alter table public.catalogue_items enable row level security;
+alter table public.saved_outfits enable row level security;
 
 grant usage on schema public to authenticated;
 
@@ -296,6 +311,7 @@ revoke all on table public.measurement_profiles from anon;
 revoke all on table public.size_chart_flags from anon;
 revoke all on table public.explore_feed_cache from anon;
 revoke all on table public.catalogue_items from anon;
+revoke all on table public.saved_outfits from anon;
 
 grant select, insert, update, delete on table public.user_profiles to authenticated;
 grant select, insert, update, delete on table public.wardrobe_items to authenticated;
@@ -307,6 +323,7 @@ grant select, insert, update, delete on table public.measurement_profiles to aut
 grant select, insert on table public.size_chart_flags to authenticated;
 grant select, insert, update, delete on table public.explore_feed_cache to authenticated;
 grant select on table public.catalogue_items to authenticated;
+grant select, insert, delete on table public.saved_outfits to authenticated;
 
 do $$
 begin
@@ -440,6 +457,24 @@ begin
     create policy "catalogue readable" on public.catalogue_items
       for select to authenticated
       using (true);
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'saved_outfits'
+      and policyname = 'own saved outfits'
+  ) then
+    create policy "own saved outfits" on public.saved_outfits
+      for all to authenticated
+      using ((select auth.uid()) = user_id)
+      with check (
+        (select auth.uid()) = user_id
+        and exists (
+          select 1 from public.outfit_recommendations outfit_recommendation
+          where outfit_recommendation.id = public.saved_outfits.recommendation_id
+            and outfit_recommendation.user_id = (select auth.uid())
+        )
+      );
   end if;
 end
 $$;
