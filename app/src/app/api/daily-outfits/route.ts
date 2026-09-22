@@ -1,5 +1,15 @@
 import { randomUUID } from "node:crypto";
+import { generateObject } from "ai";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getModel, MODEL_ID, reportAiError } from "@/lib/ai/gemini";
+import { dailyPicksSchema } from "@/lib/schemas/ai";
+import {
+  applyDailyPicks,
+  buildDailyPrompt,
+  DAILY_CANDIDATE_COUNT,
+  DAILY_PICK_COUNT,
+  DAILY_PROMPT_VERSION,
+} from "@/lib/outfits/daily-prompt";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSingaporeForecast, type SingaporeForecast } from "@/lib/weather";
@@ -9,11 +19,16 @@ import {
   buildDailyOutfits,
   coreSignature,
   readForecast,
+  type DailyOutfit,
   type RuleItem,
 } from "@/lib/outfits/daily-rules";
 import { loadCollageItems, loadFeedbackContext } from "@/lib/outfits/server";
 import { nextSingaporeMidnight, singaporeDate } from "@/lib/outfits/sg-day";
+import { wearStreak, type WearStreak } from "@/lib/outfits/streak";
 import type { CollageItem, DailyAction, DailyCard, DailyFeed } from "@/lib/outfits/types";
+
+// A slow model should not hold up the first open of the day for long
+const MODEL_TIMEOUT_MS = 8000;
 
 const RULE_ITEM_COLUMNS =
   "id, category, subcategory, primary_colour, pattern, formality, layering_role, weather_tags, created_at";
@@ -27,8 +42,9 @@ type GenerateResult =
   | { kind: "insufficient"; missing: ("top" | "bottom")[]; confirmed: number; unconfirmed: number };
 
 // Today's outfits for the signed-in user. The first request of a Singapore
-// day builds them from the wardrobe with deterministic rules and stores them;
-// later requests read the stored batch. No model is called.
+// day builds candidates from the wardrobe with deterministic rules, lets one
+// free-tier model call pick and explain three of them (falling back to the
+// rules' own picks), and stores the result. Later requests read the batch.
 export async function GET() {
   const feedDate = singaporeDate();
   const nextRefreshAt = nextSingaporeMidnight();
@@ -74,6 +90,7 @@ export async function GET() {
         feedDate,
         nextRefreshAt,
         hasFootwear: await hasFootwear(supabase, user.id),
+        streak: await loadStreak(supabase, user.id, feedDate),
         missing: result.missing,
         confirmedCount: result.confirmed,
         unconfirmedCount: result.unconfirmed,
@@ -111,6 +128,22 @@ async function readBatch(
   return data as BatchRow | null;
 }
 
+// Wears over the last 60 days are plenty to count a streak
+async function loadStreak(
+  supabase: SupabaseClient,
+  userId: string,
+  feedDate: string,
+): Promise<WearStreak> {
+  const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+  const { data } = await supabase
+    .from("recommendation_feedback")
+    .select("created_at")
+    .eq("user_id", userId)
+    .eq("action", "wore")
+    .gte("created_at", since);
+  return wearStreak(((data ?? []) as { created_at: string }[]).map((row) => row.created_at), feedDate);
+}
+
 async function hasFootwear(supabase: SupabaseClient, userId: string) {
   const { count } = await supabase
     .from("wardrobe_items")
@@ -143,7 +176,7 @@ async function generate(
         .eq("attributes_confirmed", false),
       supabase
         .from("user_profiles")
-        .select("preferred_colours, disliked_colours")
+        .select("preferred_colours, preferred_styles, disliked_colours")
         .eq("user_id", userId)
         .maybeSingle(),
       loadFeedbackContext(supabase, userId),
@@ -172,15 +205,17 @@ async function generate(
     ),
   );
 
+  const weather = readForecast(forecast);
   const result = buildDailyOutfits({
     items,
-    weather: readForecast(forecast),
+    weather,
     preferredColours: profileResult.data?.preferred_colours ?? [],
     dislikedColours: profileResult.data?.disliked_colours ?? [],
     itemScores: feedback.itemScores,
     recentItemIds,
     recentSignatures,
     seed: feedDate,
+    count: DAILY_CANDIDATE_COUNT,
   });
 
   if (result.outfits.length === 0) {
@@ -192,13 +227,30 @@ async function generate(
     };
   }
 
+  // The rules' top picks, unless the model picks better ones and explains them
+  const candidates = result.outfits;
+  const picked =
+    candidates.length > 1
+      ? await pickWithModel(
+          buildDailyPrompt({
+            candidates,
+            items: new Map(items.map((item) => [item.id, item])),
+            weather,
+            preferredColours: profileResult.data?.preferred_colours ?? [],
+            preferredStyles: profileResult.data?.preferred_styles ?? [],
+          }),
+          candidates,
+        )
+      : null;
+  const outfits = picked ?? candidates.slice(0, DAILY_PICK_COUNT);
+
   const batchId = randomUUID();
   const { error: batchError } = await supabase.from("daily_outfit_batches").insert({
     id: batchId,
     user_id: userId,
     feed_date: feedDate,
     weather_snapshot: forecast ?? null,
-    generator: "rules",
+    generator: picked ? "rules_llm" : "rules",
   });
   if (batchError) {
     // Another request made today's batch first, so the caller reads that one
@@ -207,7 +259,7 @@ async function generate(
   }
 
   const { error: recsError } = await supabase.from("outfit_recommendations").insert(
-    result.outfits.map((outfit, position) => ({
+    outfits.map((outfit, position) => ({
       id: randomUUID(),
       user_id: userId,
       source: "daily",
@@ -224,6 +276,35 @@ async function generate(
   }
 
   return { kind: "batch" };
+}
+
+// One free-tier call per user per day at most. Text only, so it never needs
+// or touches the paid key; getModel("free") throws if the free key is
+// missing, and any failure falls back to the rules
+async function pickWithModel(prompt: string, candidates: DailyOutfit[]) {
+  const started = Date.now();
+  try {
+    const { object, usage } = await generateObject({
+      model: getModel("free"),
+      schema: dailyPicksSchema,
+      prompt,
+      abortSignal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+    });
+    console.log(
+      `[ai:daily] ${MODEL_ID} key=free prompt=${DAILY_PROMPT_VERSION} ${Date.now() - started}ms tokens=${usage.totalTokens ?? "?"}`,
+    );
+    const picked = applyDailyPicks(candidates, object.picks);
+    if (!picked) console.warn("[ai:daily] picks failed validation, using the rules");
+    return picked;
+  } catch (error) {
+    reportAiError("daily", error, {
+      model: MODEL_ID,
+      key: "free",
+      ms: Date.now() - started,
+      candidates: candidates.length,
+    });
+    return null;
+  }
 }
 
 type RecRow = {
@@ -249,7 +330,7 @@ async function readyFeed(
   const recs = (recData ?? []) as RecRow[];
   const recIds = recs.map((rec) => rec.id);
 
-  const [items, feedbackResult, savedResult, footwear, addedResult] = await Promise.all([
+  const [items, feedbackResult, savedResult, footwear, addedResult, streak] = await Promise.all([
     loadCollageItems(supabase, userId, recs.flatMap((rec) => rec.wardrobe_item_ids)),
     recIds.length
       ? supabase
@@ -274,6 +355,7 @@ async function readyFeed(
       .eq("user_id", userId)
       .eq("attributes_confirmed", true)
       .gt("created_at", batch.created_at),
+    loadStreak(supabase, userId, feedDate),
   ]);
 
   const actionByRec = new Map<string, DailyAction>();
@@ -306,6 +388,7 @@ async function readyFeed(
     feedDate,
     nextRefreshAt,
     hasFootwear: footwear,
+    streak,
     cards,
     items: Object.fromEntries(items),
     weather: batch.weather_snapshot?.short ?? null,
@@ -345,6 +428,7 @@ async function demoFeed(feedDate: string, nextRefreshAt: string): Promise<DailyF
     feedDate,
     nextRefreshAt,
     hasFootwear: demoItems.some((item) => item.category === "footwear"),
+    streak: { days: 0, wornToday: false },
     cards: result.outfits.map((outfit, index) => ({
       id: `demo-daily-${index + 1}`,
       itemIds: outfit.itemIds,
