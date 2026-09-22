@@ -56,7 +56,8 @@ const FORMALITY_RANK: Record<string, number> = {
   formal: 3,
 };
 
-const PLAIN_PATTERNS = new Set(["", "solid", "plain", "none", "no pattern"]);
+// Also used by the My Style rule archetypes
+export const PLAIN_PATTERNS = new Set(["", "solid", "plain", "none", "no pattern"]);
 
 // Singapore fallback when NEA is unreachable: hot, humid, possibly wet
 export const FALLBACK_WEATHER: DayWeather = {
