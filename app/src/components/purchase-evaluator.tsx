@@ -5,13 +5,13 @@ import { trackFunnel } from "@/lib/analytics";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import type { ClothingAttributes, PurchaseEvaluation } from "@/lib/schemas/ai";
-import { GarmentIcon, tintFor } from "@/components/garment-icon";
 
 type SimilarItem = {
   id: string;
   category: string;
   subcategory: string | null;
   primary_colour: string | null;
+  signed_image_url: string | null;
 };
 
 type Result = {
@@ -107,7 +107,6 @@ export function PurchaseEvaluator() {
             <img src={preview} alt="Prospective purchase" className="size-full object-cover" />
           ) : (
             <span className="px-5 text-sm leading-relaxed text-mute">
-              <GarmentIcon kind="shirt" className="mx-auto mb-3 w-12 text-tangerine" />
               Choose a photo or screenshot
             </span>
           )}
@@ -246,7 +245,6 @@ export function PurchaseEvaluator() {
                 <b className="mb-2 block text-sm font-semibold">You already own similar items</b>
                 <div className="grid gap-2">
                   {result.similar_items.map((item, i) => {
-                    const tint = tintFor(item.primary_colour);
                     return (
                       <motion.div
                         key={item.id}
@@ -255,12 +253,20 @@ export function PurchaseEvaluator() {
                         transition={{ delay: 0.2 + i * 0.08 }}
                         className="flex items-center gap-3 rounded-[10px] border border-line bg-card px-3 py-2 text-sm capitalize"
                       >
-                        <span
-                          className="grid size-10 shrink-0 place-items-center rounded-lg"
-                          style={{ background: tint.bg, color: tint.fg }}
-                        >
-                          <GarmentIcon kind={item.category} className="w-[56%]" />
-                        </span>
+                        {item.signed_image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={item.signed_image_url}
+                            alt={[item.primary_colour, item.subcategory ?? item.category]
+                              .filter(Boolean)
+                              .join(" ")}
+                            className="size-10 shrink-0 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-wash text-[9px] leading-tight text-mute">
+                            No photo
+                          </span>
+                        )}
                         {[item.primary_colour, item.subcategory ?? item.category]
                           .filter(Boolean)
                           .join(" ")}

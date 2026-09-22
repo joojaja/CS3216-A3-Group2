@@ -5,7 +5,6 @@ import { trackFunnel } from "@/lib/analytics";
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { GarmentIcon } from "@/components/garment-icon";
 import { useToast } from "@/components/toast";
 import { CHECKLIST, useAnalysis } from "@/components/analysis-context";
 import { AttributeFields, inputClass, type Tag } from "@/components/attribute-fields";
@@ -165,7 +164,6 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
               <img src={preview} alt="Item preview" className="size-full object-cover" />
             ) : (
               <span className="px-5 text-sm leading-relaxed text-mute">
-                <GarmentIcon kind="shirt" className="mx-auto mb-3 w-12 text-tangerine" />
                 Choose a photo
               </span>
             )}

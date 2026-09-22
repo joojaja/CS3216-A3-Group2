@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { GarmentIcon, tintFor } from "@/components/garment-icon";
 import { useToast } from "@/components/toast";
 import {
   FEEDBACK_REASONS,
@@ -230,7 +229,6 @@ function OutfitCard({
       <div className="flex gap-3 pb-5">
         {rec.item_ids.map((id, i) => {
           const item = items[id];
-          const tint = tintFor(item?.primary_colour);
           const label = item
             ? [item.primary_colour, item.subcategory ?? item.category].filter(Boolean).join(" ")
             : "Unknown item";
@@ -241,10 +239,20 @@ function OutfitCard({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 + i * 0.1 }}
               whileHover={{ y: -3 }}
-              className="relative grid aspect-[3/4] w-full max-w-[120px] place-items-center rounded-[10px]"
-              style={{ background: tint.bg, color: tint.fg }}
+              className="relative grid aspect-[3/4] w-full max-w-[120px] place-items-center rounded-[10px] border border-line bg-wash"
             >
-              <GarmentIcon kind={item?.category ?? "top"} className="w-[52%]" />
+              {item?.signed_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.signed_image_url}
+                  alt={label}
+                  className="size-full rounded-[9px] object-cover"
+                />
+              ) : (
+                <span className="px-2 text-center text-xs text-mute">
+                  Photo unavailable
+                </span>
+              )}
               <span className="absolute inset-x-0 -bottom-5 text-center text-xs text-mute capitalize">
                 {label}
               </span>
