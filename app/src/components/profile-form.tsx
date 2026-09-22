@@ -5,9 +5,11 @@ import { trackFunnel } from "@/lib/analytics";
 import { useActionState, useEffect, useRef } from "react";
 import { saveProfile, type ProfileFormState } from "@/lib/actions/profile";
 import { useToast } from "@/components/toast";
+import { genderOptions, type Gender } from "@/lib/profile-gender";
 
 type Profile = {
   display_name: string | null;
+  gender: Gender | null;
   preferred_styles: string[];
   preferred_colours: string[];
   disliked_colours: string[];
@@ -57,6 +59,17 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   return (
     <form action={action} className="grid gap-5 rounded-2xl border border-line p-5 md:p-7">
       <Field label="Display name" name="display_name" defaultValue={profile.display_name ?? ""} />
+      <label className="block text-[13.5px] font-medium">
+        Gender <span className="font-normal text-mute">Optional</span>
+        <select name="gender" defaultValue={profile.gender ?? ""} className={inputClass}>
+          <option value="">Prefer not to say</option>
+          {genderOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="grid gap-3.5 sm:grid-cols-2">
         <Field
           label="Preferred styles"

@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { GENDER_VALUES, isMissingGenderColumn } from "@/lib/profile-gender";
 
 const profileSchema = z.object({
   display_name: z.string().max(120),
+  gender: z.enum(GENDER_VALUES).nullable(),
   preferred_styles: z.array(z.string()),
   preferred_colours: z.array(z.string()),
   disliked_colours: z.array(z.string()),
@@ -40,6 +42,7 @@ export async function saveProfile(
 
   const parsed = profileSchema.safeParse({
     display_name: String(formData.get("display_name") ?? ""),
+    gender: String(formData.get("gender") ?? "") || null,
     preferred_styles: list("preferred_styles"),
     preferred_colours: list("preferred_colours"),
     disliked_colours: list("disliked_colours"),
@@ -64,6 +67,30 @@ export async function saveProfile(
       { onConflict: "user_id" },
     );
 
+  if (isMissingGenderColumn(error)) {
+    const profileWithoutGender = {
+      display_name: parsed.data.display_name,
+      preferred_styles: parsed.data.preferred_styles,
+      preferred_colours: parsed.data.preferred_colours,
+      disliked_colours: parsed.data.disliked_colours,
+      common_occasions: parsed.data.common_occasions,
+      preference_notes: parsed.data.preference_notes,
+      sizes: parsed.data.sizes,
+    };
+    const { error: retryError } = await supabase.from("user_profiles").upsert(
+      {
+        user_id: user.id,
+        ...profileWithoutGender,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+    if (retryError) return { error: "Could not save profile" };
+    return {
+      error:
+        "Your other preferences were saved, but gender needs the Supabase profile update before it can be saved.",
+    };
+  }
   if (error) return { error: "Could not save profile" };
 
   revalidatePath("/profile");
