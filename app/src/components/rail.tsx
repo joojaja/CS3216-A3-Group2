@@ -9,6 +9,7 @@ import { PlannerStatus } from "@/components/planner-status";
 
 const links = [
   { href: "/wardrobe", label: "Wardrobe", short: "Wardrobe", icon: HomeIcon },
+  { href: "/style", label: "My Style", short: "Style", icon: StyleIcon },
   { href: "/explore", label: "Explore", short: "Explore", icon: ExploreIcon },
   { href: "/planner", label: "Outfit planner", short: "Planner", icon: ClockIcon },
   { href: "/evaluator", label: "Should I buy it?", short: "Buy?", icon: BagIcon },
@@ -102,10 +103,10 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
       <div className="md:hidden">
         <AnalysisStatus variant="bar" />
         <PlannerStatus variant="bar" />
-        <nav aria-label="Main navigation" className="app-mobile-nav relative grid grid-cols-6 bg-ink pb-1.5">
+        <nav aria-label="Main navigation" className="app-mobile-nav relative grid grid-cols-7 bg-ink pb-1.5">
         {active >= 0 && (
           <motion.div
-            className="absolute top-0 left-0 h-[3px] w-1/6 rounded-b-[3px] bg-tangerine"
+            className="absolute top-0 left-0 h-[3px] w-[calc(100%/7)] rounded-b-[3px] bg-tangerine"
             initial={false}
             animate={{ x: `${active * 100}%` }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
@@ -139,6 +140,14 @@ function HomeIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...stroke}>
       <path d="M3 9l9-6 9 6v11a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1z" />
+    </svg>
+  );
+}
+// A clothes hanger, after the Wearabouts mark
+function StyleIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...stroke}>
+      <path d="M12 7.5a2 2 0 112-2c0 1-.8 1.4-2 2.2V9l8.4 6a1.5 1.5 0 01-.9 2.7H4.5a1.5 1.5 0 01-.9-2.7L12 9" />
     </svg>
   );
 }
