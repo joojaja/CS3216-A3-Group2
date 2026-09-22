@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useMotionValue, useTransform } from "motion/react";
 import { OutfitCollage } from "@/components/outfit-collage";
 import { FeedbackReasons } from "@/components/feedback-reasons";
 import { BookmarkIcon } from "@/components/outfit-planner";
@@ -17,6 +17,9 @@ import type { DailyAction, DailyCard, DailyFeed } from "@/lib/outfits/types";
 const STALE_MS = 50 * 60 * 1000;
 // How long a skip can be undone before it is written
 const UNDO_MS = 5000;
+// How far, in pixels, or how fast a card must be dragged to count as a swipe
+const SWIPE_DISTANCE = 110;
+const SWIPE_VELOCITY = 600;
 
 type LoadState =
   | { status: "loading" }
@@ -84,7 +87,55 @@ export function useDailyFeed() {
     });
   }, []);
 
-  return { state, reload: load, patchCard };
+  // A wear counts towards today's streak straight away
+  const markWornToday = useCallback(() => {
+    setState((prev) => {
+      if (prev.status !== "loaded" || prev.feed.streak.wornToday) return prev;
+      const { days } = prev.feed.streak;
+      return { ...prev, feed: { ...prev.feed, streak: { days: days + 1, wornToday: true } } };
+    });
+  }, []);
+
+  return { state, reload: load, patchCard, markWornToday };
+}
+
+// Milliseconds until the given time, ticking every 30 seconds
+export function useCountdown(target: string) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  return Date.parse(target) - now;
+}
+
+export function refreshLabel(ms: number) {
+  if (ms <= 0) return "New outfits ready";
+  const hours = Math.floor(ms / 3_600_000);
+  if (hours >= 1) return `Refreshes in ${hours} ${hours === 1 ? "hr" : "hrs"}`;
+  const minutes = Math.max(1, Math.ceil(ms / 60_000));
+  return `Refreshes in ${minutes} min`;
+}
+
+export function StreakBadge({ days, wornToday }: { days: number; wornToday: boolean }) {
+  const label =
+    days === 0
+      ? "No wear streak yet. Mark an outfit as worn to start one."
+      : `${days}-day wear streak${wornToday ? "" : ". Wear something today to keep it going."}`;
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums ${
+        days > 0 && wornToday ? "bg-tangerine-light text-ink" : "bg-wash text-mute"
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="size-3.5" fill="currentColor" aria-hidden="true">
+        <path d="M12 2c1 3.2-.6 5-2 6.6C8.6 10.2 7 12 7 14.6A5 5 0 0 0 12 20a5 5 0 0 0 5-5.2c0-2.3-1.2-3.8-2.3-5 .2 1.6-.3 2.8-1.4 3.4.3-3.8-.4-8.3-1.3-11.2z" />
+      </svg>
+      {days}
+    </span>
+  );
 }
 
 async function postFeedback(id: string, action: DailyAction, picked?: Reason[]) {
@@ -113,7 +164,7 @@ async function postFeedback(id: string, action: DailyAction, picked?: Reason[]) 
 // Full-screen view of today's outfits, one card at a time
 export function DailyFeedView({ start }: { start: number | null }) {
   const router = useRouter();
-  const { state, reload, patchCard } = useDailyFeed();
+  const { state, reload, patchCard, markWornToday } = useDailyFeed();
 
   useEffect(() => {
     trackFunnel("daily_feed_opened");
@@ -132,7 +183,14 @@ export function DailyFeedView({ start }: { start: number | null }) {
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-ink text-white">
       {state.status === "loaded" && state.feed.status === "ready" ? (
-        <ReadyFeed feed={state.feed} start={start} onClose={close} patchCard={patchCard} />
+        <ReadyFeed
+          feed={state.feed}
+          start={start}
+          onClose={close}
+          onReload={() => void reload()}
+          patchCard={patchCard}
+          onWorn={markWornToday}
+        />
       ) : (
         <>
           <TopBar onClose={close} counter={null} />
@@ -233,12 +291,16 @@ function ReadyFeed({
   feed,
   start,
   onClose,
+  onReload,
   patchCard,
+  onWorn,
 }: {
   feed: Extract<DailyFeed, { status: "ready" }>;
   start: number | null;
   onClose: () => void;
+  onReload: () => void;
   patchCard: (id: string, patch: Partial<DailyCard>) => void;
+  onWorn: () => void;
 }) {
   const { toast } = useToast();
   const { cards } = feed;
@@ -250,8 +312,11 @@ function ReadyFeed({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [index, setIndex] = useState(firstOpen);
+  // Which way the current card leaves: -1 to the left (skip), 1 to the right (save)
+  const [exitDirection, setExitDirection] = useState<-1 | 1>(-1);
   const [reasonsOpen, setReasonsOpen] = useState(false);
   const pendingSkips = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const remaining = useCountdown(feed.nextRefreshAt);
   const done = index >= cards.length;
   const card = done ? null : cards[index];
 
@@ -267,14 +332,27 @@ function ReadyFeed({
     };
   }, [feed.demo]);
 
-  function goTo(next: number) {
+  function goTo(next: number, direction: -1 | 1 = -1) {
+    setExitDirection(direction);
     setReasonsOpen(false);
     setIndex(next);
     if (next >= cards.length) trackFunnel("daily_feed_finished");
   }
 
+  // Left and right arrows move between cards without recording anything
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      const target = event.target;
+      if (reasonsOpen || (target instanceof Element && target.closest("input, textarea, select"))) return;
+      if (event.key === "ArrowRight" && index < cards.length) goTo(index + 1, -1);
+      if (event.key === "ArrowLeft" && index > 0) goTo(index - 1, 1);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   function skip(target: DailyCard, at: number) {
-    goTo(at + 1);
+    goTo(at + 1, -1);
     trackFunnel("daily_outfit_skipped");
     const timer = setTimeout(() => {
       pendingSkips.current.delete(target.id);
@@ -287,7 +365,7 @@ function ReadyFeed({
       onClick: () => {
         clearTimeout(pendingSkips.current.get(target.id));
         pendingSkips.current.delete(target.id);
-        goTo(at);
+        goTo(at, 1);
       },
     });
   }
@@ -306,7 +384,7 @@ function ReadyFeed({
       return;
     }
     trackFunnel("daily_outfit_saved");
-    goTo(at + 1);
+    goTo(at + 1, 1);
     toast("Saved to your outfits", {
       label: "Undo",
       onClick: async () => {
@@ -316,9 +394,15 @@ function ReadyFeed({
           toast("Could not undo the save");
           return;
         }
-        goTo(at);
+        goTo(at, -1);
       },
     });
+  }
+
+  // A swipe right saves, or just moves on when the card is already saved
+  function swipeRight(target: DailyCard, at: number) {
+    if (target.saved) goTo(at + 1, 1);
+    else void toggleSave(target, at);
   }
 
   async function wear(target: DailyCard) {
@@ -330,8 +414,9 @@ function ReadyFeed({
       return;
     }
     trackFunnel("daily_outfit_worn");
+    onWorn();
     toast("Marked as worn today");
-    goTo(cards.length);
+    goTo(cards.length, 1);
   }
 
   async function reject(target: DailyCard, at: number, picked: Reason[]) {
@@ -344,7 +429,7 @@ function ReadyFeed({
     }
     trackFunnel("daily_outfit_rejected");
     toast("Feedback recorded. Future picks will avoid this.");
-    goTo(at + 1);
+    goTo(at + 1, -1);
   }
 
   const next = !done && index + 1 < cards.length ? cards[index + 1] : null;
@@ -357,6 +442,18 @@ function ReadyFeed({
           Demo outfits from example items. Nothing you do here is saved.
         </p>
       )}
+      {remaining <= 0 && (
+        <div className="mx-auto mb-3 flex w-full max-w-[440px] items-center justify-between gap-3 px-4">
+          <p className="text-sm text-white/85">A new day, new outfits.</p>
+          <button
+            type="button"
+            onClick={onReload}
+            className="rounded-full bg-white px-4 py-2 text-sm font-medium text-ink"
+          >
+            New outfits ready
+          </button>
+        </div>
+      )}
 
       <div className="mx-auto w-full max-w-[440px] flex-1 px-4">
         <div className="relative">
@@ -367,16 +464,15 @@ function ReadyFeed({
               className="absolute inset-0 translate-x-3 scale-[0.96] rounded-3xl bg-white/70"
             />
           )}
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="wait" initial={false} custom={exitDirection}>
             {card ? (
-              <motion.article
+              <SwipeCard
                 key={card.id}
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -40 }}
-                transition={{ duration: 0.28, ease: [0.2, 0.8, 0.3, 1] }}
-                aria-label={`Outfit ${index + 1} of ${cards.length}`}
-                className="relative rounded-3xl bg-white p-3 text-ink shadow-[0_18px_50px_#0006]"
+                direction={exitDirection}
+                draggable={!reasonsOpen}
+                label={`Outfit ${index + 1} of ${cards.length}`}
+                onSwipeLeft={() => skip(card, index)}
+                onSwipeRight={() => swipeRight(card, index)}
               >
                 <OutfitCollage
                   items={card.itemIds.map((id) => feed.items[id]).filter(Boolean)}
@@ -433,12 +529,17 @@ function ReadyFeed({
                     )}
                   </AnimatePresence>
                 </div>
-              </motion.article>
+              </SwipeCard>
             ) : (
-              <EndCard key="end" feed={feed} onRestart={() => goTo(0)} />
+              <EndCard key="end" feed={feed} remaining={remaining} onRestart={() => goTo(0, 1)} />
             )}
           </AnimatePresence>
         </div>
+        {card && (
+          <p className="mt-3 text-center text-xs text-white/55">
+            Swipe left to skip, right to save. Arrow keys move between outfits.
+          </p>
+        )}
       </div>
 
       {card && (
@@ -476,11 +577,79 @@ function ReadyFeed({
   );
 }
 
+const cardMotion = {
+  enter: { opacity: 0, x: 40, rotate: 0 },
+  center: { opacity: 1, x: 0, rotate: 0 },
+  exit: (direction: -1 | 1) => ({ opacity: 0, x: direction * 320, rotate: direction * 10 }),
+};
+
+// One outfit card that can be dragged sideways. Past the threshold it
+// counts as a swipe; otherwise it springs back. Every swipe has a button too
+function SwipeCard({
+  direction,
+  draggable,
+  label,
+  onSwipeLeft,
+  onSwipeRight,
+  children,
+}: {
+  direction: -1 | 1;
+  draggable: boolean;
+  label: string;
+  onSwipeLeft: () => void;
+  onSwipeRight: () => void;
+  children: React.ReactNode;
+}) {
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-240, 240], [-9, 9]);
+  const skipHint = useTransform(x, [-SWIPE_DISTANCE, -30], [1, 0]);
+  const saveHint = useTransform(x, [30, SWIPE_DISTANCE], [0, 1]);
+
+  return (
+    <motion.article
+      custom={direction}
+      variants={cardMotion}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 0.28, ease: [0.2, 0.8, 0.3, 1] }}
+      drag={draggable ? "x" : false}
+      dragSnapToOrigin
+      dragElastic={0.7}
+      style={{ x, rotate, touchAction: "pan-y" }}
+      onDragEnd={(_, info) => {
+        if (info.offset.x < -SWIPE_DISTANCE || info.velocity.x < -SWIPE_VELOCITY) onSwipeLeft();
+        else if (info.offset.x > SWIPE_DISTANCE || info.velocity.x > SWIPE_VELOCITY) onSwipeRight();
+      }}
+      aria-label={label}
+      className="relative cursor-grab rounded-3xl bg-white p-3 text-ink shadow-[0_18px_50px_#0006] active:cursor-grabbing"
+    >
+      <motion.span
+        aria-hidden="true"
+        style={{ opacity: skipHint }}
+        className="pointer-events-none absolute top-6 right-6 z-20 rotate-6 rounded-lg border-2 border-bad bg-white/90 px-3 py-1 text-sm font-bold tracking-wide text-bad uppercase"
+      >
+        Skip
+      </motion.span>
+      <motion.span
+        aria-hidden="true"
+        style={{ opacity: saveHint }}
+        className="pointer-events-none absolute top-6 left-6 z-20 -rotate-6 rounded-lg border-2 border-ok bg-white/90 px-3 py-1 text-sm font-bold tracking-wide text-ok uppercase"
+      >
+        Save
+      </motion.span>
+      {children}
+    </motion.article>
+  );
+}
+
 function EndCard({
   feed,
+  remaining,
   onRestart,
 }: {
   feed: Extract<DailyFeed, { status: "ready" }>;
+  remaining: number;
   onRestart: () => void;
 }) {
   const saved = feed.cards.filter((card) => card.saved);
@@ -497,8 +666,13 @@ function EndCard({
         {worn ? "Enjoy today's outfit" : "That's today's outfits"}
       </h2>
       <p className="mx-auto mt-1 max-w-[36ch] text-sm text-mute">
-        New outfits arrive at midnight. For something specific, plan it for an occasion.
+        {refreshLabel(remaining)}. For something specific, plan it for an occasion.
       </p>
+      {feed.streak.days > 0 && (
+        <p className="mt-3">
+          <StreakBadge days={feed.streak.days} wornToday={feed.streak.wornToday} />
+        </p>
+      )}
 
       {saved.length > 0 && (
         <div className="mt-5">
