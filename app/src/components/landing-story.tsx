@@ -1,50 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 const stages = [
   [
     "The wardrobe",
     "Plenty of clothes. Still no clear answer.",
-    "Seeing everything at once does not make the decision easier.",
+    "Seeing everything at once does not make the decision easier. Wearabouts begins by understanding what is actually available.",
   ],
   [
     "The context",
     "What works for where you're going?",
-    "Your plans and surroundings narrow the wardrobe to what fits tonight.",
+    "Dinner at seven, smart casual, 29°C and a walk from the MRT narrow the options.",
   ],
   [
     "The comparison",
-    "A suggestion with a reason.",
-    "See how formality, colour and the forecast influence the choice.",
+    "Not just a suggestion. A reason.",
+    "Olive trousers beat charcoal for comfort without losing the right level of formality.",
   ],
   [
     "The outfit",
-    "One considered outfit, ready for your review.",
-    "Every piece answers the same occasion, weather and practical needs.",
+    "One outfit. Zero second-guessing.",
+    "Ivory overshirt, black tee, olive trousers and white sneakers.",
   ],
 ];
 
 export default function LandingStory() {
   const [active, setActive] = useState(0);
   const [enhanced, setEnhanced] = useState(false);
+  const frame = useRef<number | null>(null);
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const section = document.querySelector<HTMLElement>(".drape-story");
+    const readingProgress = document.querySelector<HTMLElement>(".drape-reading-progress span");
+    let latest = 0;
     const onScroll = () => {
+      if (readingProgress) {
+        const documentRange = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        readingProgress.style.transform = `scaleX(${Math.max(0, Math.min(1, window.scrollY / documentRange))})`;
+      }
       if (window.innerWidth < 901 || media.matches) return;
-      const section = document.querySelector<HTMLElement>(".drape-story");
       if (!section) return;
-      const range = section.offsetHeight - window.innerHeight;
-      const progress = Math.max(
-        0,
-        Math.min(1, -section.getBoundingClientRect().top / range),
-      );
-      setActive(Math.min(3, Math.floor(progress * 3 + 0.5)));
+      latest = Math.max(0, Math.min(1, -section.getBoundingClientRect().top / Math.max(1, section.offsetHeight - window.innerHeight)));
+      if (frame.current === null) frame.current = window.requestAnimationFrame(() => { setActive(Math.min(3, Math.floor(latest * 3 + 0.5))); frame.current = null; });
     };
     const updateMode = () =>
       setEnhanced(window.innerWidth >= 901 && !media.matches);
     updateMode();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => entry.target.classList.toggle("is-visible", entry.isIntersecting));
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".drape-feature-tour article").forEach((article) => observer.observe(article));
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", updateMode);
     media.addEventListener("change", updateMode);
@@ -53,6 +60,8 @@ export default function LandingStory() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", updateMode);
       media.removeEventListener("change", updateMode);
+      observer.disconnect();
+      if (frame.current !== null) window.cancelAnimationFrame(frame.current);
     };
   }, []);
 
@@ -62,29 +71,30 @@ export default function LandingStory() {
       id="story"
       aria-label="How Wearabouts narrows a wardrobe decision"
     >
+      <div className="drape-reading-progress" aria-hidden="true"><span /></div>
       <h2 className="sr-only">How Wearabouts works</h2>
       <div className="drape-story-desktop">
-        <a className="drape-story-skip" href="#after-story">
-          Skip story <span aria-hidden="true">↘</span>
-        </a>
         <div className="drape-story-copy">
           <span className="drape-story-count">
             0{active + 1} / 04 · {stages[active][0]}
           </span>
           <h2>{stages[active][1]}</h2>
           <p>{stages[active][2]}</p>
-          <div className="drape-progress">
+          <div className="drape-progress" role="progressbar" aria-valuemin={1} aria-valuemax={4} aria-valuenow={active + 1}>
             <span style={{ width: `${((active + 1) / 4) * 100}%` }} />
           </div>
         </div>
+        <div className="drape-story-controller" aria-label="Story stages">
+          {stages.map((stage, i) => <button key={stage[0]} type="button" aria-current={i === active ? "step" : undefined} onClick={() => sectionScroll(i)}>{["Wardrobe", "Context", "Comparison", "Outfit"][i]}</button>)}
+        </div>
         <div className="drape-story-images">
-          {[2, 3, 4, 5].map((n, i) => (
+          {[0, 1, 2, 3].map((_, i) => (
             <Image
               className={i === active ? "is-active" : ""}
-              key={n}
-              src={`/landing/narrative-${n}.webp`}
-              alt=""
-              aria-hidden="true"
+              key={i}
+              src={`/landing/${["story-wardrobe", "story-context", "story-comparison", "story-outfit"][i]}.webp`}
+              alt={stages[i][2]}
+              aria-hidden={i === active ? undefined : true}
               fill
               sizes="100vw"
             />
@@ -102,7 +112,7 @@ export default function LandingStory() {
               <p>{stage[2]}</p>
             </div>
             <Image
-              src={`/landing/narrative-${i + 2}.webp`}
+              src={`/landing/${["story-wardrobe", "story-context", "story-comparison", "story-outfit"][i]}.webp`}
               alt={
                 i === 3 ? "The selected outfit ready to wear" : "Wardrobe scene"
               }
@@ -115,4 +125,12 @@ export default function LandingStory() {
       </div>
     </section>
   );
+}
+
+function sectionScroll(index: number) {
+  const section = document.querySelector<HTMLElement>(".drape-story");
+  if (!section) return;
+  const offset = (section.offsetHeight - window.innerHeight) * (index / 3);
+  const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  window.scrollTo({ top: section.offsetTop + offset, behavior });
 }
