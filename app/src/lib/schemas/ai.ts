@@ -180,3 +180,20 @@ export const exploreSelectionSchema = z.object({
 });
 
 export type ExploreSelection = z.infer<typeof exploreSelectionSchema>;
+
+// Daily feed: the model picks outfits from candidates the rules already
+// built and explains them. It returns candidate numbers, never item ids, so
+// it cannot add, drop or invent a piece.
+export const dailyPicksSchema = z.object({
+  picks: z
+    .array(
+      z.object({
+        candidate: z.number().int().min(1).max(8),
+        explanation: z.string().min(1).max(400),
+      }),
+    )
+    .min(1)
+    .max(3),
+});
+
+export type DailyPicks = z.infer<typeof dailyPicksSchema>;
