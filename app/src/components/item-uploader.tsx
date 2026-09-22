@@ -20,6 +20,8 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     step,
     file,
     preview,
+    accountTier,
+    beautifyCreditsRemaining,
     original,
     originalPreview,
     cleaned,
@@ -125,8 +127,12 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
   }
 
   function confirmBeautify() {
+    const creditCopy =
+      accountTier === "free" && beautifyCreditsRemaining !== null
+        ? ` This will use 1 of your ${beautifyCreditsRemaining} remaining free edits.`
+        : "";
     const confirmed = window.confirm(
-      "Beautify this photo? This uses the premium image model and may change small details.",
+      `Beautify this photo?${creditCopy} The image model may change small details.`,
     );
     if (confirmed) requestEdit("iron");
   }
@@ -209,7 +215,11 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
               className="absolute top-2 right-2 z-30 inline-flex items-center gap-1.5 rounded-full bg-tangerine px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:brightness-95 disabled:opacity-50"
             >
               <WandIcon className="size-3.5" />
-              {beautifying ? "Beautifying" : "Beautify"}
+              {beautifying
+                ? "Beautifying"
+                : accountTier === "free" && beautifyCreditsRemaining !== null
+                  ? `Beautify (${beautifyCreditsRemaining} left)`
+                  : "Beautify"}
             </button>
           )}
         </div>

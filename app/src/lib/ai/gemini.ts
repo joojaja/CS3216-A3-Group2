@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { appendFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { OUTFIT_CREDIT_LIMIT_MESSAGE } from "../account-entitlements.ts";
 
 // gemini-2.5-flash is no longer offered to new Google accounts (the API
 // returns 404), so default to the model Google recommends in its place.
@@ -153,7 +154,9 @@ function describeAiError(where: string, error: unknown, context?: AiErrorContext
     status === 503 ||
     /high demand|overloaded|resource.?exhausted|rate limit|quota/i.test(message);
   const userMessage = busy
-    ? "The AI service is busy right now. Wait a moment and try again."
+    ? where === "outfits" && context?.accountTier === "free"
+      ? OUTFIT_CREDIT_LIMIT_MESSAGE
+      : "The AI service is busy right now. Wait a moment and try again."
     : status === 404
       ? "The configured AI model is not available. Check GEMINI_MODEL."
       : /_API_KEY|API key/.test(message)
