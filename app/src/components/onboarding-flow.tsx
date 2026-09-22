@@ -14,6 +14,7 @@ import {
   styleOptions,
   type OnboardingProfile,
 } from "@/lib/onboarding";
+import { genderOptions, type Gender } from "@/lib/profile-gender";
 
 function Choices({
   values,
@@ -96,7 +97,7 @@ function OnboardingSteps({
       return;
     }
     const form = new FormData();
-    for (const key of ["display_name", "preference_notes"] as const)
+    for (const key of ["display_name", "gender", "preference_notes"] as const)
       form.set(key, draft[key] ?? "");
     for (const key of [
       "preferred_styles",
@@ -223,6 +224,22 @@ function OnboardingSteps({
                       onChange={(e) => update("display_name", e.target.value)}
                       placeholder="Your name"
                     />
+                  </label>
+                  <label className="onboarding-label">
+                    Gender <span>Optional</span>
+                    <select
+                      value={draft.gender ?? ""}
+                      onChange={(event) =>
+                        update("gender", (event.target.value || null) as Gender | null)
+                      }
+                    >
+                      <option value="">Prefer not to say</option>
+                      {genderOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <fieldset>
                     <legend>
