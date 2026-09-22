@@ -3,43 +3,42 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { useAnalysis } from "@/components/analysis-context";
+import { useUploadQueue } from "@/components/multi-item-uploader";
 
 // Shows the state of the add-item flow while the user is on another tab:
 // a photo being analysed, or a finished analysis waiting to be reviewed.
 // Hidden on the add-item page itself, where the full form is visible.
 export function AnalysisStatus({ variant }: { variant: "rail" | "bar" }) {
   const pathname = usePathname();
-  const { step, file, preview, bg, crop, enhance } = useAnalysis();
-
-  const editing = enhance.isolate.status === "running" || enhance.iron.status === "running";
-  const removing = (bg.status === "running" || crop.status === "running" || editing) && step === "pick";
-  const analyzing = step === "analyzing";
+  const { jobs, snapshots } = useUploadQueue();
+  const active = jobs
+    .map((id) => snapshots[id])
+    .filter(
+      (snapshot) =>
+        snapshot?.hasFile &&
+        (snapshot.working ||
+          snapshot.status === "Ready to review" ||
+          snapshot.status === "Needs attention"),
+    );
+  const workingItems = active.filter((snapshot) => snapshot.working);
+  const focus = workingItems[0] ?? active[0];
+  const working = workingItems.length > 0;
   const show =
     pathname !== "/wardrobe/new" &&
-    file !== null &&
-    (removing || analyzing || step === "review");
+    focus !== undefined;
 
-  // Both removal and analysis show a spinner; only the wording differs
-  const working = removing || analyzing;
-  const title = removing
-    ? "Preparing your photo"
-    : analyzing
-      ? "Analysing your photo"
-      : "Photo analysed";
-  // The rail is narrow, so the second line doubles as the call to action
-  // there and the separate button is only shown on the wider mobile bar
-  const detail = removing
-    ? editing
-      ? "Editing with the image model"
-      : crop.status === "running"
-        ? "Cropping to the garment"
-        : "Removing the background"
-    : analyzing
-      ? "You can keep browsing"
-      : variant === "rail"
-        ? "Open to review it"
-        : "Waiting for your review";
+  const title = working
+    ? workingItems.length === 1
+      ? focus?.status ?? "Preparing clothing"
+      : `Preparing ${workingItems.length} items`
+    : active.length === 1
+      ? focus?.status ?? "Item ready"
+      : `${active.length} items ready`;
+  const detail = working
+    ? "You can keep browsing"
+    : variant === "rail"
+      ? "Open to review"
+      : "Waiting for your review";
   const action = working ? "View" : "Review";
 
   return (
@@ -59,9 +58,9 @@ export function AnalysisStatus({ variant }: { variant: "rail" | "bar" }) {
         >
           <Link href="/wardrobe/new" className="flex items-center gap-3">
             <span className="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-soft">
-              {preview && (
+              {focus?.preview && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={preview} alt="" className="size-full object-cover" />
+                <img src={focus.preview} alt="" className="size-full object-cover" />
               )}
               {working && (
                 <span className="absolute inset-0 grid place-items-center bg-paper/70">
