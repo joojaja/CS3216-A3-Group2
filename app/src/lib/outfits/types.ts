@@ -54,6 +54,8 @@ type DailyCommon = {
   // When the next batch becomes available, ISO time
   nextRefreshAt: string;
   hasFootwear: boolean;
+  // Consecutive Singapore days with an outfit marked as worn
+  streak: { days: number; wornToday: boolean };
 };
 
 export type DailyFeed =

@@ -6,6 +6,7 @@ import {
   FALLBACK_WEATHER,
   readForecast,
 } from "../src/lib/outfits/daily-rules.ts";
+import { wearStreak } from "../src/lib/outfits/streak.ts";
 import { nextSingaporeMidnight, singaporeDate, singaporeDaysAgo } from "../src/lib/outfits/sg-day.ts";
 
 function item(id, category, extra = {}) {
@@ -176,4 +177,20 @@ test("singapore days roll over at 4 pm UTC", () => {
   assert.equal(singaporeDate(new Date("2026-09-22T16:00:00Z")), "2026-09-23");
   assert.equal(nextSingaporeMidnight(new Date("2026-09-22T11:28:00Z")), "2026-09-22T16:00:00.000Z");
   assert.equal(singaporeDaysAgo("2026-09-01", 3), "2026-08-29");
+});
+
+test("the wear streak counts consecutive singapore days", () => {
+  const today = "2026-09-22";
+  // 21 Sep 23:30 SGT is 15:30 UTC, and 22 Sep 00:30 SGT is 16:30 UTC on the 21st
+  assert.deepEqual(
+    wearStreak(["2026-09-21T16:30:00Z", "2026-09-21T01:00:00Z", "2026-09-20T02:00:00Z"], today),
+    { days: 3, wornToday: true },
+  );
+  // Nothing worn yet today: yesterday's streak still stands
+  assert.deepEqual(wearStreak(["2026-09-21T01:00:00Z", "2026-09-20T02:00:00Z"], today), {
+    days: 2,
+    wornToday: false,
+  });
+  // A gap breaks it
+  assert.deepEqual(wearStreak(["2026-09-19T01:00:00Z"], today), { days: 0, wornToday: false });
 });

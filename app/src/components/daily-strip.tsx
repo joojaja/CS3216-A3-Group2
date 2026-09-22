@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { OutfitCollage } from "@/components/outfit-collage";
-import { NotEnough, useDailyFeed } from "@/components/daily-feed";
+import {
+  NotEnough,
+  refreshLabel,
+  StreakBadge,
+  useCountdown,
+  useDailyFeed,
+} from "@/components/daily-feed";
 import type { DailyCard } from "@/lib/outfits/types";
 
 function badgeFor(card: DailyCard) {
@@ -26,8 +32,11 @@ export function DailyStrip() {
           <SparkIcon />
           Today&apos;s outfits
         </h2>
-        {ready?.weather && (
-          <span className="max-w-full truncate rounded-full bg-wash px-3 py-1 text-xs text-body">{ready.weather}</span>
+        {state.status === "loaded" && (
+          <div className="flex items-center gap-2">
+            <StreakBadge days={state.feed.streak.days} wornToday={state.feed.streak.wornToday} />
+            <RefreshPill target={state.feed.nextRefreshAt} onReady={() => void reload()} />
+          </div>
         )}
       </div>
 
@@ -86,7 +95,35 @@ export function DailyStrip() {
           })}
         </ul>
       )}
+
+      {ready && ready.cards.length > 0 && (
+        <p className="mt-3 text-xs text-mute">
+          {ready.weather
+            ? `Planned for ${ready.weather}`
+            : "Forecast unavailable, planned for typical hot and humid weather."}
+        </p>
+      )}
     </section>
+  );
+}
+
+function RefreshPill({ target, onReady }: { target: string; onReady: () => void }) {
+  const remaining = useCountdown(target);
+  if (remaining <= 0) {
+    return (
+      <button
+        type="button"
+        onClick={onReady}
+        className="rounded-full bg-ink px-3 py-1 text-xs font-medium text-white"
+      >
+        New outfits ready
+      </button>
+    );
+  }
+  return (
+    <span className="rounded-full bg-wash px-3 py-1 text-xs whitespace-nowrap text-body">
+      {refreshLabel(remaining)}
+    </span>
   );
 }
 
