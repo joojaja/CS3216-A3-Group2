@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 const feedbackSchema = z.object({
   recommendation_id: z.uuid(),
-  action: z.enum(["wore", "liked", "rejected"]),
+  // dismissed is a skip in the daily feed, a weak signal rather than a rejection
+  action: z.enum(["wore", "liked", "rejected", "dismissed"]),
   reason: z
     .enum([
       "too_warm",

@@ -1,6 +1,7 @@
 "use client";
 
 import { trackFunnel } from "@/lib/analytics";
+import { saveOutfit, unsaveOutfit } from "@/lib/outfits/saved-client";
 
 import {
   createContext,
@@ -16,6 +17,7 @@ export type RecommendedItem = {
   category: string;
   subcategory: string | null;
   primary_colour: string | null;
+  signed_image_url: string | null;
 };
 
 export type Recommendation = {
@@ -55,12 +57,14 @@ type State = {
   draft: string;
   turns: Turn[];
   sentFeedback: Record<string, FeedbackAction>;
+  // Recommendation ids the user has saved in this session
+  saved: Record<string, boolean>;
   // Whether the latest reply has been shown on the planner page. The status
   // card on other tabs hides once it has
   seen: boolean;
 };
 
-const initial: State = { draft: "", turns: [], sentFeedback: {}, seen: true };
+const initial: State = { draft: "", turns: [], sentFeedback: {}, saved: {}, seen: true };
 
 // Oldest first, capped so the prompt stays small
 const CONTEXT_MESSAGES = 6;
@@ -78,6 +82,8 @@ type Api = State & {
     action: FeedbackAction,
     picked?: Reason[],
   ) => Promise<boolean>;
+  // Saves or unsaves an outfit. Resolves to whether the change stuck
+  toggleSave: (recommendationId: string) => Promise<boolean>;
   markSeen: () => void;
 };
 
@@ -213,7 +219,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
 
   const clear = useCallback(() => {
     controller.current?.abort();
-    setState((prev) => ({ ...initial, sentFeedback: prev.sentFeedback }));
+    setState((prev) => ({ ...initial, sentFeedback: prev.sentFeedback, saved: prev.saved }));
   }, []);
 
   const sendFeedback = useCallback(
@@ -244,6 +250,27 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  // Flips the saved state first so the button responds at once, then puts
+  // it back if the request fails
+  const toggleSave = useCallback(
+    async (recommendationId: string) => {
+      const wasSaved = Boolean(state.saved[recommendationId]);
+      const setSaved = (value: boolean) =>
+        setState((prev) => ({ ...prev, saved: { ...prev.saved, [recommendationId]: value } }));
+      setSaved(!wasSaved);
+      const ok = wasSaved
+        ? await unsaveOutfit(recommendationId)
+        : await saveOutfit(recommendationId);
+      if (!ok) {
+        setSaved(wasSaved);
+        return false;
+      }
+      trackFunnel(wasSaved ? "outfit_unsaved" : "outfit_saved");
+      return true;
+    },
+    [state.saved],
+  );
+
   const api = useMemo<Api>(() => {
     const latest = state.turns[state.turns.length - 1] ?? null;
     return {
@@ -256,9 +283,10 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
       retry,
       clear,
       sendFeedback,
+      toggleSave,
       markSeen,
     };
-  }, [state, setDraft, send, stop, retry, clear, sendFeedback, markSeen]);
+  }, [state, setDraft, send, stop, retry, clear, sendFeedback, toggleSave, markSeen]);
 
   return <PlannerContext.Provider value={api}>{children}</PlannerContext.Provider>;
 }

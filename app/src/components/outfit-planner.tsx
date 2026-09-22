@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { GarmentIcon, tintFor } from "@/components/garment-icon";
 import { useToast } from "@/components/toast";
+import { FeedbackReasons } from "@/components/feedback-reasons";
 import {
-  FEEDBACK_REASONS,
   usePlanner,
   type FeedbackAction,
   type Reason,
@@ -192,9 +192,10 @@ function OutfitCard({
   onAnother: (() => void) | null;
 }) {
   const { toast } = useToast();
-  const { sentFeedback, sendFeedback, busy } = usePlanner();
+  const router = useRouter();
+  const { sentFeedback, sendFeedback, busy, saved, toggleSave } = usePlanner();
+  const isSaved = rec.id ? Boolean(saved[rec.id]) : false;
   const [reasonsOpen, setReasonsOpen] = useState(false);
-  const [reasons, setReasons] = useState<Set<Reason>>(new Set());
   const feedback = rec.id ? sentFeedback[rec.id] : null;
 
   async function give(action: FeedbackAction, picked?: Reason[]) {
@@ -202,20 +203,10 @@ function OutfitCard({
     const ok = await sendFeedback(rec.id, action, picked);
     if (ok) {
       setReasonsOpen(false);
-      setReasons(new Set());
       toast(action === "wore" ? "Marked as worn" : "Feedback recorded");
     } else {
       toast("Could not save feedback");
     }
-  }
-
-  function toggleReason(value: Reason) {
-    setReasons((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      return next;
-    });
   }
 
   return (
@@ -225,12 +216,39 @@ function OutfitCard({
       transition={{ delay: index * 0.1, duration: 0.4, ease: [0.2, 0.8, 0.3, 1] }}
       className="grid gap-3.5 rounded-xl border border-line p-5"
     >
-      <h3 className="text-base font-semibold">Outfit {index + 1}</h3>
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-semibold">Outfit {index + 1}</h3>
+        {rec.id && (
+          <button
+            type="button"
+            aria-pressed={isSaved}
+            aria-label={isSaved ? "Remove from saved outfits" : "Save outfit"}
+            onClick={async () => {
+              if (!rec.id) return;
+              const ok = await toggleSave(rec.id);
+              if (!ok) toast("Could not update saved outfits");
+              else if (!isSaved) {
+                toast("Saved to your outfits", {
+                  label: "View",
+                  onClick: () => router.push("/wardrobe/outfits"),
+                });
+              } else toast("Removed from saved outfits");
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
+              isSaved
+                ? "border-cobalt bg-cobalt text-white"
+                : "border-line text-body hover:border-cobalt"
+            }`}
+          >
+            <BookmarkIcon filled={isSaved} />
+            {isSaved ? "Saved" : "Save"}
+          </button>
+        )}
+      </div>
 
       <div className="flex gap-3 pb-5">
         {rec.item_ids.map((id, i) => {
           const item = items[id];
-          const tint = tintFor(item?.primary_colour);
           const label = item
             ? [item.primary_colour, item.subcategory ?? item.category].filter(Boolean).join(" ")
             : "Unknown item";
@@ -241,10 +259,20 @@ function OutfitCard({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 + i * 0.1 }}
               whileHover={{ y: -3 }}
-              className="relative grid aspect-[3/4] w-full max-w-[120px] place-items-center rounded-[10px]"
-              style={{ background: tint.bg, color: tint.fg }}
+              className="relative grid aspect-[3/4] w-full max-w-[120px] place-items-center rounded-[10px] border border-line bg-wash"
             >
-              <GarmentIcon kind={item?.category ?? "top"} className="w-[52%]" />
+              {item?.signed_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.signed_image_url}
+                  alt={label}
+                  className="size-full rounded-[9px] object-cover"
+                />
+              ) : (
+                <span className="px-2 text-center text-xs text-mute">
+                  Photo unavailable
+                </span>
+              )}
               <span className="absolute inset-x-0 -bottom-5 text-center text-xs text-mute capitalize">
                 {label}
               </span>
@@ -308,7 +336,6 @@ function OutfitCard({
                   aria-expanded={reasonsOpen}
                   onClick={() => {
                     setReasonsOpen((open) => !open);
-                    setReasons(new Set());
                   }}
                   className={`grid size-[38px] place-items-center rounded-full border transition ${
                     reasonsOpen ? "border-ink bg-ink text-white" : "border-line hover:border-cobalt"
@@ -330,51 +357,10 @@ function OutfitCard({
                 transition={{ duration: 0.25, ease: [0.2, 0.8, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <div className="grid gap-3 rounded-xl bg-wash p-3.5">
-                  <b className="text-[13.5px] font-semibold">
-                    What did not work? Select all that apply.
-                  </b>
-                  <div className="flex flex-wrap gap-1.5">
-                    {FEEDBACK_REASONS.map((reason) => {
-                      const on = reasons.has(reason.value);
-                      return (
-                        <button
-                          key={reason.value}
-                          type="button"
-                          aria-pressed={on}
-                          onClick={() => toggleReason(reason.value)}
-                          className={`rounded-full border px-3 py-1.5 text-[13px] transition ${
-                            on
-                              ? "border-cobalt bg-cobalt text-white"
-                              : "border-line bg-white hover:border-cobalt"
-                          }`}
-                        >
-                          {reason.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-mute">Your feedback shapes future suggestions.</p>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setReasonsOpen(false)}
-                        className="rounded-lg border border-line bg-white px-3.5 py-2 text-sm"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        disabled={reasons.size === 0}
-                        onClick={() => give("rejected", [...reasons])}
-                        className="rounded-lg bg-cobalt px-3.5 py-2 text-sm font-medium text-white disabled:opacity-40"
-                      >
-                        Send feedback
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <FeedbackReasons
+                  onCancel={() => setReasonsOpen(false)}
+                  onSubmit={(picked) => give("rejected", picked)}
+                />
               </motion.div>
             )}
           </AnimatePresence>
@@ -464,6 +450,22 @@ function Composer() {
         )}
       </div>
     </div>
+  );
+}
+
+export function BookmarkIcon({ filled = false, className = "size-[15px]" }: { filled?: boolean; className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M6 3.5h12v17l-6-4.2-6 4.2z" />
+    </svg>
   );
 }
 
