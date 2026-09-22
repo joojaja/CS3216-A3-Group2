@@ -87,8 +87,14 @@ export function SavedOutfits({ outfits: initial }: { outfits: SavedOutfitView[] 
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <Link
-            href="/planner"
+            href="/wardrobe/today"
             className="inline-block rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white"
+          >
+            Today&apos;s outfits
+          </Link>
+          <Link
+            href="/planner"
+            className="inline-block rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-medium"
           >
             Plan an outfit
           </Link>

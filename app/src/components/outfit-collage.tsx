@@ -45,11 +45,12 @@ export function OutfitCollage({
       <div
         className="grid h-full gap-[5%]"
         style={{
+          // minmax(0, ...) stops a label's width from overriding the proportions
           gridTemplateColumns: !hasRight
-            ? "1fr"
+            ? "minmax(0, 1fr)"
             : slots.extras.length
-              ? "3fr 2fr"
-              : "7fr 3fr",
+              ? "minmax(0, 3fr) minmax(0, 2fr)"
+              : "minmax(0, 7fr) minmax(0, 3fr)",
         }}
       >
         {/* Left column: the body of the outfit */}
@@ -135,8 +136,9 @@ function Slot({
     return (
       <div className={className}>
         <div className="grid size-full place-items-center rounded-xl border border-dashed border-line bg-white/60 p-1 text-center">
-          <span className={`capitalize text-mute ${thumb ? "text-[10px]" : "text-xs"}`}>
-            {label || "Item"}
+          {/* Thumbnails only have room for the category */}
+          <span className={`max-w-full capitalize text-mute ${thumb ? "truncate text-[10px] leading-tight" : "text-xs"}`}>
+            {thumb ? item.category : label || "Item"}
           </span>
         </div>
       </div>
