@@ -8,6 +8,7 @@ const PROTECTED_PREFIXES = [
   "/planner",
   "/evaluator",
   "/profile",
+  "/sizing",
 ];
 
 // Name of the dev-only session cookie, set by the login form when Supabase
