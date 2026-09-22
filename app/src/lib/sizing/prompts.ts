@@ -17,6 +17,6 @@ If the image is not a clothing or shoe product, set is_product_page to false and
 
 // Per-user caps for screenshot reading, the only sizing step that costs
 // money. Every user is on the free tier until subscriptions exist
-export const FREE_DAILY_EXTRACTIONS = 10;
+export const FREE_DAILY_EXTRACTIONS = 5;
 export const PLUS_DAILY_EXTRACTIONS = 50;
-export const EXTRACTIONS_PER_MINUTE = 6;
+export const EXTRACTIONS_PER_MINUTE = 2;
