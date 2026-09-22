@@ -1,6 +1,6 @@
-# Proposed AGENTS.md naming update
+# Historical AGENTS.md naming proposal
 
-This is a proposal only. AGENTS.md has not been edited. Its existing rule requires approval of exact changes. The diff below contains all proposed edits, including the outdated logo milestone. No product scope or teammate ownership rule changes.
+Checked on 22 September 2026. AGENTS.md already contains the Wearabouts name and W/hanger identity shown below. No naming edit is pending. This diff is retained as history. AGENTS.md was not edited during this release review.
 
 ```diff
 --- AGENTS.md current

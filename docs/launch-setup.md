@@ -1,14 +1,16 @@
 # Wearabouts launch setup
 
-## Site and authentication
+## Production site and authentication
 
-Set `NEXT_PUBLIC_SITE_URL` to the final HTTPS origin before the production build. Configure the same site origin in Supabase and allow its `/auth/callback` URL. The confirmation handler accepts only known internal application destinations. Do not run the resetting schema file on an existing project for this branch.
+The team supplied `https://wearabouts-zeta.vercel.app` as the production URL. Set `NEXT_PUBLIC_SITE_URL=https://wearabouts-zeta.vercel.app` in the Vercel project's **Production** environment variables, then create a new deployment or redeploy after the change. An explicitly configured older URL overrides the code's Vercel-domain fallback, so confirm that no `drape-zeta.vercel.app` value remains. The repository is not linked to the project through the Vercel CLI, so the project owner must make this dashboard change.
+
+In Supabase, confirm that the site URL is `https://wearabouts-zeta.vercel.app` and that the allowed redirect URLs include `https://wearabouts-zeta.vercel.app/auth/callback`. The local callback URL may also be allowed for development. The confirmation handler accepts only known internal application destinations. Do not run the resetting schema file on an existing project for this branch.
 
 ## Search and social sharing
 
-The landing page has one primary heading, descriptive section headings, a title and description, a canonical URL, Open Graph metadata with a 1200 by 630 image, and a Twitter summary card. `/sitemap.xml` lists only the landing and privacy pages. Private application routes and onboarding have `noindex` metadata and robots exclusions. Authentication and row ownership enforce privacy; robots settings alone do not.
+The landing page has one primary heading, descriptive section headings, a title and description, a homepage canonical URL, Open Graph metadata with a generated 1200 by 630 image, and a Twitter summary card. The site URL helper prefers `NEXT_PUBLIC_SITE_URL`, then Vercel's production domain, then localhost for local development. `/sitemap.xml` lists only the landing and privacy pages. Private application routes and onboarding have `noindex` metadata and robots exclusions. Authentication and row ownership enforce privacy; robots settings alone do not.
 
-After deployment, inspect the generated tags and test the real public URL in a social-preview debugger. Save a screenshot for milestone 18. Localhost previews do not establish that an external crawler can reach the deployed app.
+After redeployment, inspect the production HTML and confirm that canonical and `og:url` use `https://wearabouts-zeta.vercel.app`, that the social image URL uses the same origin, and that the image responds with HTTP 200 and `image/png`. Test the URL in an external social-preview debugger and save its preview screenshot for milestone 18. A public homepage response alone does not establish that a crawler can fetch the image.
 
 ## Analytics
 
@@ -24,7 +26,7 @@ References: [Google event setup](https://developers.google.com/analytics/devguid
 
 ## Submission handoff
 
-Complete team names, matriculation numbers, contributions and the deployed URL in README. Use `docs/assignment-evidence.md` to assemble the milestones PDF and separate pitch PDF after the teammate-owned features have evidence. Verify the official submission deadline against Coursemology because the supplied outline and older repository wording differ. The internal completion date remains 23 September 2026.
+The report draft identifies the group as Group 2 and lists the supplied production URL and public repository. Fill in team names, matriculation numbers and contribution summaries. Use `docs/assignment-evidence.md` to assemble the milestones PDF and separate pitch PDF after the remaining evidence is available. Verify the official submission deadline against Coursemology because the supplied outline and older repository wording differ. The internal completion date remains 23 September 2026.
 
 
 ## Report setup
