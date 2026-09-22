@@ -26,6 +26,11 @@ export type Archetype = {
   percent: number;
 };
 
+// Where a grouping came from: the AI pass, or these rules as the fallback
+export type ArchetypeSource = "ai" | "rules";
+
+export type StyleGrouping = { archetypes: Archetype[]; source: ArchetypeSource };
+
 export type Signature = {
   formality: "casual" | "smart" | "dressy";
   palette: "neutral" | "colourful";
