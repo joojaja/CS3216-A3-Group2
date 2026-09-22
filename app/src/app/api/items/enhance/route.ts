@@ -8,6 +8,10 @@ import {
 } from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  BEAUTIFY_LIMIT_MESSAGE,
+  readAccountEntitlement,
+} from "@/lib/account-entitlements";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -25,6 +29,38 @@ Keep the garment exactly as it appears: the same colours, print, logo, lettering
 
 Remove wrinkles and folds and even out the lighting, but keep the same colours, print, logo, lettering, stripes, proportions and neckline. Do not add, remove or redesign any part of the garment, and do not change its colour.`,
 };
+
+export async function GET() {
+  const supabase = await createClient();
+  if (!supabase) {
+    return Response.json({ error: "Service is not configured" }, { status: 503 });
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data, error } = await supabase
+    .from("account_entitlements")
+    .select("account_tier, beautify_credits_remaining")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[entitlements:read]", error.code);
+    return Response.json(
+      { error: "Account limits are not configured yet." },
+      { status: 503 },
+    );
+  }
+
+  const entitlement = readAccountEntitlement(data);
+  return Response.json({
+    account_tier: entitlement.accountTier,
+    beautify_credits_remaining: entitlement.beautifyCreditsRemaining,
+  });
+}
 
 // Sends the photo to the image model and returns the edited image as
 // binary. Costs real money per call, so the limit is tighter than analysis.
@@ -65,6 +101,34 @@ export async function POST(request: Request) {
     );
   }
 
+  const { data: creditRows, error: creditError } = await supabase.rpc(
+    "consume_beautify_credit",
+  );
+  if (creditError) {
+    console.error("[entitlements:consume-beautify]", creditError.code);
+    return Response.json(
+      { error: "Beautify limits are not configured yet." },
+      { status: 503 },
+    );
+  }
+
+  const credit = Array.isArray(creditRows) ? creditRows[0] : creditRows;
+  const entitlement = readAccountEntitlement({
+    account_tier: credit?.account_tier,
+    beautify_credits_remaining: credit?.credits_remaining,
+  });
+  if (!credit?.allowed) {
+    return Response.json(
+      {
+        error: BEAUTIFY_LIMIT_MESSAGE,
+        code: "beautify_limit_reached",
+        account_tier: entitlement.accountTier,
+        beautify_credits_remaining: entitlement.beautifyCreditsRemaining,
+      },
+      { status: 403 },
+    );
+  }
+
   try {
     const started = Date.now();
     const result = await generateText({
@@ -100,6 +164,10 @@ export async function POST(request: Request) {
         "Content-Type": image.mediaType,
         "Cache-Control": "no-store",
         "X-Enhance-Mode": mode,
+        "X-Account-Tier": entitlement.accountTier,
+        "X-Beautify-Credits-Remaining": String(
+          entitlement.beautifyCreditsRemaining,
+        ),
       },
     });
   } catch (error) {

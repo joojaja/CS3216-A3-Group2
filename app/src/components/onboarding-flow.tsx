@@ -14,7 +14,11 @@ import {
   styleOptions,
   type OnboardingProfile,
 } from "@/lib/onboarding";
-import { genderOptions, type Gender } from "@/lib/profile-gender";
+import {
+  DEFAULT_GENDER,
+  genderOptions,
+  type Gender,
+} from "@/lib/profile-gender";
 
 function Choices({
   values,
@@ -72,7 +76,10 @@ function OnboardingSteps({
   configured,
 }: OnboardingProps) {
   const [step, setStep] = useState(resumeUpload ? 3 : 0);
-  const [draft, setDraft] = useState(profile);
+  const [draft, setDraft] = useState<OnboardingProfile>(() => ({
+    ...profile,
+    gender: profile.gender ?? DEFAULT_GENDER,
+  }));
   const [savedItem, setSavedItem] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -226,14 +233,13 @@ function OnboardingSteps({
                     />
                   </label>
                   <label className="onboarding-label">
-                    Gender <span>Optional</span>
+                    Gender
                     <select
-                      value={draft.gender ?? ""}
+                      value={draft.gender ?? DEFAULT_GENDER}
                       onChange={(event) =>
-                        update("gender", (event.target.value || null) as Gender | null)
+                        update("gender", event.target.value as Gender)
                       }
                     >
-                      <option value="">Prefer not to say</option>
                       {genderOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}

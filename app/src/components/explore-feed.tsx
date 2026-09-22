@@ -26,6 +26,24 @@ export function ExploreFeed() {
   const [result, setResult] = useState<FeedResponse | null>(null);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<FeedItem | null>(null);
+  const [refreshMessage, setRefreshMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function requestRefresh() {
+    setRefreshing(true);
+    setRefreshMessage("");
+    try {
+      const response = await fetch("/api/explore?refresh=1");
+      const body = await response.json();
+      setRefreshMessage(
+        body.error ?? "Explore refresh is not available for this account.",
+      );
+    } catch {
+      setRefreshMessage("Could not check Explore refresh right now.");
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -96,10 +114,29 @@ export function ExploreFeed() {
     <>
       <div className="mb-5 flex items-center justify-between gap-4">
         <p className="text-sm text-mute">10 ideas chosen to complement your wardrobe.</p>
-        {result.cached && (
-          <span className="shrink-0 rounded-full bg-wash px-3 py-1 text-xs text-mute">Saved feed</span>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {result.cached && (
+            <span className="rounded-full bg-wash px-3 py-1 text-xs text-mute">Saved feed</span>
+          )}
+          <button
+            type="button"
+            onClick={requestRefresh}
+            disabled={refreshing}
+            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-cobalt transition hover:border-cobalt disabled:opacity-50"
+          >
+            {refreshing ? "Checking..." : "Refresh feed"}
+          </button>
+        </div>
       </div>
+
+      {refreshMessage && (
+        <p
+          className="mb-5 rounded-lg border border-line bg-wash px-4 py-3 text-sm text-body"
+          role="status"
+        >
+          {refreshMessage}
+        </p>
+      )}
 
       <section aria-label="Personalised clothing recommendations" className="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
         {result.items.map((item, index) => (

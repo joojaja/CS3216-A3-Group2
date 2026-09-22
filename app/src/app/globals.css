@@ -70,6 +70,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The signed-in shell owns scrolling through its main content pane. */
+html:has(.wearabouts-app),
+body:has(.wearabouts-app) {
+  height: 100%;
+  overflow: hidden;
+}
+
+body:has(.wearabouts-app) {
+  min-height: 0;
+}
+
 @layer components {
   .shim {
     background: linear-gradient(
