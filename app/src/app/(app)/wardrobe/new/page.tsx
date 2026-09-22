@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MultiItemUploader } from "@/components/multi-item-uploader";
 import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: "Add item" };
@@ -31,9 +30,6 @@ export default function NewItemPage() {
           </Link>
         }
       />
-      <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
-        <MultiItemUploader />
-      </div>
     </>
   );
 }
