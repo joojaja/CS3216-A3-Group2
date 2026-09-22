@@ -7,6 +7,7 @@ import { getSingaporeForecast } from "@/lib/weather";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { loadFeedbackContext } from "@/lib/outfits/server";
+import { readAccountEntitlement } from "@/lib/account-entitlements";
 
 const requestSchema = z.object({
   occasion_text: z.string().min(2).max(1000),
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const [itemsResult, profileResult, feedbackContext] = await Promise.all([
+  const [itemsResult, profileResult, entitlementResult, feedbackContext] = await Promise.all([
     supabase
       .from("wardrobe_items")
       .select(
@@ -84,6 +85,11 @@ export async function POST(request: Request) {
       )
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase
+      .from("account_entitlements")
+      .select("account_tier, beautify_credits_remaining")
+      .eq("user_id", user.id)
+      .maybeSingle(),
     loadFeedbackContext(supabase, user.id),
   ]);
 
@@ -93,6 +99,9 @@ export async function POST(request: Request) {
 
   const items = itemsResult.data;
   const profile = profileResult.data;
+  const accountTier = readAccountEntitlement(
+    entitlementResult.data,
+  ).accountTier;
 
   const forecast = await getSingaporeForecast();
 
@@ -267,6 +276,7 @@ ${UNTRUSTED_CONTENT_RULE}`;
       wardrobeItems: items.length,
       followUp: Boolean(previous),
       promptChars: prompt.length,
+      accountTier,
       // Development log only; the production log line never carries user text
       occasion: input.occasion_text.slice(0, 200),
     });

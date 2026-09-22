@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   AnalysisProvider,
   CHECKLIST,
@@ -12,7 +19,7 @@ import { useToast } from "@/components/toast";
 
 const MAX_JOBS = 2;
 
-type JobSnapshot = {
+export type JobSnapshot = {
   preview: string | null;
   status: string;
   progress: number;
@@ -30,9 +37,27 @@ const waiting: JobSnapshot = {
   canRemove: true,
 };
 
-export function MultiItemUploader() {
-  const router = useRouter();
-  const { toast } = useToast();
+type UploadQueue = {
+  jobs: string[];
+  snapshots: Record<string, JobSnapshot>;
+  report: (id: string, snapshot: JobSnapshot) => void;
+  addJob: () => void;
+  removeJob: (id: string) => void;
+};
+
+const UploadQueueContext = createContext<UploadQueue | null>(null);
+
+export function useUploadQueue() {
+  const queue = useContext(UploadQueueContext);
+  if (!queue) {
+    throw new Error("useUploadQueue must be used inside UploadQueueProvider");
+  }
+  return queue;
+}
+
+// The queue belongs to the logged-in layout, so its item list and status
+// survive client-side navigation. A browser refresh still starts a new queue.
+export function UploadQueueProvider({ children }: { children: React.ReactNode }) {
   const nextId = useRef(2);
   const [jobs, setJobs] = useState(["clothing-1"]);
   const [snapshots, setSnapshots] = useState<Record<string, JobSnapshot>>({});
@@ -61,6 +86,41 @@ export function MultiItemUploader() {
         : [`clothing-${nextId.current++}`];
     });
   }, []);
+
+  return (
+    <UploadQueueContext.Provider
+      value={{ jobs, snapshots, report, addJob, removeJob }}
+    >
+      {children}
+    </UploadQueueContext.Provider>
+  );
+}
+
+// This component never unmounts after the user first opens Add item. Away
+// from that page, CSS hides it while background removal and API calls keep
+// running. Returning to the page reveals the same controls and results.
+export function PersistentUploadWorkspace() {
+  const pathname = usePathname();
+  const onAddPage = pathname === "/wardrobe/new";
+  const [started, setStarted] = useState(onAddPage);
+
+  useEffect(() => {
+    if (onAddPage) setStarted(true);
+  }, [onAddPage]);
+
+  if (!started) return null;
+
+  return (
+    <div className={onAddPage ? "px-5 py-5 pb-24 md:px-9 md:py-6" : "hidden"}>
+      <MultiItemUploader />
+    </div>
+  );
+}
+
+export function MultiItemUploader() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const { jobs, snapshots, report, addJob, removeJob } = useUploadQueue();
 
   const saved = useCallback(
     (jobId: string) => {

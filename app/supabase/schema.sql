@@ -25,6 +25,18 @@ create table if not exists public.user_profiles (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.account_entitlements (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  account_tier text not null default 'free'
+    constraint account_entitlements_tier_check
+    check (account_tier in ('free', 'premium')),
+  beautify_credits_remaining integer not null default 5
+    constraint account_entitlements_beautify_credits_check
+    check (beautify_credits_remaining >= 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.user_profiles
   add column if not exists gender text;
 
@@ -47,11 +59,15 @@ $$;
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
-security definer set search_path = public
+security definer set search_path = ''
 as $$
 begin
   insert into public.user_profiles (user_id) values (new.id)
   on conflict (user_id) do nothing;
+
+  insert into public.account_entitlements (user_id) values (new.id)
+  on conflict (user_id) do nothing;
+
   return new;
 end;
 $$;
@@ -77,6 +93,68 @@ $$;
 insert into public.user_profiles (user_id)
 select id from auth.users
 on conflict (user_id) do nothing;
+
+insert into public.account_entitlements (user_id)
+select id from auth.users
+on conflict (user_id) do nothing;
+
+create or replace function public.consume_beautify_credit()
+returns table (
+  allowed boolean,
+  account_tier text,
+  credits_remaining integer
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  caller_id uuid := (select auth.uid());
+  saved_tier text;
+  saved_remaining integer;
+begin
+  if caller_id is null then
+    raise exception 'Authentication required' using errcode = '42501';
+  end if;
+
+  insert into public.account_entitlements (user_id)
+  values (caller_id)
+  on conflict (user_id) do nothing;
+
+  update public.account_entitlements as entitlement
+  set
+    beautify_credits_remaining = case
+      when entitlement.account_tier = 'premium'
+        then entitlement.beautify_credits_remaining
+      else entitlement.beautify_credits_remaining - 1
+    end,
+    updated_at = now()
+  where entitlement.user_id = caller_id
+    and (
+      entitlement.account_tier = 'premium'
+      or entitlement.beautify_credits_remaining > 0
+    )
+  returning
+    entitlement.account_tier,
+    entitlement.beautify_credits_remaining
+  into saved_tier, saved_remaining;
+
+  if found then
+    return query select true, saved_tier, saved_remaining;
+    return;
+  end if;
+
+  select entitlement.account_tier, entitlement.beautify_credits_remaining
+  into saved_tier, saved_remaining
+  from public.account_entitlements as entitlement
+  where entitlement.user_id = caller_id;
+
+  return query select false, saved_tier, saved_remaining;
+end;
+$$;
+
+revoke execute on function public.consume_beautify_credit() from public, anon;
+grant execute on function public.consume_beautify_credit() to authenticated;
 
 -- Wardrobe -------------------------------------------------------------------
 
@@ -288,6 +366,7 @@ create table if not exists public.catalogue_items (
 -- Row level security and Data API grants ------------------------------------
 
 alter table public.user_profiles enable row level security;
+alter table public.account_entitlements enable row level security;
 alter table public.wardrobe_items enable row level security;
 alter table public.outfit_requests enable row level security;
 alter table public.outfit_recommendations enable row level security;
@@ -302,6 +381,7 @@ alter table public.saved_outfits enable row level security;
 grant usage on schema public to authenticated;
 
 revoke all on table public.user_profiles from anon;
+revoke all on table public.account_entitlements from anon, authenticated;
 revoke all on table public.wardrobe_items from anon;
 revoke all on table public.outfit_requests from anon;
 revoke all on table public.outfit_recommendations from anon;
@@ -314,6 +394,7 @@ revoke all on table public.catalogue_items from anon;
 revoke all on table public.saved_outfits from anon;
 
 grant select, insert, update, delete on table public.user_profiles to authenticated;
+grant select on table public.account_entitlements to authenticated;
 grant select, insert, update, delete on table public.wardrobe_items to authenticated;
 grant select, insert, update, delete on table public.outfit_requests to authenticated;
 grant select, insert, update, delete on table public.outfit_recommendations to authenticated;
@@ -336,6 +417,16 @@ begin
       for all to authenticated
       using ((select auth.uid()) = user_id)
       with check ((select auth.uid()) = user_id);
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_entitlements'
+      and policyname = 'own account entitlement read'
+  ) then
+    create policy "own account entitlement read" on public.account_entitlements
+      for select to authenticated
+      using ((select auth.uid()) = user_id);
   end if;
 
   if not exists (
