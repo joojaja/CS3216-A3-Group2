@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { siteUrl, siteDescription } from "@/lib/site";
 import { AnalyticsConsent } from "@/components/analytics-consent";
+import { VercelAnalytics } from "@/components/vercel-analytics";
 import "./globals.css";
 
 const uiFont = localFont({
@@ -28,12 +29,11 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   applicationName: "Wearabouts",
-  alternates: { canonical: "/" },
   twitter: {
     card: "summary_large_image",
     title: "Wearabouts | Make more of the clothes you own",
     description: siteDescription,
-    images: ["/opengraph-image"],
+    images: ["/twitter-image"],
   },
   openGraph: {
     type: "website",
@@ -64,6 +64,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <AnalyticsConsent />
+        <VercelAnalytics />
       </body>
     </html>
   );
