@@ -121,6 +121,53 @@ export const purchaseEvaluationSchema = z.object({
 
 export type PurchaseEvaluation = z.infer<typeof purchaseEvaluationSchema>;
 
+// Size assistant screenshot extraction. Only enums, numbers and short
+// capped strings: nothing the model returns is ever used as an instruction
+// or passed into another prompt, and the size itself is computed in code.
+export const SIZING_MEASUREMENTS = [
+  "chest",
+  "bust",
+  "waist",
+  "hips",
+  "inseam",
+  "foot_length",
+  "height",
+  "other",
+] as const;
+
+export const sizingExtractionSchema = z.object({
+  is_product_page: z.boolean(),
+  brand: z.string().max(80).nullable(),
+  product_name: z.string().max(120).nullable(),
+  category: z.enum(["top", "bottom", "dress", "footwear", "other"]),
+  size_range: z.enum(["mens", "womens", "unisex", "unknown"]),
+  size_chart: z.object({
+    present: z.boolean(),
+    unit: z.enum(["cm", "in", "unknown"]),
+    basis: z.enum(["body", "garment", "garment_flat", "unknown"]),
+    scope_hint: z.enum(["product", "brand", "unknown"]),
+    rows: z
+      .array(
+        z.object({
+          label: z.string().max(24),
+          values: z
+            .array(
+              z.object({
+                measurement: z.enum(SIZING_MEASUREMENTS),
+                min: z.number().nullable(),
+                max: z.number().nullable(),
+              }),
+            )
+            .max(8),
+        }),
+      )
+      .max(20),
+  }),
+  uncertain_fields: z.array(z.enum(["brand", "product_name", "category", "size_range", "size_chart"])),
+});
+
+export type SizingExtraction = z.infer<typeof sizingExtractionSchema>;
+
 export const exploreSelectionSchema = z.object({
   recommendations: z
     .array(
