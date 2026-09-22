@@ -22,15 +22,29 @@ const emptyProfile = {
 };
 
 const dataBox = (
-  <aside className="rounded-xl border border-line px-4.5 py-4 text-sm">
-    <b className="block font-semibold">Your data</b>
-    <p className="mt-1.5 leading-relaxed text-mute">
-      Wardrobe photos and preferences are private to your account. Deleting an
-      item removes its stored photo. Full account deletion is on the roadmap.
-    </p>
-    <Link href="/privacy" className="mt-4 inline-block underline underline-offset-4">Privacy and analytics settings</Link>
-    <form action={signOut} className="mt-5"><button className="rounded-lg border border-line px-4 py-2.5">Sign out</button></form>
-  </aside>
+  <div className="grid gap-4">
+    <aside className="rounded-xl border border-line px-4.5 py-4 text-sm">
+      <b className="block font-semibold">Body measurements</b>
+      <p className="mt-1.5 leading-relaxed text-mute">
+        Add your measurements once to get size suggestions for the brands you shop.
+      </p>
+      <Link
+        href="/profile/measurements"
+        className="mt-3 inline-block rounded-lg border border-line px-3.5 py-2 font-medium text-cobalt transition hover:border-cobalt"
+      >
+        Add or edit measurements
+      </Link>
+    </aside>
+    <aside className="rounded-xl border border-line px-4.5 py-4 text-sm">
+      <b className="block font-semibold">Your data</b>
+      <p className="mt-1.5 leading-relaxed text-mute">
+        Wardrobe photos and preferences are private to your account. Deleting an
+        item removes its stored photo. Full account deletion is on the roadmap.
+      </p>
+      <Link href="/privacy" className="mt-4 inline-block underline underline-offset-4">Privacy and analytics settings</Link>
+      <form action={signOut} className="mt-5"><button className="rounded-lg border border-line px-4 py-2.5">Sign out</button></form>
+    </aside>
+  </div>
 );
 
 export default async function ProfilePage() {

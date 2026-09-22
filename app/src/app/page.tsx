@@ -1,8 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { siteUrl, siteDescription } from "@/lib/site";
 import Image from "next/image";
 import "./landing.css";
 import LandingStory from "@/components/landing-story";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const features = [
   [

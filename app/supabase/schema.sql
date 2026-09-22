@@ -28,6 +28,8 @@ drop trigger if exists on_auth_user_created on auth.users;
 drop function if exists public.handle_new_user();
 
 -- cascade removes policies, indexes and foreign keys with the tables
+drop table if exists public.size_chart_flags cascade;
+drop table if exists public.measurement_profiles cascade;
 drop table if exists public.recommendation_feedback cascade;
 drop table if exists public.outfit_recommendations cascade;
 drop table if exists public.outfit_requests cascade;
@@ -174,6 +176,43 @@ create table public.purchase_evaluations (
 
 create index purchase_evaluations_user_idx on public.purchase_evaluations (user_id);
 
+-- Measurements and sizing ----------------------------------------------------
+-- Body measurements live in their own table so they never ride along with
+-- user_profiles, which the outfit planner sends to the model. Values are
+-- always cm; unit is only the display preference. Null means skipped. The
+-- checks are wide backstops, the friendly limits live in app code
+-- (src/lib/sizing/measurements.ts)
+
+create table public.measurement_profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  unit text not null default 'cm' check (unit in ('cm', 'in')),
+  size_range text check (size_range in ('mens', 'womens')),
+  fit_preference text not null default 'regular'
+    check (fit_preference in ('snug', 'regular', 'relaxed')),
+  height_cm numeric(5,1) check (height_cm between 50 and 250),
+  chest_cm numeric(5,1) check (chest_cm between 30 and 200),
+  waist_cm numeric(5,1) check (waist_cm between 30 and 200),
+  hips_cm numeric(5,1) check (hips_cm between 30 and 220),
+  inseam_cm numeric(5,1) check (inseam_cm between 30 and 120),
+  foot_length_cm numeric(4,1) check (foot_length_cm between 10 and 40),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- "Wrong chart?" reports. Holds the chart and brand only, never measurements
+create table public.size_chart_flags (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  chart_key text not null,
+  brand text not null,
+  category text not null,
+  source_type text not null check (source_type in ('product', 'stored', 'web')),
+  reason text check (reason in ('wrong_brand', 'wrong_product', 'wrong_numbers', 'other')),
+  created_at timestamptz not null default now()
+);
+
+create index size_chart_flags_user_idx on public.size_chart_flags (user_id);
+
 -- Explore feed ---------------------------------------------------------------
 
 -- One generated feed per user. The selected catalogue IDs and short reasons
@@ -215,6 +254,8 @@ alter table public.recommendation_feedback enable row level security;
 alter table public.purchase_evaluations enable row level security;
 alter table public.explore_feed_cache enable row level security;
 alter table public.catalogue_items enable row level security;
+alter table public.measurement_profiles enable row level security;
+alter table public.size_chart_flags enable row level security;
 
 create policy "own profile" on public.user_profiles
   for all to authenticated
@@ -246,9 +287,23 @@ create policy "own purchase evaluations" on public.purchase_evaluations
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
+create policy "own measurements" on public.measurement_profiles
+  for all to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
+
 create policy "own explore feed" on public.explore_feed_cache
   for all to authenticated
   using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
+
+-- Users can file and read their own flags, but not edit or remove them
+create policy "own size chart flags read" on public.size_chart_flags
+  for select to authenticated
+  using ((select auth.uid()) = user_id);
+
+create policy "own size chart flags insert" on public.size_chart_flags
+  for insert to authenticated
   with check ((select auth.uid()) = user_id);
 
 -- Catalogue is readable by any signed-in user, writable only by service role
