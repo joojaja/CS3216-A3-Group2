@@ -1,5 +1,7 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -45,36 +47,47 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
   async function save() {
     setBusy("save");
     setError(null);
-    const res = await fetch(`/api/items?id=${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ attributes: attrs, user_notes: notes }),
-    });
-    const body = await res.json();
-    setBusy(null);
-
-    if (!res.ok) {
-      setError(body.error ?? "Could not save changes");
-      return;
+    try {
+      const res = await fetch(`/api/items?id=${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attributes: attrs, user_notes: notes }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body.error ?? "Could not save changes");
+        return;
+      }
+      setSaved({ attrs, notes });
+      trackFunnel("item_updated");
+      toast("Changes saved");
+      router.refresh();
+    } catch {
+      setError("Could not confirm the save. Your edits are still here. Please check your connection and retry.");
+    } finally {
+      setBusy(null);
     }
-    setSaved({ attrs, notes });
-    toast("Changes saved");
-    router.refresh();
   }
 
   async function remove() {
     if (!confirm("Delete this item and its photo? This cannot be undone.")) return;
     setBusy("delete");
     setError(null);
-    const res = await fetch(`/api/items?id=${item.id}`, { method: "DELETE" });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/items?id=${item.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        setError("Could not delete the item. Try again.");
+        return;
+      }
+      toast("Item removed");
+      trackFunnel("item_deleted");
+      router.push("/wardrobe");
+      router.refresh();
+    } catch {
+      setError("Could not confirm deletion. Check your wardrobe before trying again.");
+    } finally {
       setBusy(null);
-      setError("Could not delete the item. Try again.");
-      return;
     }
-    toast("Item removed");
-    router.push("/wardrobe");
-    router.refresh();
   }
 
   const tint = tintFor(item.primary_colour);
@@ -114,7 +127,7 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
       >
         {ai?.notes && (
           <div className="rounded-xl bg-wash px-4 py-3.5 text-[14px] leading-relaxed text-body">
-            <b className="block font-semibold text-ink">What the AI drafted when this was added</b>
+            <b className="block font-semibold text-ink">What the AI analysed when this was added</b>
             {ai.notes}
             {flagged.length > 0 && (
               <span className="mt-1.5 block text-mute">
@@ -145,7 +158,7 @@ export function ItemEditor({ item, live }: { item: WardrobeItem; live: boolean }
             type="button"
             onClick={save}
             disabled={!live || !dirty || busy !== null}
-            className="rounded-lg bg-cobalt px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cobalt-deep disabled:opacity-40"
+            className="rounded-lg bg-cobalt px-5 py-3 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-40"
           >
             {busy === "save" ? "Saving..." : "Save changes"}
           </button>

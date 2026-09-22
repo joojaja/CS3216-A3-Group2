@@ -1,7 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { outfitSelectionSchema } from "@/lib/schemas/ai";
-import { getModel, hasFreeKey, MODEL_ID, reportAiError, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
+import { aiFailure, getModel, MODEL_ID, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
 import { getSingaporeForecast } from "@/lib/weather";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -28,6 +28,7 @@ const requestSchema = z.object({
 
 type WardrobeRow = {
   id: string;
+  image_path: string;
   category: string;
   subcategory: string | null;
   primary_colour: string | null;
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
   const { data: items } = await supabase
     .from("wardrobe_items")
     .select(
-      "id, category, subcategory, primary_colour, pattern, formality, weather_tags",
+      "id, image_path, category, subcategory, primary_colour, pattern, formality, weather_tags",
     )
     .eq("user_id", user.id)
     .eq("attributes_confirmed", true);
@@ -138,17 +139,17 @@ Rules:
 
 ${UNTRUSTED_CONTENT_RULE}`;
 
+  const started = Date.now();
   try {
-    // Text only, nothing from the paid tier is needed, so this is the one
-    // call that can run on the free-tier project when a key for it is set
-    const started = Date.now();
+    // Text only, nothing from the paid tier is needed, so this call runs on
+    // the free-tier project and never touches the paid key
     const { object, usage } = await generateObject({
       model: getModel("free"),
       schema: outfitSelectionSchema,
       prompt,
     });
     console.log(
-      `[ai:outfits] ${MODEL_ID} tier=${hasFreeKey() ? "free" : "paid"} ${Date.now() - started}ms tokens=${usage.totalTokens ?? "?"}`,
+      `[ai:outfits] ${MODEL_ID} key=free ${Date.now() - started}ms tokens=${usage.totalTokens ?? "?"}`,
     );
 
     if (!object.is_outfit_request) {
@@ -208,8 +209,27 @@ ${UNTRUSTED_CONTENT_RULE}`;
       });
     }
 
+    const selectedIds = new Set(outfits.flatMap((outfit) => outfit.item_ids));
+    const selectedItems = (items as WardrobeRow[]).filter((item) =>
+      selectedIds.has(item.id),
+    );
+    const imagePaths = selectedItems.map((item) => item.image_path);
+    const { data: signedImages } = imagePaths.length
+      ? await supabase.storage
+          .from("wardrobe-images")
+          .createSignedUrls(imagePaths, 3600)
+      : { data: [] };
+    const imageUrlByPath = new Map(
+      (signedImages ?? []).map((entry) => [entry.path, entry.signedUrl]),
+    );
     const itemsById = Object.fromEntries(
-      (items as WardrobeRow[]).map((item) => [item.id, item]),
+      selectedItems.map(({ image_path, ...item }) => [
+        item.id,
+        {
+          ...item,
+          signed_image_url: imageUrlByPath.get(image_path) ?? null,
+        },
+      ]),
     );
 
     return Response.json({
@@ -218,6 +238,15 @@ ${UNTRUSTED_CONTENT_RULE}`;
       weather: forecast?.summary ?? null,
     });
   } catch (error) {
-    return Response.json({ error: reportAiError("outfits", error) }, { status: 502 });
+    return aiFailure("outfits", error, {
+      model: MODEL_ID,
+      key: "free",
+      ms: Date.now() - started,
+      wardrobeItems: items.length,
+      followUp: Boolean(previous),
+      promptChars: prompt.length,
+      // Development log only; the production log line never carries user text
+      occasion: input.occasion_text.slice(0, 200),
+    });
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, MotionConfig } from "motion/react";
 
 type ToastContextValue = { toast: (message: string) => void };
 
@@ -22,6 +22,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
+    <MotionConfig reducedMotion="user">
     <ToastContext.Provider value={{ toast }}>
       {children}
       <AnimatePresence>
@@ -45,5 +46,6 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
     </ToastContext.Provider>
+    </MotionConfig>
   );
 }

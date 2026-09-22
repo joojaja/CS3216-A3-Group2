@@ -9,7 +9,7 @@ import { PlannerStatus } from "@/components/planner-status";
 
 const links = [
   { href: "/wardrobe", label: "Wardrobe", short: "Wardrobe", icon: HomeIcon },
-  { href: "/wardrobe/new", label: "Add item", short: "Add", icon: PlusIcon },
+  { href: "/explore", label: "Explore", short: "Explore", icon: ExploreIcon },
   { href: "/planner", label: "Outfit planner", short: "Planner", icon: ClockIcon },
   { href: "/evaluator", label: "Should I buy it?", short: "Buy?", icon: BagIcon },
   { href: "/sizing", label: "Find my size", short: "Size", icon: TapeIcon },
@@ -19,8 +19,7 @@ const links = [
 export type RailUser = { name: string; email: string } | null;
 export type RailWeather = { short: string; source: string } | null;
 
-// Longest matching href wins, so /wardrobe/new lights up Add item rather
-// than Wardrobe.
+// Nested wardrobe pages, including Add item, stay under the Wardrobe tab.
 function activeIndex(pathname: string) {
   let best = -1;
   let bestLength = 0;
@@ -41,11 +40,11 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
   return (
     <>
       {/* Desktop rail */}
-      <aside className="hidden h-full flex-col bg-cobalt pt-6 text-white md:flex">
-        <Link href="/wardrobe" className="px-6 pb-6 text-xl font-semibold tracking-tight">
-          Wearabouts
+      <aside className="app-rail hidden h-full flex-col bg-cobalt pt-6 text-white md:flex">
+        <Link href="/wardrobe" className="app-wordmark px-6 pb-6 text-xl font-semibold tracking-tight">
+          wear<span>abouts</span>
         </Link>
-        <nav className="relative flex flex-col">
+        <nav aria-label="Main navigation" className="relative flex flex-col">
           {active >= 0 && (
             <motion.div
               layoutId="rail-pill"
@@ -59,6 +58,7 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
             <Link
               key={link.href}
               href={link.href}
+              aria-current={index === active ? "page" : undefined}
               className={`relative z-10 flex h-[46px] items-center gap-3 px-6 text-[15px] font-medium transition-colors ${
                 index === active ? "text-white" : "text-cobalt-faint hover:text-white"
               }`}
@@ -70,6 +70,7 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
         </nav>
 
         <div className="mt-auto">
+          <Link href="/privacy" className="block px-6 py-4 text-xs text-cobalt-faint hover:text-white">Privacy and analytics</Link>
           <AnalysisStatus variant="rail" />
           <PlannerStatus variant="rail" />
         </div>
@@ -84,9 +85,9 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
             {initial}
           </span>
           <div className="min-w-0">
-            <b className="block truncate text-sm font-medium">{user?.name ?? "Dev session"}</b>
+            <b className="block truncate text-sm font-medium">{user?.name ?? "Demo wardrobe"}</b>
             <span className="block truncate text-xs text-cobalt-faint">
-              {user?.email ?? "Supabase not configured"}
+              {user?.email ?? "Preview mode"}
             </span>
           </div>
           <form action={signOut} className="ml-auto shrink-0">
@@ -101,7 +102,7 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
       <div className="md:hidden">
         <AnalysisStatus variant="bar" />
         <PlannerStatus variant="bar" />
-        <nav className="relative grid grid-cols-6 bg-cobalt pb-1.5">
+        <nav aria-label="Main navigation" className="app-mobile-nav relative grid grid-cols-6 bg-ink pb-1.5">
         {active >= 0 && (
           <motion.div
             className="absolute top-0 left-0 h-[3px] w-1/6 rounded-b-[3px] bg-tangerine"
@@ -114,6 +115,7 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
           <Link
             key={link.href}
             href={link.href}
+              aria-current={index === active ? "page" : undefined}
             className={`grid justify-items-center gap-1 px-1 pt-3 pb-2 text-center text-[10.5px] transition-colors ${
               index === active ? "text-white" : "text-cobalt-faint"
             }`}
@@ -140,10 +142,11 @@ function HomeIcon({ className }: IconProps) {
     </svg>
   );
 }
-function PlusIcon({ className }: IconProps) {
+function ExploreIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...stroke}>
-      <path d="M12 5v14M5 12h14" />
+      <circle cx="12" cy="12" r="8" />
+      <path d="M15.5 8.5l-2 5-5 2 2-5z" />
     </svg>
   );
 }
