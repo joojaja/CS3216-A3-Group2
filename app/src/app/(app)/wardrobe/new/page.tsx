@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ItemUploader } from "@/components/item-uploader";
+import Link from "next/link";
+import { MultiItemUploader } from "@/components/multi-item-uploader";
 import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: "Add item" };
@@ -8,11 +9,30 @@ export default function NewItemPage() {
   return (
     <>
       <PageHeader
-        title="Add a clothing item"
-        description="Upload a clear photo of one item, ideally flat on a plain surface that contrasts with it. AI will draft the attributes and you confirm or correct them before anything is saved."
+        title="Add to wardrobe"
+        action={
+          <Link
+            href="/wardrobe"
+            className="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-ink transition hover:border-cobalt hover:text-cobalt"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="size-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            Back to wardrobe
+          </Link>
+        }
       />
       <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
-        <ItemUploader />
+        <MultiItemUploader />
       </div>
     </>
   );

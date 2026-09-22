@@ -29,26 +29,115 @@ const MIN_COMPONENT_RATIO = 0.2;
 const MIN_COMPONENT_PIXELS = 64;
 const MIN_COVERAGE = 0.02;
 const PADDING_RATIO = 0.08;
-// Work at most at this size so the pixel passes stay fast on phones
-const WORK_SIDE = 2000;
+// There is no benefit in cleaning above the largest exported size. Keeping
+// these equal also avoids allocating several oversized pixel buffers on phones.
+const WORK_SIDE = 1600;
 const MAX_SIDE = 1600;
 const JPEG_QUALITY = 0.9;
+const PIXELS_PER_YIELD = 100_000;
+
+type PendingRemoval = {
+  resolve: (result: Blob) => void;
+  reject: (error: Error) => void;
+  onProgress: (loaded: number, total: number) => void;
+  signal?: AbortSignal;
+  abort?: () => void;
+};
+
+let removalWorker: Worker | null = null;
+let nextRemovalId = 0;
+const pendingRemovals = new Map<number, PendingRemoval>();
+
+function getRemovalWorker() {
+  if (removalWorker) return removalWorker;
+
+  const worker = new Worker("/vendor/background-removal/worker.js", { type: "module" });
+
+  worker.addEventListener(
+    "message",
+    (event: MessageEvent<
+      | { type: "progress"; id: number; loaded: number; total: number }
+      | { type: "done"; id: number; result: Blob }
+      | { type: "error"; id: number; message: string }
+    >) => {
+      const job = pendingRemovals.get(event.data.id);
+      if (!job) return;
+
+      if (event.data.type === "progress") {
+        job.onProgress(event.data.loaded, event.data.total);
+        return;
+      }
+
+      pendingRemovals.delete(event.data.id);
+      if (job.signal && job.abort) job.signal.removeEventListener("abort", job.abort);
+
+      if (event.data.type === "done") job.resolve(event.data.result);
+      else job.reject(new Error(event.data.message));
+    },
+  );
+
+  worker.addEventListener("error", () => {
+    const error = new Error("The background-removal worker could not start");
+    for (const job of pendingRemovals.values()) {
+      if (job.signal && job.abort) job.signal.removeEventListener("abort", job.abort);
+      job.reject(error);
+    }
+    pendingRemovals.clear();
+    worker.terminate();
+    if (removalWorker === worker) removalWorker = null;
+  });
+
+  removalWorker = worker;
+  return worker;
+}
+
+function removeBackgroundOffThread(
+  file: File,
+  onProgress: (loaded: number, total: number) => void,
+  signal?: AbortSignal,
+) {
+  return new Promise<Blob>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Background removal was cancelled", "AbortError"));
+      return;
+    }
+
+    const id = ++nextRemovalId;
+    const worker = getRemovalWorker();
+    const job: PendingRemoval = { resolve, reject, onProgress, signal };
+    const abort = () => {
+      pendingRemovals.delete(id);
+      worker.postMessage({ type: "cancel", id });
+      reject(new DOMException("Background removal was cancelled", "AbortError"));
+    };
+    job.abort = abort;
+    pendingRemovals.set(id, job);
+    signal?.addEventListener("abort", abort, { once: true });
+    worker.postMessage({ type: "start", id, file });
+  });
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted) throw new DOMException("Background removal was cancelled", "AbortError");
+}
+
+function yieldToBrowser() {
+  return new Promise<void>((resolve) => setTimeout(resolve, 0));
+}
 
 export async function cleanGarmentPhoto(
   file: File,
   onProgress: (progress: CleanProgress) => void,
+  signal?: AbortSignal,
 ): Promise<File> {
   if (file.type === "image/heic" || file.type === "image/heif") {
     throw new UnsupportedImageError("This browser cannot decode HEIC photos");
   }
 
-  const { removeBackground } = await import("@imgly/background-removal");
-
   let downloading = true;
-  const cutout = await removeBackground(file, {
-    model: "isnet_quint8",
-    output: { format: "image/png" },
-    progress: (_key, loaded, total) => {
+  const cutout = await removeBackgroundOffThread(
+    file,
+    (loaded, total) => {
       if (!downloading) return;
       onProgress({ phase: "download", loaded, total });
       if (loaded >= total) {
@@ -56,12 +145,14 @@ export async function cleanGarmentPhoto(
         onProgress({ phase: "process" });
       }
     },
-  });
+    signal,
+  );
+  throwIfAborted(signal);
   onProgress({ phase: "process" });
 
   const bitmap = await createImageBitmap(cutout);
   try {
-    return await compositeOnWhite(bitmap, file.name);
+    return await compositeOnWhite(bitmap, file.name, signal);
   } finally {
     bitmap.close();
   }
@@ -69,7 +160,11 @@ export async function cleanGarmentPhoto(
 
 // Cleans up the cutout's matte, finds the garment, pads it, and draws it
 // centred on a white square no larger than MAX_SIDE.
-async function compositeOnWhite(bitmap: ImageBitmap, sourceName: string): Promise<File> {
+async function compositeOnWhite(
+  bitmap: ImageBitmap,
+  sourceName: string,
+  signal?: AbortSignal,
+): Promise<File> {
   const workScale = Math.min(1, WORK_SIDE / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * workScale));
   const height = Math.max(1, Math.round(bitmap.height * workScale));
@@ -96,6 +191,10 @@ async function compositeOnWhite(bitmap: ImageBitmap, sourceName: string): Promis
     }
     data[i * 4 + 3] = hardened;
     solid[i] = hardened >= SOLID ? 1 : 0;
+    if (i > 0 && i % PIXELS_PER_YIELD === 0) {
+      await yieldToBrowser();
+      throwIfAborted(signal);
+    }
   }
 
   // Pass 2: label connected solid regions and keep the substantial ones
@@ -118,6 +217,10 @@ async function compositeOnWhite(bitmap: ImageBitmap, sourceName: string): Promis
       if (x < width - 1 && solid[p + 1] && !label[p + 1]) { label[p + 1] = id; queue[tail++] = p + 1; }
       if (p >= width && solid[p - width] && !label[p - width]) { label[p - width] = id; queue[tail++] = p - width; }
       if (p + width < total && solid[p + width] && !label[p + width]) { label[p + width] = id; queue[tail++] = p + width; }
+      if (head % PIXELS_PER_YIELD === 0) {
+        await yieldToBrowser();
+        throwIfAborted(signal);
+      }
     }
     sizes.push(size);
   }
@@ -156,6 +259,10 @@ async function compositeOnWhite(bitmap: ImageBitmap, sourceName: string): Promis
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
     if (y > maxY) maxY = y;
+    if (i > 0 && i % PIXELS_PER_YIELD === 0) {
+      await yieldToBrowser();
+      throwIfAborted(signal);
+    }
   }
   sctx.putImageData(imageData, 0, 0);
 

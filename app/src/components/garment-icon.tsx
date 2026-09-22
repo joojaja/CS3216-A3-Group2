@@ -72,24 +72,24 @@ export function GarmentIcon({
 // Tints for placeholder tiles, keyed by the item's primary colour where we
 // recognise it, otherwise a neutral wash.
 const TINTS: Record<string, [string, string]> = {
-  white: ["#EEF1FB", "#2549E8"],
-  "off-white": ["#EEF1FB", "#2549E8"],
+  white: ["#ECEAE2", "#666D61"],
+  "off-white": ["#ECEAE2", "#666D61"],
   cream: ["#FFF6E5", "#A46B00"],
-  black: ["#E8EAF3", "#12163A"],
-  grey: ["#E8EAF3", "#3A4070"],
-  gray: ["#E8EAF3", "#3A4070"],
-  navy: ["#DCE4FF", "#1733AE"],
-  blue: ["#DCE4FF", "#1733AE"],
-  indigo: ["#D7E0FA", "#2549E8"],
-  denim: ["#D7E0FA", "#2549E8"],
-  green: ["#E6F6EC", "#1B7A48"],
-  sage: ["#E6F6EC", "#1B7A48"],
+  black: ["#E7E6E0", "#292D28"],
+  grey: ["#E7E6E0", "#62675F"],
+  gray: ["#E7E6E0", "#62675F"],
+  navy: ["#E0E5E7", "#3A5264"],
+  blue: ["#E0E5E7", "#3A5264"],
+  indigo: ["#DEE4E7", "#666D61"],
+  denim: ["#DEE4E7", "#666D61"],
+  green: ["#E5EADD", "#55704F"],
+  sage: ["#E5EADD", "#55704F"],
   olive: ["#EAF0DC", "#4E6B1F"],
   red: ["#FBE4E2", "#B3261E"],
   pink: ["#FBDDE8", "#B33A69"],
   rose: ["#FBDDE8", "#B33A69"],
-  orange: ["#FFE6D9", "#FF6B2C"],
-  apricot: ["#FFE6D9", "#FF6B2C"],
+  orange: ["#F3E3D9", "#B87962"],
+  apricot: ["#F3E3D9", "#B87962"],
   yellow: ["#FFF1CC", "#A46B00"],
   butter: ["#FFF1CC", "#A46B00"],
   brown: ["#F1E4DA", "#7A4A25"],
@@ -103,6 +103,6 @@ export function tintFor(colour?: string | null): { bg: string; fg: string } {
   const hit =
     TINTS[key] ??
     Object.entries(TINTS).find(([name]) => key.includes(name))?.[1] ??
-    (["#EEF1FB", "#2549E8"] as [string, string]);
+    (["#ECEAE2", "#666D61"] as [string, string]);
   return { bg: hit[0], fg: hit[1] };
 }

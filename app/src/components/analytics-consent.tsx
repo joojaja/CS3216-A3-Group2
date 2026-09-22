@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import { FUNNEL_EVENTS, analyticsPage, type FunnelEvent } from "@/lib/analytics";
 import { usePathname } from "next/navigation";
 
 const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -31,12 +32,7 @@ function subscribe(listener: () => void) {
 export function AnalyticsConsent() {
   const consent = useSyncExternalStore(subscribe, snapshot, () => "loading");
   const pathname = usePathname();
-  const page =
-    pathname === "/"
-      ? "landing"
-      : pathname === "/onboarding"
-        ? "onboarding"
-        : "other";
+  const page = analyticsPage(pathname);
   useEffect(() => {
     if (!configured || consent !== "granted") return;
     const win = window as AnalyticsWindow;
@@ -73,13 +69,16 @@ export function AnalyticsConsent() {
       win.gtag?.("event", name, {
         page_location: window.location.origin,
         page_referrer: "",
-        page_title: "Wearabouts",
+        page_title: `Wearabouts | ${page}`,
         page_group: page,
       });
-    if (page !== "other") send(`${page}_view`);
+    if (page !== "other") {
+      send("page_view");
+      if (page === "landing" || page === "onboarding") send(`${page}_view`);
+    }
     const funnel = (event: Event) => {
       const name = (event as CustomEvent).detail;
-      if (["preferences_saved", "first_item_saved"].includes(name)) send(name);
+      if (FUNNEL_EVENTS.includes(name as FunnelEvent)) send(name);
     };
     const click = (event: MouseEvent) => {
       const link =
@@ -141,8 +140,8 @@ export function AnalyticsConsent() {
   return (
     <aside className="analytics-banner" aria-label="Optional usage analytics">
       <p>
-        Help improve Wearabouts with optional usage analytics. We track setup
-        steps, never wardrobe photos or your answers.{" "}
+        Help improve Wearabouts with optional usage analytics. We track page visits and completed
+        actions, never wardrobe photos or your answers.{" "}
         <a href="/privacy">Privacy details</a>
       </p>
       <div>

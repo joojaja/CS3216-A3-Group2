@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import { signOut } from "@/lib/actions/auth";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "@/components/profile-form";
 import { PageHeader } from "@/components/page-header";
@@ -38,6 +39,8 @@ const dataBox = (
         Wardrobe photos and preferences are private to your account. Deleting an
         item removes its stored photo. Full account deletion is on the roadmap.
       </p>
+      <Link href="/privacy" className="mt-4 inline-block underline underline-offset-4">Privacy and analytics settings</Link>
+      <form action={signOut} className="mt-5"><button className="rounded-lg border border-line px-4 py-2.5">Sign out</button></form>
     </aside>
   </div>
 );

@@ -12,7 +12,7 @@ export default function PrivacyPage() {
     <main className="drape-public onboarding-page">
       <header className="onboarding-header">
         <Link className="onboarding-wordmark" href="/">
-          Wearabouts.
+          Wearabouts
         </Link>
         <Link href="/login">Sign in</Link>
       </header>
@@ -52,7 +52,7 @@ export default function PrivacyPage() {
         <h2>Optional usage analytics</h2>
         <p>
           If enabled by the team and accepted by you, Google Analytics measures
-          visits and setup events so we can find steps that need improvement. We
+          page visits, setup steps and completed wardrobe, outfit and purchase actions so we can find steps that need improvement. We
           do not send your email, name, photos, clothing IDs or preference
           answers as analytics events. You can change your analytics choice
           below. Essential sign-in cookies are separate.
