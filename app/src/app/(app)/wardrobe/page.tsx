@@ -5,6 +5,7 @@ import { WardrobeGrid } from "@/components/wardrobe-grid";
 import { StatsStrip } from "@/components/stats-strip";
 import { PageHeader } from "@/components/page-header";
 import { SetupNotice } from "@/components/setup-notice";
+import { WardrobeTabs } from "@/components/wardrobe-tabs";
 import type { WardrobeItem } from "@/lib/types";
 import { demoItems } from "@/lib/demo-items";
 
@@ -48,6 +49,7 @@ export default async function WardrobePage() {
         <div className="px-5 py-5 md:px-9 md:py-6">
           <SetupNotice />
           <div className="mt-5">
+            <WardrobeTabs active="items" savedCount={null} />
             <StatsStrip
               stats={[
                 { value: demoItems.length, label: "items confirmed" },
@@ -63,13 +65,15 @@ export default async function WardrobePage() {
     );
   }
 
-  const [{ data: items }, { count: worn }, { count: checked }] = await Promise.all([
+  const [{ data: items }, { count: worn }, { count: checked }, { count: savedCount }] = await Promise.all([
     supabase.from("wardrobe_items").select("*").order("created_at", { ascending: false }),
     supabase
       .from("recommendation_feedback")
       .select("id", { count: "exact", head: true })
       .eq("action", "wore"),
     supabase.from("purchase_evaluations").select("id", { count: "exact", head: true }),
+    // Null until the saved_outfits migration has run, which hides the count
+    supabase.from("saved_outfits").select("id", { count: "exact", head: true }),
   ]);
 
   const paths = (items ?? []).map((item) => item.image_path);
@@ -98,6 +102,7 @@ export default async function WardrobePage() {
         action={addButton}
       />
       <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
+        <WardrobeTabs active="items" savedCount={savedCount ?? null} />
         <StatsStrip
           stats={[
             { value: count, label: "items confirmed" },
