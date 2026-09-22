@@ -16,6 +16,8 @@ Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` to a GA4 web-stream ID. Disable Enhanced Mea
 
 The implemented funnel uses `landing_view`, `start_wardrobe_clicked`, `onboarding_view`, `preferences_saved` and `first_item_saved`. Manual `page_view` events cover public and application pages with coarse titles and page groups. Item detail pages never send their IDs. Product events include `item_saved`, `item_updated`, `item_deleted`, `outfit_requested`, `outfits_generated`, `outfit_failed`, `feedback_saved`, `purchase_requested`, `purchase_evaluated` and `purchase_failed`. Events carry a coarse page group. They do not include form answers, email, photo data or clothing IDs. Automatic page views are disabled and the configured location omits query strings and private paths.
 
+Vercel Web Analytics and Speed Insights run for every visitor. They are cookieless, collect no personal identifiers, and the app reports item pages only as `/wardrobe/item`, so they are not consent-gated. Enable Web Analytics and Speed Insights on the Vercel project dashboard. Data appears after the first production deploy. Screenshot the Vercel Analytics report for milestone 19 alongside the GA4 report.
+
 Verify events in GA4 Realtime or DebugView on the deployed app. Capture a report after actual use, record the observation period and explain where users leave the funnel. Do not fill the assignment with invented traffic, conversion rates or retention claims. No analytics property or report was supplied during implementation.
 
 References: [Google event setup](https://developers.google.com/analytics/devguides/collection/ga4/events) and [consent setup](https://developers.google.com/tag-platform/security/guides/consent).
