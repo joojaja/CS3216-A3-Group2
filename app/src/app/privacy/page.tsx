@@ -40,6 +40,11 @@ export default function PrivacyPage() {
         </p>
         <h2>Optional usage analytics</h2>
         <p>
+          Vercel Web Analytics and Speed Insights record anonymous page visits
+          and page load speed for every visitor. They use no cookies and no
+          personal identifiers. Item pages are reported only as /wardrobe/item.
+        </p>
+        <p>
           If enabled by the team and accepted by you, Google Analytics measures
           page visits, setup steps and completed wardrobe, outfit and purchase actions so we can find steps that need improvement. We
           do not send your email, name, photos, clothing IDs or preference

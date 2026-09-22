@@ -79,7 +79,7 @@ Without service variables, local development offers a clearly labelled preview l
 
 Set `NEXT_PUBLIC_SITE_URL` to the deployed HTTPS origin before building. It controls canonical URLs, the sitemap and social links. The site includes an Open Graph image, Twitter card, robots file and sitemap. Account and wardrobe pages are marked `noindex`.
 
-Optional Google Analytics uses `NEXT_PUBLIC_GA_MEASUREMENT_ID`. It loads after consent. Disable Enhanced Measurement in the GA4 web stream so automatically collected URL/form events do not bypass the curated funnel. See [launch setup](docs/launch-setup.md) for event verification and the report evidence still required.
+Optional Google Analytics uses `NEXT_PUBLIC_GA_MEASUREMENT_ID`. It loads after consent. Disable Enhanced Measurement in the GA4 web stream so automatically collected URL/form events do not bypass the curated funnel. Vercel Web Analytics and Speed Insights are always on; they are cookieless and redact item IDs to `/wardrobe/item`. See [launch setup](docs/launch-setup.md) for event verification and the report evidence still required.
 
 ## Verification and project documentation
 
