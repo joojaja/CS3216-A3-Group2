@@ -4,7 +4,7 @@
 
 The team supplied `https://wearabouts-zeta.vercel.app` as the production URL. Set `NEXT_PUBLIC_SITE_URL=https://wearabouts-zeta.vercel.app` in the Vercel project's **Production** environment variables, then create a new deployment or redeploy after the change. An explicitly configured older URL overrides the code's Vercel-domain fallback, so confirm that no `drape-zeta.vercel.app` value remains. The repository is not linked to the project through the Vercel CLI, so the project owner must make this dashboard change.
 
-In Supabase, confirm that the site URL is `https://wearabouts-zeta.vercel.app` and that the allowed redirect URLs include `https://wearabouts-zeta.vercel.app/auth/callback`. The local callback URL may also be allowed for development. The confirmation handler accepts only known internal application destinations. Do not run the resetting schema file on an existing project for this branch.
+In Supabase, confirm that the site URL is `https://wearabouts-zeta.vercel.app` and that the allowed redirect URLs include `https://wearabouts-zeta.vercel.app/auth/callback`. The local callback URL may also be allowed for development. The confirmation handler accepts only known internal application destinations. `app/supabase/schema.sql` is additive; it only creates objects that do not already exist and never drops a table or deletes rows, so it is now safe to re-run against the team project after reviewing the statements.
 
 ## Search and social sharing
 
