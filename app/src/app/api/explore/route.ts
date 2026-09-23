@@ -99,7 +99,7 @@ export async function GET(request: Request) {
     }
 
     return Response.json(
-      { error: "Explore refresh is planned for Premium accounts." },
+      { error: "Explore refresh is part of Wearabouts Plus." },
       { status: 501 },
     );
   }
