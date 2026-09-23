@@ -9,6 +9,8 @@ export type CollageItem = {
   signed_image_url: string | null;
   // ai_confidence.image_source: original, cleaned, cropped, isolated or ironed
   image_source?: string | null;
+  // Signed link to the transparent cut-out, when one has been made
+  cutout_url?: string | null;
 };
 
 export type OutfitSource = "planner" | "daily";
