@@ -122,7 +122,17 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not save item" }, { status: 500 });
   }
 
-  return Response.json({ id: data.id }, { status: 201 });
+  // Used client-side only to flag the activation milestone in analytics, so
+  // failing to count is not worth failing the save over.
+  const { count } = await supabase
+    .from("wardrobe_items")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  return Response.json(
+    { id: data.id, item_count: count ?? undefined },
+    { status: 201 },
+  );
 }
 
 // Updates the user-editable attributes and notes of an item. Row level
@@ -213,6 +223,7 @@ export async function DELETE(request: Request) {
     .from("wardrobe_items")
     .select("id, image_path")
     .eq("id", id)
+    .eq("user_id", user.id)
     .single();
 
   if (!item) {
@@ -222,13 +233,23 @@ export async function DELETE(request: Request) {
   const { error } = await supabase
     .from("wardrobe_items")
     .delete()
-    .eq("id", item.id);
+    .eq("id", item.id)
+    .eq("user_id", user.id);
 
   if (error) {
     return Response.json({ error: "Could not delete item" }, { status: 500 });
   }
 
-  await supabase.storage.from(BUCKET).remove([item.image_path]);
+  // Only ever remove a file from the caller's own storage folder, even
+  // though the row above is already scoped to this user.
+  if (item.image_path.startsWith(`${user.id}/`)) {
+    const { error: storageError } = await supabase.storage.from(BUCKET).remove([item.image_path]);
+    if (storageError) {
+      console.error("[items:delete] storage removal failed", storageError.message);
+    }
+  } else {
+    console.error("[items:delete] image_path outside caller's folder, skipped storage removal");
+  }
 
   return Response.json({ ok: true });
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { trackFunnel } from "@/lib/analytics";
 
 const stages = [
   {
@@ -55,6 +56,7 @@ export default function LandingStory() {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
         entry.target.classList.add("is-visible");
+        if (entry.target.classList.contains("drape-pricing-heading")) trackFunnel("pricing_viewed");
         observer.unobserve(entry.target);
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -10% 0px" });
