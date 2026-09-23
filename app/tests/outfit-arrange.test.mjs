@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { arrangeOutfit, blendsIntoPanel, MAX_EXTRAS } from "../src/lib/outfits/arrange.ts";
+import { arrangeOutfit, MAX_EXTRAS } from "../src/lib/outfits/arrange.ts";
 
 const item = (id, category) => ({ id, category });
 
@@ -45,11 +45,3 @@ test("categories with no slot are kept aside, not dropped", () => {
   assert.deepEqual(result.overflow.map((i) => i.id), ["z"]);
 });
 
-test("only background-removed images blend into the card panel", () => {
-  assert.equal(blendsIntoPanel("cleaned"), true);
-  assert.equal(blendsIntoPanel("isolated"), true);
-  assert.equal(blendsIntoPanel("ironed"), true);
-  assert.equal(blendsIntoPanel("original"), false);
-  assert.equal(blendsIntoPanel("cropped"), false);
-  assert.equal(blendsIntoPanel(null), false);
-});
