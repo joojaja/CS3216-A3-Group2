@@ -3,6 +3,7 @@ import { z } from "zod";
 import { clothingAttributesSchema, editableAttributesSchema } from "@/lib/schemas/ai";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { inUserFolder, isValidCutout } from "@/lib/image/cutout";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -122,6 +123,28 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not save item" }, { status: 500 });
   }
 
+  // The garment alone on transparency, for outfit cards. Best effort: the
+  // item is saved either way, and a missing cut-out is made later
+  const cutout = form.get("cutout");
+  if (cutout instanceof File && isValidCutout(cutout)) {
+    const cutoutPath = `${user.id}/${randomUUID()}-cutout.png`;
+    const { error: cutoutUploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(cutoutPath, cutout, { contentType: "image/png" });
+    if (!cutoutUploadError) {
+      const { error: cutoutError } = await supabase
+        .from("wardrobe_items")
+        .update({ cutout_path: cutoutPath })
+        .eq("id", data.id)
+        .eq("user_id", user.id);
+      if (cutoutError) {
+        // Most likely the item cut-outs migration has not been run
+        console.error("[items:save] cut-out not recorded", cutoutError.code);
+        await supabase.storage.from(BUCKET).remove([cutoutPath]);
+      }
+    }
+  }
+
   // Used client-side only to flag the activation milestone in analytics, so
   // failing to count is not worth failing the save over.
   const { count } = await supabase
@@ -219,12 +242,13 @@ export async function DELETE(request: Request) {
     return Response.json({ error: "id is required" }, { status: 400 });
   }
 
+  // All columns, so this still works before the cut-outs migration has run
   const { data: item } = await supabase
     .from("wardrobe_items")
-    .select("id, image_path")
+    .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
-    .single();
+    .single<{ id: string; image_path: string; cutout_path?: string | null }>();
 
   if (!item) {
     return Response.json({ error: "Item not found" }, { status: 404 });
@@ -243,7 +267,9 @@ export async function DELETE(request: Request) {
   // Only ever remove a file from the caller's own storage folder, even
   // though the row above is already scoped to this user.
   if (item.image_path.startsWith(`${user.id}/`)) {
-    const { error: storageError } = await supabase.storage.from(BUCKET).remove([item.image_path]);
+    const paths = [item.image_path];
+    if (inUserFolder(item.cutout_path, user.id)) paths.push(item.cutout_path);
+    const { error: storageError } = await supabase.storage.from(BUCKET).remove(paths);
     if (storageError) {
       console.error("[items:delete] storage removal failed", storageError.message);
     }
