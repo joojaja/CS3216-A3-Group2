@@ -4,13 +4,50 @@ import { siteUrl, siteDescription } from "@/lib/site";
 import Image from "next/image";
 import "./landing.css";
 import "./landing-cinematic.css";
+import "./landing-refresh.css";
 import LandingStory from "@/components/landing-story";
 
 const featureRows = [
-  ["01 · Build your wardrobe", "Your clothes, finally searchable.", "Add a piece, review the suggested details, and keep the version you confirm.", "/landing/feature-wardrobe.webp", "Six realistic wardrobe product photos: an ivory shirt, olive trousers, black T-shirt, beige overshirt, white sneakers and blue Oxford shirt"],
-  ["02 · Dress for the day", "Tell it where life is taking you.", "Plan around Singapore heat, humidity and rain with recommendations built from your own clothes.", "/landing/feature-weather.webp", "A man in Singapore wearing an ivory overshirt, black T-shirt, olive trousers and white sneakers"],
-  ["03 · Explore your style", "Inspiration you can actually recreate.", "See curated looks matched to your confirmed wardrobe and personal style.", "/landing/feature-style.webp", "Four curated Singapore smart-casual looks personalised to the same style profile"],
-  ["04 · Check before buying", "Know whether a new piece earns its place.", "Compare a prospective piece with what you own before it becomes another forgotten purchase.", "/landing/feature-purchase.webp", "Wearabouts purchase analysis for a light blue jersey, including redundancy and wardrobe compatibility"],
+  {
+    number: "01 · Build your wardrobe",
+    title: "Your clothes, finally searchable.",
+    body: "Add a piece, review the suggested details, and keep the version you confirm.",
+    src: "/landing/feature-wardrobe.webp",
+    alt: "Six realistic wardrobe product photos: an ivory shirt, olive trousers, black T-shirt, beige overshirt, white sneakers and blue Oxford shirt",
+    shotLabel: "My wardrobe · 24 pieces",
+    width: 1400,
+    height: 933,
+  },
+  {
+    number: "02 · Dress for the day",
+    title: "Tell it where life is taking you.",
+    body: "Plan around Singapore heat, humidity and rain with recommendations built from your own clothes.",
+    src: "/landing/feature-weather.webp",
+    alt: "A man in Singapore wearing an ivory overshirt, black T-shirt, olive trousers and white sneakers",
+    shotLabel: "Outfit planner · Dinner tonight",
+    width: 1400,
+    height: 933,
+  },
+  {
+    number: "03 · Explore your style",
+    title: "Inspiration you can actually recreate.",
+    body: "See curated looks matched to your confirmed wardrobe and personal style.",
+    src: "/landing/feature-style.webp",
+    alt: "Four curated Singapore smart-casual looks personalised to the same style profile",
+    shotLabel: "Explore · Curated for you",
+    width: 1400,
+    height: 933,
+  },
+  {
+    number: "04 · Check before buying",
+    title: "Know whether a new piece earns its place.",
+    body: "Compare a prospective piece with what you own before it becomes another forgotten purchase.",
+    src: "/landing/feature-purchase.webp",
+    alt: "Wearabouts purchase analysis for a light blue jersey, including redundancy and wardrobe compatibility",
+    shotLabel: "Purchase check · Live analysis",
+    width: 1600,
+    height: 983,
+  },
 ];
 
 export default function LandingPage() {
@@ -31,7 +68,7 @@ export default function LandingPage() {
             aria-label="Wearabouts home"
           >
             <Image src="/landing/brand-mark.png" alt="" width={48} height={32} />
-            <span>Wearabouts</span>
+            <span><b>wear</b>abouts</span>
           </Link>
           <div className="drape-links">
             <a href="#story">How it works</a>
@@ -63,24 +100,32 @@ export default function LandingPage() {
       </header>
       <div id="main-content">
         <section className="drape-hero" aria-labelledby="hero-title">
-          <div className="drape-container">
+          <Image
+            className="drape-hero-backdrop"
+            src="/landing/hero.png"
+            alt="A woman in a black blazer and cream trousers beside pieces from her wardrobe"
+            fill
+            priority
+            sizes="100vw"
+          />
+          <div className="drape-container drape-hero-copy">
             <span className="drape-eyebrow">Your wardrobe, wherever life takes you</span>
-            <h1 id="hero-title">Know what to wear, <em>wherever.</em></h1>
-            <figure>
-              <Image
-                src="/landing/hero.png"
-                alt="A woman in a black blazer and cream trousers beside pieces from her wardrobe"
-                width={1731}
-                height={909}
-                priority
-                sizes="(max-width: 640px) calc(100vw - 44px), min(1240px, calc(100vw - 72px))"
-              />
-              <figcaption><Link className="drape-button" href="/login?mode=signup&next=/onboarding">Get early access <span aria-hidden="true">↗</span></Link><a href="#story">See how it works <span aria-hidden="true">↓</span></a></figcaption>
-            </figure>
+            <h1 id="hero-title">
+              <span className="drape-hero-line">Know what</span>
+              <span className="drape-hero-line">to wear,</span>
+              <span className="drape-hero-line"><em>wherever.</em></span>
+            </h1>
           </div>
         </section>
+        <div className="drape-hero-ctas">
+          <div className="drape-container">
+            <Link className="drape-button drape-primary-cta" href="/login?mode=signup&next=/onboarding">Get early access <span aria-hidden="true">→</span></Link>
+            <a className="drape-how-link" href="#story">See how it works</a>
+          </div>
+        </div>
         <section className="drape-bridge" aria-label="Wearabouts proposition">
           <div className="drape-container">
+            <span className="drape-eyebrow drape-bridge-eyebrow">Wearabouts</span>
             <h2>
               Wearabouts turns the clothes you already own into outfits for today, any occasion and smarter decisions about what to buy next.
             </h2>
@@ -92,12 +137,40 @@ export default function LandingPage() {
             <div className="drape-feature-heading">
               <span className="drape-eyebrow">Inside Wearabouts</span>
               <h2>From a full wardrobe to one clear decision.</h2>
+              <p className="drape-feature-intro">See how Wearabouts turns the clothes you own into useful, personal answers.</p>
             </div>
             <div className="drape-feature-tour">
-              {featureRows.map(([label, title, body, src, alt], index) => (
-                <article className={index % 2 ? "is-reversed" : ""} key={label}>
-                  <div className="drape-feature-visual"><Image src={src} alt={alt} width={index === 3 ? 1600 : 1400} height={index === 3 ? 983 : 933} /></div>
-                  <div className="drape-feature-copy"><span className="drape-feature-number">{label}</span><h3>{title}</h3><p>{body}</p>{index === 1 && <span className="drape-weather-chip">Singapore · 31°C · Light rain</span>}{index === 2 && <div className="drape-badges"><span>Matched to your style</span><span>Looks you can recreate</span></div>}</div>
+              {featureRows.map((row, index) => (
+                <article className={index % 2 ? "is-reversed" : ""} key={row.number}>
+                  <div className="drape-product-shot">
+                    <div className="drape-shot-bar">
+                      <span>{row.shotLabel}</span>
+                      <span className="drape-shot-dots"><i /><i /><i /></span>
+                    </div>
+                    <div className={`drape-shot-body${index >= 2 ? " is-photo" : ""}`}>
+                      {index === 0 && (
+                        <div className="drape-shot-filter">
+                          <span>All</span><span>Tops</span><span>Bottoms</span><span>Outerwear</span>
+                        </div>
+                      )}
+                      {index === 1 && (
+                        <div className="drape-weather-card">
+                          <span><b>Warm, with rain later</b><br />Singapore · 29°C · humid</span>
+                          <strong aria-hidden="true">☂</strong>
+                        </div>
+                      )}
+                      <div className={index === 2 ? "drape-explore-visual" : ""}>
+                        <Image className={`drape-shot-image${index === 3 ? " is-purchase" : ""}`} src={row.src} alt={row.alt} width={row.width} height={row.height} />
+                        {index === 2 && (
+                          <div className="drape-badges" aria-hidden="true">
+                            <span>Matched to your style</span>
+                            <span>Looks you can recreate</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="drape-feature-copy"><span className="drape-feature-number">{row.number}</span><h3>{row.title}</h3><p>{row.body}</p></div>
                 </article>
               ))}
             </div>
@@ -106,11 +179,12 @@ export default function LandingPage() {
         <section id="pricing" className="drape-section drape-pricing">
           <div className="drape-container">
             <div className="drape-pricing-heading">
-              <span className="drape-eyebrow">Simple to start</span>
-              <h2>Useful before it asks for more.</h2>
+              <span className="drape-eyebrow">Pricing</span>
+              <h2>Start free. Go deeper when you need to.</h2>
               <p>
-                Begin with the complete wardrobe-first loop. A paid plan is
-                planned for heavier AI use after the beta.
+                The core wardrobe experience is free in beta. Wearabouts Plus
+                is planned for users who want more frequent analysis and
+                richer history.
               </p>
             </div>
             <div className="drape-price-grid">
@@ -177,7 +251,7 @@ export default function LandingPage() {
         <div className="drape-container">
           <Link className="drape-wordmark" href="/">
             <Image src="/landing/brand-mark.png" alt="" width={48} height={32} />
-            <span>Wearabouts</span>
+            <span><b>wear</b>abouts</span>
           </Link>
           <Link href="/privacy">Privacy and data</Link>
           <small>Made with Singapore in mind.</small>
