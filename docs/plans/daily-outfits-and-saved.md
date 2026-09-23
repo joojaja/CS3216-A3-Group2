@@ -1,6 +1,6 @@
 # Daily outfits and saved outfits plan
 
-Written 22 September 2026 on branch `chian/daily-outfit-cards`. The build follows this plan slice by slice. The "Implementation notes" section at the end lists where the code differs from it.
+Written 22 September 2026 on branch `chian/daily-outfit-cards`, which merged into `main` as PR #13. The build followed this plan slice by slice; the "Implementation notes" section at the end lists where the shipped code differs from it. The "Open questions" section reflects what was still undecided during the build and may since have been resolved in code; check the relevant file before treating a question as open.
 
 The brief is a starting point, so this plan disagrees with it in several places. Every disagreement sits under a "Differs from the brief" heading, and every assumption carries an id (A1, A2 and so on) so the team can correct it by number.
 

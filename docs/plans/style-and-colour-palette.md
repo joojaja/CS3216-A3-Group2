@@ -1,6 +1,6 @@
 # Style archetypes and colour palette
 
-Status: built on `chian/colour-palette`, 22 September 2026. Before deploying, run `app/supabase/migrations/20260922_style_archetypes.sql` in the Supabase SQL editor. Until it runs, the page still works, but every visit without a cache row calls the model (rate-limited to six a minute per user).
+Status: built on `chian/colour-palette`, 22 September 2026, merged into `main` as PR #14. The migration `app/supabase/migrations/20260922_style_archetypes.sql` should already have run against any deployed database; until it has, the page still works, but every visit without a cache row calls the model (rate-limited to six a minute per user).
 
 ## Where the build differs from this plan
 
