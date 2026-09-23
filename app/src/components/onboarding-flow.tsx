@@ -411,6 +411,7 @@ function OnboardingSteps({
                 <ItemUploader
                   onSaved={(id) => {
                     trackFunnel("first_item_saved");
+                    trackFunnel("onboarding_completed");
                     setSavedItem(id);
                   }}
                 />
