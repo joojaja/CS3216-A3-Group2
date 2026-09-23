@@ -10,6 +10,11 @@ import {
   MODEL_ID,
   UNTRUSTED_CONTENT_RULE,
 } from "@/lib/ai/gemini";
+import {
+  sanitizeClothingAttributesForPrompt,
+  sanitizeWardrobeRowForPrompt,
+} from "@/lib/ai/prompt-sanitize";
+import { applyDecisionLabelFloor } from "@/lib/ai/purchase-decision";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -122,23 +127,32 @@ export async function POST(request: Request) {
       .map((item) => ({ item, score: similarity(attrs, item) }))
       .sort((a, b) => b.score - a.score);
 
-    const similar = scored.filter((entry) => entry.score >= 0.6);
+    // Strong matches are same category AND same colour (score 0.6 + 0.3).
+    // This threshold also backs the deterministic decision-label floor below.
+    const similar = scored.filter((entry) => entry.score >= 0.9);
     const sameCategoryCount = scored.filter(
       (entry) => entry.item.category === attrs.category,
     ).length;
 
+    // Everything below is untrusted text that ends up inside a prompt: attrs
+    // came from a model reading the purchase photo, and each wardrobe row's
+    // free-text fields may themselves have been extracted from an earlier
+    // photo. Sanitize both before they are interpolated.
+    const promptAttrs = sanitizeClothingAttributesForPrompt(attrs);
+    const describeForPrompt = (row: WardrobeRow) => sanitizeWardrobeRowForPrompt(row);
+
     const evidencePrompt = `You are the purchase evaluation engine for a wardrobe app. A user in Singapore is considering buying an item.
 
 Extracted attributes of the prospective purchase:
-${JSON.stringify(attrs)}
+${JSON.stringify(promptAttrs)}
 
 Deterministic evidence computed by the application:
 - Items in the same category already owned: ${sameCategoryCount}
-- Strongly similar items (same category and colour): ${similar.map((entry) => `${entry.item.id} (${entry.item.primary_colour} ${entry.item.subcategory ?? entry.item.category})`).join(", ") || "none"}
+- Strongly similar items (same category and colour): ${similar.map((entry) => { const row = describeForPrompt(entry.item); return `${row.id} (${row.primary_colour} ${row.subcategory ?? row.category})`; }).join(", ") || "none"}
 - Total wardrobe size: ${(items ?? []).length}
 
 The user's wardrobe items (id: description):
-${(items as WardrobeRow[] | null)?.map((item) => `- ${item.id}: ${item.primary_colour ?? "?"} ${item.pattern ?? ""} ${item.subcategory ?? item.category}`).join("\n") || "wardrobe is empty"}
+${(items as WardrobeRow[] | null)?.map((item) => { const row = describeForPrompt(item); return `- ${row.id}: ${row.primary_colour ?? "?"} ${row.pattern ?? ""} ${row.subcategory ?? row.category}`; }).join("\n") || "wardrobe is empty"}
 
 Rules:
 - Pick the most honest decision_label. Use insufficient_information when evidence is thin
@@ -159,13 +173,20 @@ ${UNTRUSTED_CONTENT_RULE}`;
       validIds.has(id),
     );
 
+    // The model explains the evidence, but the label itself must not
+    // contradict facts the app already computed deterministically.
+    const decisionLabel = applyDecisionLabelFloor(verdict.decision_label, {
+      sameCategoryCount,
+      stronglySimilarCount: similar.length,
+    });
+
     const { error: saveError } = await supabase.from("purchase_evaluations").insert({
       user_id: user.id,
       extracted_attributes: attrs,
       similar_wardrobe_item_ids: similarIds,
       compatibility_score: verdict.compatibility_score,
       redundancy_score: verdict.redundancy_score,
-      decision_label: verdict.decision_label,
+      decision_label: decisionLabel,
       explanation: verdict.explanation,
     });
     if (saveError) {
@@ -187,7 +208,7 @@ ${UNTRUSTED_CONTENT_RULE}`;
 
     return Response.json({
       attributes: attrs,
-      evaluation: { ...verdict, similar_item_ids: similarIds },
+      evaluation: { ...verdict, decision_label: decisionLabel, similar_item_ids: similarIds },
       similar_items: similarItems.map(({ image_path, ...item }) => ({
         ...item,
         signed_image_url: imageUrlByPath.get(image_path) ?? null,
