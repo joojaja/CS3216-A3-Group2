@@ -103,10 +103,7 @@ export function PersistentUploadWorkspace() {
   const pathname = usePathname();
   const onAddPage = pathname === "/wardrobe/new";
   const [started, setStarted] = useState(onAddPage);
-
-  useEffect(() => {
-    if (onAddPage) setStarted(true);
-  }, [onAddPage]);
+  if (onAddPage && !started) setStarted(true);
 
   if (!started) return null;
 
