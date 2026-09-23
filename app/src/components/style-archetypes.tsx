@@ -11,33 +11,24 @@ export type StyleThumb = { id: string; name: string; imageUrl: string | null; he
 
 const THUMBS_SHOWN = 6;
 
-const METHOD = {
-  ai: "Wearabouts sent the tags you confirmed for each item (category, colour, pattern, formality and material notes) to an AI model, which grouped your items into styles and named them. The app checks every item in its answer and works out the percentages itself. Your photos are never sent.",
-  rules:
-    "Items are grouped by four tags you confirmed: formality, whether the main colour is neutral, whether the item is patterned, and whether it is activewear. Groups with very few items join the closest one.",
-};
-
 // The style half of My Style. The server renders the rule groups straight
 // away. When `refine` is set, the AI grouping is fetched after the page
 // shows and swapped in; the page never waits on the model.
 export function StyleArchetypes({
   initial,
   thumbs,
-  itemCount,
   preferredStyles,
   refine,
   aiAvailable,
 }: {
   initial: StyleGrouping;
   thumbs: Record<string, StyleThumb>;
-  itemCount: number;
   preferredStyles: string[];
   refine: boolean;
   aiAvailable: boolean;
 }) {
   const [grouping, setGrouping] = useState(initial);
   const [busy, setBusy] = useState<"refining" | "regrouping" | null>(refine ? "refining" : null);
-  const [showMethod, setShowMethod] = useState(false);
   const { toast } = useToast();
   const reduceMotion = useReducedMotion();
   const started = useRef(false);
@@ -80,43 +71,19 @@ export function StyleArchetypes({
   return (
     <section aria-labelledby="style-heading">
       <p className="text-xs font-medium tracking-[0.08em] text-mute uppercase">Your main style</p>
-      <div className="mt-1 flex items-start gap-3">
-        <h2 id="style-heading" className="text-[28px] leading-tight font-bold tracking-tight md:text-[38px]">
-          {top.name}
-        </h2>
-        <button
-          type="button"
-          onClick={() => setShowMethod((open) => !open)}
-          aria-expanded={showMethod}
-          aria-controls="style-method"
-          aria-label="How your styles are worked out"
-          className="mt-1.5 grid size-11 shrink-0 place-items-center rounded-full text-cobalt hover:bg-cobalt-light md:mt-3"
-        >
-          <span className="grid size-6 place-items-center rounded-full bg-cobalt text-[13px] font-bold text-white">i</span>
-        </button>
-      </div>
-      <p className="mt-1 max-w-[60ch] text-[15px] text-body">{top.description}</p>
+      <h2 id="style-heading" className="mt-1 text-[36px] leading-[1.05] font-bold tracking-tight md:text-[56px]">
+        {top.name}
+      </h2>
+      <p className="mt-2 max-w-[60ch] text-[16px] text-body md:text-[17px]">{top.description}</p>
 
-      {showMethod && (
-        <div id="style-method" className="mt-3 max-w-[64ch] rounded-xl bg-ink px-4 py-3.5 text-[13.5px] leading-relaxed text-white">
-          {METHOD[grouping.source]}
-        </div>
-      )}
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-mute">
-        <span>
-          {grouping.source === "ai" ? "Grouped by AI from your confirmed tags" : "Grouped by colour, pattern and formality"}
-          {` · ${itemCount} ${itemCount === 1 ? "item" : "items"}`}
-        </span>
-        <span aria-live="polite">
-          {busy && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cobalt-light px-2.5 py-1 text-xs text-cobalt">
-              <span className="size-1.5 animate-pulse rounded-full bg-cobalt" />
-              {busy === "refining" ? "Refining your styles" : "Regrouping"}
-            </span>
-          )}
-        </span>
-      </div>
+      <p aria-live="polite" className="mt-3 empty:hidden">
+        {busy && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-cobalt-light px-2.5 py-1 text-xs text-cobalt">
+            <span className="size-1.5 animate-pulse rounded-full bg-cobalt" />
+            {busy === "refining" ? "Refining your styles" : "Regrouping"}
+          </span>
+        )}
+      </p>
 
       {preferredStyles.length > 0 && (
         <p className="mt-4 max-w-[64ch] rounded-xl border border-line bg-[#fcfbf7] px-4 py-3 text-[13.5px] text-body">
