@@ -9,6 +9,7 @@ import { FeedbackReasons } from "@/components/feedback-reasons";
 import { BookmarkIcon } from "@/components/outfit-planner";
 import { FEEDBACK_REASONS, type Reason } from "@/components/planner-context";
 import { useToast } from "@/components/toast";
+import { markDailyShown } from "@/components/daily-auto-open";
 import { trackFunnel } from "@/lib/analytics";
 import { saveOutfit, unsaveOutfit } from "@/lib/outfits/saved-client";
 import type { DailyAction, DailyCard, DailyFeed } from "@/lib/outfits/types";
@@ -162,15 +163,21 @@ async function postFeedback(id: string, action: DailyAction, picked?: Reason[]) 
 }
 
 // Full-screen view of today's outfits, one card at a time
-export function DailyFeedView({ start }: { start: number | null }) {
+// Opened automatically on the first visit of the day (auto), closing goes
+// back to the page the user came to; otherwise it returns to the wardrobe
+export function DailyFeedView({ start, auto = false }: { start: number | null; auto?: boolean }) {
   const router = useRouter();
   const { state, reload, patchCard, markWornToday } = useDailyFeed();
 
   useEffect(() => {
-    trackFunnel("daily_feed_opened");
-  }, []);
+    markDailyShown();
+    trackFunnel("daily_feed_opened", { trigger: auto ? "auto" : "manual" });
+  }, [auto]);
 
-  const close = useCallback(() => router.push("/wardrobe"), [router]);
+  const close = useCallback(() => {
+    if (auto && window.history.length > 1) router.back();
+    else router.push("/wardrobe");
+  }, [auto, router]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
