@@ -218,6 +218,9 @@ export default function LandingPage() {
                 <p className="drape-price">
                   S$8.90<span>/month</span>
                 </p>
+                <p className="drape-price-annual">
+                  or S$79 a year, saving about 25%
+                </p>
                 <p>
                   For users who want more frequent analysis and deeper wardrobe
                   history.

@@ -498,3 +498,9 @@
     animation: none !important;
   }
 }
+
+.drape-price-card > p.drape-price-annual {
+  margin: -6px 0 20px !important;
+  font-size: 14px;
+  opacity: 0.72;
+}
