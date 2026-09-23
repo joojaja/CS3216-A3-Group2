@@ -1,0 +1,465 @@
+/* Reference-led refresh: hero, header, bridge, feature tour and reveal-on-scroll. */
+
+.drape-public {
+  --coral: #c9654b;
+}
+
+/* Header */
+.drape-public .drape-header {
+  height: 98px;
+  transition:
+    height 260ms ease,
+    box-shadow 260ms ease;
+}
+.drape-public .drape-links {
+  gap: 40px;
+  font-size: 16px;
+}
+.drape-public .drape-nav-actions {
+  gap: 32px;
+  font-size: 16px;
+}
+.drape-public .drape-nav-actions .drape-button {
+  min-height: 56px;
+  padding: 0 26px;
+  border-radius: 20px;
+  font-size: 15px;
+}
+.drape-public .drape-header.is-compact {
+  height: 74px;
+  box-shadow: 0 8px 24px #0000000f;
+}
+
+/* Hero */
+.drape-public .drape-hero {
+  position: relative;
+  padding: 0;
+  min-height: 480px;
+  height: min(760px, calc(100vw * 0.525));
+  overflow: hidden;
+  background: #191713;
+  color: #faf6ee;
+  display: flex;
+  align-items: center;
+}
+.drape-hero-backdrop {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  animation: drape-hero-settle 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.drape-hero-copy {
+  position: relative;
+  z-index: 1;
+  padding-top: 12px;
+  padding-bottom: 30px;
+}
+.drape-public .drape-hero .drape-eyebrow {
+  text-align: left;
+  max-width: 48%;
+  color: #faf6ee;
+  margin-bottom: 34px;
+  line-height: 1.7;
+  animation: drape-fade-up 700ms ease both;
+  animation-delay: 0.4s;
+}
+.drape-public .drape-hero h1 {
+  text-align: left;
+  white-space: normal;
+  max-width: 49%;
+  font-size: clamp(52px, 7.3vw, 112px);
+  line-height: 1.01;
+}
+.drape-public .drape-hero h1 em {
+  color: #e9e6dc;
+}
+.drape-hero-line {
+  display: block;
+  animation: drape-line-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.drape-hero-line:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.drape-hero-line:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.drape-hero-line:nth-child(3) {
+  animation-delay: 0.27s;
+}
+.drape-hero-ctas {
+  padding: 32px 0 36px;
+  background: var(--paper);
+}
+.drape-hero-ctas .drape-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 38px;
+}
+.drape-primary-cta {
+  border-radius: 99px;
+  padding: 18px 30px;
+  font-size: 17px;
+}
+.drape-how-link {
+  font-size: 17px;
+  font-weight: 600;
+  border-bottom: 1px solid currentColor;
+  padding: 8px 0;
+}
+@keyframes drape-hero-settle {
+  from {
+    transform: scale(1.035);
+    filter: blur(2px);
+  }
+  to {
+    transform: scale(1);
+    filter: none;
+  }
+}
+@keyframes drape-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes drape-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Bridge eyebrow */
+.drape-bridge-eyebrow {
+  position: relative;
+  padding-bottom: 14px;
+}
+.drape-bridge-eyebrow:after {
+  content: "";
+  display: block;
+  width: 42px;
+  height: 2px;
+  margin: 14px auto 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drape-bridge.is-visible .drape-bridge-eyebrow:after {
+  transform: scaleX(1);
+}
+
+/* Feature heading accent + intro */
+.drape-public .drape-feature-heading .drape-eyebrow {
+  color: #b74b34;
+}
+.drape-feature-intro {
+  max-width: 560px;
+  margin-top: 20px !important;
+}
+.drape-feature-number {
+  display: block;
+  margin-bottom: 22px;
+  color: #b74b34;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Product-shot chrome */
+.drape-feature-tour article.is-reversed .drape-product-shot {
+  order: 2;
+}
+.drape-product-shot {
+  overflow: hidden;
+  border: 1px solid #d2cec5;
+  border-radius: 25px;
+  background: #fff;
+  box-shadow: 0 28px 70px #2d30291a;
+}
+.drape-shot-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e3e0d8;
+  background: #fbfaf6;
+  color: #6c7069;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.drape-shot-dots {
+  display: flex;
+  gap: 6px;
+}
+.drape-shot-dots i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d3cfc6;
+}
+.drape-shot-dots i:first-child {
+  background: var(--accent);
+}
+.drape-shot-body {
+  padding: 28px;
+  background: #f4f1e9;
+}
+.drape-shot-body.is-photo {
+  padding: 0;
+}
+.drape-shot-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.drape-shot-image.is-purchase {
+  object-position: center top;
+}
+.drape-shot-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+.drape-shot-filter span {
+  padding: 7px 11px;
+  border: 1px solid #d8d5cc;
+  border-radius: 99px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 11px;
+}
+.drape-shot-filter span:first-child {
+  background: var(--dark);
+  color: #fff;
+  border-color: var(--dark);
+}
+.drape-weather-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border-radius: 15px;
+  background: #dce4dc;
+  font-size: 12px;
+  color: #5d655e;
+}
+.drape-weather-card b {
+  font-family: DrapeFraunces, Georgia, serif;
+  font-size: 20px;
+  color: var(--ink);
+}
+.drape-weather-card strong {
+  font-family: DrapeFraunces, Georgia, serif;
+  font-size: 30px;
+}
+.drape-explore-visual {
+  position: relative;
+}
+.drape-badges {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.drape-explore-visual .drape-badges {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  pointer-events: none;
+}
+.drape-explore-visual .drape-badges span {
+  padding: 9px 13px;
+  border: 1px solid #ffffff8c;
+  border-radius: 99px;
+  background: #f8f5eef0;
+  color: #30332e;
+  box-shadow: 0 8px 25px #0002;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(9px);
+}
+
+/* Pricing plus-card edge pass */
+.drape-price-planned {
+  position: relative;
+}
+.drape-price-planned:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.drape-price-card.is-visible.drape-price-planned:after {
+  animation: drape-edge-pass 1500ms 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes drape-edge-pass {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  40% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Story controller capsule */
+.drape-story-controller {
+  position: relative;
+}
+.drape-story-controller-capsule {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  bottom: 5px;
+  width: calc((100% - 10px) / 4);
+  border-radius: 99px;
+  background: rgb(246 243 236 / 0.19);
+  border: 1px solid #ffffff3b;
+  box-shadow:
+    0 9px 24px #0003,
+    inset 1px 1px 0 #ffffff57;
+  pointer-events: none;
+  transition: transform 400ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Reveal on scroll (progressive enhancement; content is visible without JS) */
+.drape-motion-ready .drape-bridge,
+.drape-motion-ready .drape-feature-heading,
+.drape-motion-ready .drape-feature-tour article,
+.drape-motion-ready .drape-pricing-heading,
+.drape-motion-ready .drape-price-card,
+.drape-motion-ready .drape-story-mobile article {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drape-motion-ready .is-visible {
+  opacity: 1;
+  transform: none;
+}
+.drape-motion-ready .drape-price-card:nth-child(2) {
+  transition-delay: 90ms;
+}
+
+@media (max-width: 900px) {
+  .drape-public .drape-header {
+    height: 84px;
+  }
+  .drape-public .drape-header.is-compact {
+    height: 68px;
+  }
+  .drape-public .drape-nav-actions .drape-button {
+    min-height: 46px;
+    padding: 0 18px;
+    font-size: 13px;
+  }
+  .drape-public .drape-hero {
+    min-height: 420px;
+  }
+  .drape-public .drape-hero .drape-eyebrow,
+  .drape-public .drape-hero h1 {
+    max-width: 62%;
+  }
+  .drape-public .drape-hero h1 {
+    font-size: clamp(42px, 8vw, 84px);
+  }
+}
+@media (max-width: 640px) {
+  .drape-public .drape-header {
+    height: 72px;
+  }
+  .drape-public .drape-header.is-compact {
+    height: 64px;
+  }
+  .drape-public .drape-hero {
+    height: auto;
+    min-height: 560px;
+    padding: 0;
+    align-items: flex-end;
+  }
+  .drape-public .drape-hero h1 {
+    font-size: clamp(36px, 11vw, 56px);
+    line-height: 1.05;
+  }
+  .drape-public .drape-hero:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #11111d00 0%, #111119aa 55%, #171916 100%);
+  }
+  .drape-hero-copy {
+    position: relative;
+    z-index: 2;
+    padding-bottom: 34px;
+  }
+  .drape-public .drape-hero .drape-eyebrow,
+  .drape-public .drape-hero h1 {
+    max-width: 100%;
+  }
+  .drape-hero-ctas .drape-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .drape-primary-cta {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drape-hero-backdrop,
+  .drape-hero-line,
+  .drape-public .drape-hero .drape-eyebrow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .drape-motion-ready .drape-bridge,
+  .drape-motion-ready .drape-feature-heading,
+  .drape-motion-ready .drape-feature-tour article,
+  .drape-motion-ready .drape-pricing-heading,
+  .drape-motion-ready .drape-price-card,
+  .drape-motion-ready .drape-story-mobile article {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .drape-price-planned:after {
+    animation: none !important;
+  }
+  .drape-bridge-eyebrow:after {
+    transition: none !important;
+  }
+}
