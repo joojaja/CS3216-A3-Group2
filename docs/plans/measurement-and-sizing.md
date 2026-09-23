@@ -1,8 +1,8 @@
 # Measurements and sizing plan
 
-Written 21 September 2026 on branch `chian/sizing-feature`. This is a plan only. No code has changed.
+Written 21 September 2026 on branch `chian/sizing-feature` as a plan, before any code changed. The branch merged into `main` as PR #10 on 22 September 2026; `app/src/lib/sizing/`, `app/src/app/api/sizing/` and the `measurement_profiles` and `size_chart_flags` tables now exist. This file is kept as the as-built plan record rather than rewritten; where the checklist below says a step is still to do, check the current code before assuming it is.
 
-On approval, the first step copies this file to `docs/plans/measurement-and-sizing.md`. The repo's existing docs sit flat in `docs/`, but you asked for `docs/plans/`, so your request wins. The doc follows `UNSLOP.md`: sentence case headings and no em dashes.
+The doc follows `UNSLOP.md`: sentence case headings and no em dashes.
 
 ## Checklist
 
