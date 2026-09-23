@@ -1,12 +1,14 @@
 /* Home-wardrobe hero and its floating navigation. Scoped to the landing
-   page's hero and header only — nothing below the hero is touched here. */
+   page's hero and header, plus the bridge section's background only
+   (its own transition treatment) — no copy, layout or other styling
+   below the hero is touched here. */
 
 /* Floating glass navigation over the hero photograph. */
 .drape-public .drape-header,
 .drape-public .drape-header.is-compact {
   height: auto !important;
   box-shadow: none !important;
-  transition: none !important;
+  transition: opacity 0.3s ease !important;
 }
 .drape-public .drape-header {
   position: fixed;
@@ -18,6 +20,14 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border: 0;
+  pointer-events: none;
+  opacity: 1;
+}
+.drape-public .drape-header.is-compact {
+  opacity: 0;
+  pointer-events: none;
+}
+.drape-public .drape-header.is-compact .drape-nav {
   pointer-events: none;
 }
 .drape-public .drape-nav {
@@ -39,33 +49,33 @@
     border-color 0.35s,
     box-shadow 0.35s;
 }
+.drape-header .drape-wordmark {
+  font-size: 23px;
+}
 .drape-header .drape-wordmark img {
+  width: 44px;
+  height: 31px;
   filter: invert(1);
 }
+.drape-header .drape-links {
+  gap: 48px;
+  font-size: 15px;
+}
+.drape-header .drape-nav-actions {
+  gap: 28px;
+  font-size: 15px;
+}
 .drape-header .drape-nav-actions .drape-button {
+  min-height: 44px;
+  padding: 0 24px;
   border-radius: 999px;
+  font-size: 14px;
   background: #fff !important;
   color: #211b18 !important;
-}
-.drape-header.is-compact .drape-nav {
-  background: rgb(243 237 229 / 0.91);
-  border-color: rgb(94 70 57 / 0.16);
-  box-shadow: 0 14px 38px rgb(36 24 18 / 0.16);
-  color: var(--ink);
-}
-.drape-header.is-compact .drape-wordmark img {
-  filter: none;
-}
-.drape-header.is-compact .drape-nav-actions .drape-button {
-  background: var(--ink) !important;
-  color: #fff !important;
 }
 .drape-header .drape-mobile-menu summary {
   color: inherit;
   border-color: rgb(255 255 255 / 0.4);
-}
-.drape-header.is-compact .drape-mobile-menu summary {
-  border-color: var(--line);
 }
 
 /* Nav links and Sign in turn orange on hover and while active/clicked. */
@@ -80,14 +90,6 @@
 .drape-header .drape-mobile-menu a:hover,
 .drape-header .drape-mobile-menu a:active {
   color: #d97a4c;
-}
-.drape-header.is-compact .drape-links a:hover,
-.drape-header.is-compact .drape-links a:active,
-.drape-header.is-compact .drape-nav-actions > a:first-child:hover,
-.drape-header.is-compact .drape-nav-actions > a:first-child:active,
-.drape-header.is-compact .drape-mobile-menu a:hover,
-.drape-header.is-compact .drape-mobile-menu a:active {
-  color: #a8482c;
 }
 
 /* Cinematic home-wardrobe hero. */
@@ -121,12 +123,17 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 240px;
+  height: 200px;
   z-index: 2;
-  /* Warm greige ease, matching the reference's transition into the next
-     section, without touching the bridge's own background. */
-  background: linear-gradient(180deg, transparent 0%, rgb(214 199 184 / 0.55) 55%, var(--paper) 100%);
+  /* Fades into the warm greige tone the bridge picks up from, below. */
+  background: linear-gradient(180deg, transparent 0%, #d6c7b8 100%);
   pointer-events: none;
+}
+/* The bridge continues that same warm greige gradient down to the page's
+   flat paper tone, so the seam between hero and bridge reads as one
+   continuous fade rather than a hard cut. Only its background changes. */
+.drape-public .drape-bridge {
+  background: linear-gradient(180deg, #d6c7b8 0%, #e8ded3 45%, var(--paper) 100%);
 }
 .drape-hero-backdrop {
   z-index: 0;
@@ -380,5 +387,9 @@
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
+  }
+  .drape-public .drape-header,
+  .drape-public .drape-header.is-compact {
+    transition: none !important;
   }
 }
