@@ -6,7 +6,7 @@ import { trackFunnel } from "@/lib/analytics";
 import { Choice, MeasurementWizard } from "@/components/measurement-wizard";
 import { PurchaseSummary } from "@/components/purchase-summary";
 import { SizeResult } from "@/components/size-result";
-import { inputClass } from "@/components/measurement-step";
+import { BrandCombobox } from "@/components/brand-combobox";
 import { useSizing } from "@/components/sizing-context";
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@/lib/image/validate";
 import { CATEGORY_FIELDS, CATEGORY_LABELS } from "@/lib/sizing/categories";
@@ -82,7 +82,6 @@ export function SizingFlow({
   const fileInput = useRef<HTMLInputElement>(null);
   const uploadButton = useRef<HTMLButtonElement>(null);
   const brandId = useId();
-  const listId = useId();
 
   const ready = sizing.status === "ready" ? sizing.context : null;
   const outcome = useMemo(() => resolve(ready, profile), [ready, profile]);
@@ -204,24 +203,12 @@ export function SizingFlow({
         <details className="mt-4 border-t border-line pt-3" open={!configured || undefined}>
           <summary className="min-h-10 cursor-pointer py-2 text-sm font-medium text-ink">Or pick the brand yourself</summary>
           <form onSubmit={submitManual} noValidate className="mt-2 grid gap-4">
-            <label htmlFor={brandId} className="block text-[13.5px] font-medium">
-              Brand
-              <input
-                id={brandId}
-                list={listId}
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                autoComplete="off"
-                placeholder="For example H&M"
-                maxLength={80}
-                className={inputClass}
-              />
-              <datalist id={listId}>
-                {STORED_BRANDS.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
-            </label>
+            <div>
+              <label htmlFor={brandId} className="block text-[13.5px] font-medium">
+                Brand
+              </label>
+              <BrandCombobox id={brandId} value={brand} onChange={setBrand} placeholder="For example H&M" />
+            </div>
             <Choice<SizingCategory | null> legend="What is it?" value={category} onChange={setCategory} options={CATEGORY_OPTIONS} />
             <Choice<SizeRange | null>
               legend="Size range"

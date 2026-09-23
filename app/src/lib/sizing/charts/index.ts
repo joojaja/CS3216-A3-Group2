@@ -37,6 +37,15 @@ export const STORED_BRANDS: string[] = [...new Set(STORED_CHARTS.map((c) => c.br
   (a, b) => a.localeCompare(b),
 );
 
+// Options for the brand picker. An empty query, or one that already names a
+// stored brand, lists every brand, so reopening the picker after a choice
+// still offers the others. Otherwise it filters on the normalised name.
+export function brandSuggestions(query: string, brands: string[] = STORED_BRANDS): string[] {
+  const q = normaliseBrand(query);
+  if (!q || brands.some((b) => normaliseBrand(b) === q)) return brands;
+  return brands.filter((b) => normaliseBrand(b).includes(q));
+}
+
 // Exact match on brandKey and category; prefers the requested size range,
 // then unisex. Returns null when nothing matches.
 // With a null sizeRange it returns a unisex chart if one exists, else the
