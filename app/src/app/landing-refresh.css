@@ -258,34 +258,6 @@
   color: #fff;
   border-color: var(--dark);
 }
-.drape-explore-visual {
-  position: relative;
-}
-.drape-badges {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-.drape-explore-visual .drape-badges {
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
-  pointer-events: none;
-}
-.drape-explore-visual .drape-badges span {
-  padding: 9px 13px;
-  border: 1px solid #ffffff8c;
-  border-radius: 99px;
-  background: #f8f5eef0;
-  color: #30332e;
-  box-shadow: 0 8px 25px #0002;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  backdrop-filter: blur(9px);
-}
 
 /* Pricing plus-card edge pass */
 .drape-price-planned {
