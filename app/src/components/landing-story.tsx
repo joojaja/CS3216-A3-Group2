@@ -35,11 +35,22 @@ export default function LandingStory() {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const section = document.querySelector<HTMLElement>(".drape-story");
     const readingProgress = document.querySelector<HTMLElement>(".drape-reading-progress span");
+    const heroBackdrop = document.querySelector<HTMLElement>(".drape-hero-backdrop");
     let latest = 0;
+    let heroFrame: number | null = null;
     const onScroll = () => {
       if (readingProgress) {
         const documentRange = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
         readingProgress.style.transform = `scaleX(${Math.max(0, Math.min(1, window.scrollY / documentRange))})`;
+      }
+      if (heroBackdrop && !media.matches && window.innerWidth >= 901 && heroFrame === null) {
+        const y = window.scrollY;
+        heroFrame = window.requestAnimationFrame(() => {
+          // Very limited parallax drift, capped so the image never outruns its frame.
+          const shift = Math.min(16, y * 0.04);
+          heroBackdrop.style.transform = `translateY(${shift}px)`;
+          heroFrame = null;
+        });
       }
       if (window.innerWidth < 901 || media.matches) return;
       if (!section) return;

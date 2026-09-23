@@ -5,6 +5,7 @@ import Image from "next/image";
 import "./landing.css";
 import "./landing-cinematic.css";
 import "./landing-refresh.css";
+import "./landing-hero.css";
 import LandingStory from "@/components/landing-story";
 
 export const metadata: Metadata = {
@@ -106,8 +107,8 @@ export default function LandingPage() {
         <section className="drape-hero" aria-labelledby="hero-title">
           <Image
             className="drape-hero-backdrop"
-            src="/landing/hero.png"
-            alt="A woman in a black blazer and cream trousers beside pieces from her wardrobe"
+            src="/landing/hero-home.png"
+            alt="A woman relaxing on a bench in a warm, walnut-panelled home dressing room beside an open wardrobe of neutral clothing"
             fill
             priority
             sizes="100vw"
@@ -120,13 +121,13 @@ export default function LandingPage() {
               <span className="drape-hero-line"><em>wherever.</em></span>
             </h1>
           </div>
-        </section>
-        <div className="drape-hero-ctas">
-          <div className="drape-container">
-            <Link className="drape-button drape-primary-cta" href="/login?mode=signup&next=/onboarding">Try Wearabouts now <span aria-hidden="true">→</span></Link>
-            <a className="drape-how-link" href="#story">See how it works</a>
+          <div className="drape-hero-ctas">
+            <div className="drape-container">
+              <Link className="drape-button drape-primary-cta" href="/login?mode=signup&next=/onboarding">Try Wearabouts now <span aria-hidden="true">→</span></Link>
+              <a className="drape-how-link" href="#story">See how it works</a>
+            </div>
           </div>
-        </div>
+        </section>
         <section className="drape-bridge" aria-label="Wearabouts proposition">
           <div className="drape-container">
             <h2>
