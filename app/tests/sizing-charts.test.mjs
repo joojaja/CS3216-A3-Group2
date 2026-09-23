@@ -44,6 +44,17 @@ test("Cotton On covers men's and women's tops and bottoms", () => {
   assert.equal(findChart("Cotton On", "top", null), null);
 });
 
+test("the added brands resolve under their common spellings", () => {
+  assert.equal(findChart("Charles & Keith", "footwear", "womens")?.key, "charlesandkeith/womens/footwear");
+  assert.equal(findChart("charles and keith", "footwear", null)?.key, "charlesandkeith/womens/footwear");
+  assert.equal(findChart("Levi's", "bottom", "mens")?.key, "levis/mens/bottom");
+  // A men's-only brand still asks for the range rather than assuming men's
+  assert.equal(findChart("Levis", "bottom", null), null);
+  assert.equal(findChart("adidas Originals", "top", "womens")?.key, "adidas/womens/top");
+  assert.equal(findChart("GAP", "bottom", "mens")?.key, "gap/mens/bottom");
+  assert.equal(findChart("Mango", "dress", null)?.key, "mango/womens/dress");
+});
+
 test("brand suggestions list every brand once one is picked", () => {
   // A native datalist filtered to the picked brand and showed nothing, so
   // the picker looked dead after a selection
