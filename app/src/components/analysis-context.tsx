@@ -62,6 +62,9 @@ type State = {
   // Output of background removal, once available
   cleaned: File | null;
   cleanedPreview: string | null;
+  // Transparent PNG of the garment from the same removal, saved alongside
+  // whichever version is chosen so outfit cards can draw the item alone
+  cutout: File | null;
   // Fallback crop to the garment when removal fails, once available
   cropped: File | null;
   croppedPreview: string | null;
@@ -119,6 +122,7 @@ const initial: State = {
   originalPreview: null,
   cleaned: null,
   cleanedPreview: null,
+  cutout: null,
   cropped: null,
   croppedPreview: null,
   isolated: null,
@@ -309,14 +313,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             : { ...prev.bg, phase: "process", progress: 1 },
       }));
     }, ac.signal)
-      .then((cleaned) => {
+      .then(({ tile, cutout }) => {
         if (gen !== generation.current) return;
         setState((prev) => {
           if (prev.cleanedPreview) URL.revokeObjectURL(prev.cleanedPreview);
           return {
             ...prev,
-            cleaned,
-            cleanedPreview: URL.createObjectURL(cleaned),
+            cleaned: tile,
+            cutout,
+            cleanedPreview: URL.createObjectURL(tile),
             choice: "cleaned",
             bg: { status: "done", phase: "process", progress: 1, message: null },
           };

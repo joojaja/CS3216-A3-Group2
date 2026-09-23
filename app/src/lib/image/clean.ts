@@ -6,6 +6,8 @@
 // onnxruntime-web. Its ~40 MB quantised model is fetched from the IMG.LY CDN
 // on first use and cached by the browser afterwards.
 
+import { fitWithin, hardenAlpha } from "@/lib/image/matte";
+
 export type CleanProgress =
   | { phase: "download"; loaded: number; total: number }
   | { phase: "process" };
@@ -34,6 +36,9 @@ const PADDING_RATIO = 0.08;
 const WORK_SIDE = 1600;
 const MAX_SIDE = 1600;
 const JPEG_QUALITY = 0.9;
+// Outfit cards draw cut-outs a few hundred pixels tall at most
+const CUTOUT_SIDE = 800;
+const CUTOUT_PADDING_RATIO = 0.02;
 const PIXELS_PER_YIELD = 100_000;
 
 type PendingRemoval = {
@@ -125,11 +130,15 @@ function yieldToBrowser() {
   return new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
+// The white catalogue tile the wardrobe shows, and a transparent PNG of the
+// garment alone that outfit cards draw straight onto their background
+export type CleanResult = { tile: File; cutout: File };
+
 export async function cleanGarmentPhoto(
   file: File,
   onProgress: (progress: CleanProgress) => void,
   signal?: AbortSignal,
-): Promise<File> {
+): Promise<CleanResult> {
   if (file.type === "image/heic" || file.type === "image/heif") {
     throw new UnsupportedImageError("This browser cannot decode HEIC photos");
   }
@@ -152,19 +161,58 @@ export async function cleanGarmentPhoto(
 
   const bitmap = await createImageBitmap(cutout);
   try {
-    return await compositeOnWhite(bitmap, file.name, signal);
+    const matte = await cleanMatte(bitmap, signal);
+    const { canvas, x, y, width, height } = matte;
+    return {
+      tile: await tileOnWhite(canvas, x, y, width, height, file.name, "clean"),
+      cutout: await cutoutPng(matte, file.name),
+    };
   } finally {
     bitmap.close();
   }
 }
 
-// Cleans up the cutout's matte, finds the garment, pads it, and draws it
-// centred on a white square no larger than MAX_SIDE.
-async function compositeOnWhite(
-  bitmap: ImageBitmap,
-  sourceName: string,
-  signal?: AbortSignal,
-): Promise<File> {
+// A transparent cut-out of any stored garment photo, for items saved before
+// cut-outs existed. Same model, same matte clean-up, nothing leaves the device
+export async function cutoutFromImage(image: Blob, signal?: AbortSignal): Promise<File> {
+  const file = image instanceof File ? image : new File([image], "item", { type: image.type });
+  const removed = await removeBackgroundOffThread(file, () => undefined, signal);
+  throwIfAborted(signal);
+  const bitmap = await createImageBitmap(removed);
+  try {
+    return await cutoutPng(await cleanMatte(bitmap, signal), file.name);
+  } finally {
+    bitmap.close();
+  }
+}
+
+type Matte = { canvas: HTMLCanvasElement; x: number; y: number; width: number; height: number };
+
+// Trims the cleaned matte to the garment and encodes it as a transparent PNG
+// no larger than CUTOUT_SIDE, with a little room so soft edges are not clipped
+async function cutoutPng(matte: Matte, sourceName: string): Promise<File> {
+  const pad = Math.round(Math.max(matte.width, matte.height) * CUTOUT_PADDING_RATIO);
+  const sx = Math.max(0, matte.x - pad);
+  const sy = Math.max(0, matte.y - pad);
+  const sw = Math.min(matte.canvas.width - sx, matte.width + pad * 2);
+  const sh = Math.min(matte.canvas.height - sy, matte.height + pad * 2);
+  const { width, height } = fitWithin(sw, sh, CUTOUT_SIDE);
+
+  const out = makeCanvas(width, height);
+  const octx = out.getContext("2d");
+  if (!octx) throw new Error("Canvas is not available");
+  octx.imageSmoothingQuality = "high";
+  octx.drawImage(matte.canvas, sx, sy, sw, sh, 0, 0, width, height);
+
+  const blob = await toBlob(out, "image/png");
+  const base = sourceName.replace(/\.[^.]+$/, "") || "item";
+  return new File([blob], `${base}-cutout.png`, { type: "image/png" });
+}
+
+// Cleans up the cutout's matte and finds the garment's bounds on a canvas no
+// larger than WORK_SIDE. Transparency is kept, so callers can either flatten
+// it onto white or export it as a cut-out.
+async function cleanMatte(bitmap: ImageBitmap, signal?: AbortSignal): Promise<Matte> {
   const workScale = Math.min(1, WORK_SIDE / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * workScale));
   const height = Math.max(1, Math.round(bitmap.height * workScale));
@@ -181,14 +229,7 @@ async function compositeOnWhite(
   // Pass 1: harden the matte
   const solid = new Uint8Array(total);
   for (let i = 0; i < total; i++) {
-    const a = data[i * 4 + 3];
-    let hardened: number;
-    if (a <= ALPHA_LOW) hardened = 0;
-    else if (a >= ALPHA_HIGH) hardened = 255;
-    else {
-      const t = (a - ALPHA_LOW) / (ALPHA_HIGH - ALPHA_LOW);
-      hardened = Math.round(255 * t * t * (3 - 2 * t));
-    }
+    const hardened = hardenAlpha(data[i * 4 + 3], ALPHA_LOW, ALPHA_HIGH);
     data[i * 4 + 3] = hardened;
     solid[i] = hardened >= SOLID ? 1 : 0;
     if (i > 0 && i % PIXELS_PER_YIELD === 0) {
@@ -266,7 +307,7 @@ async function compositeOnWhite(
   }
   sctx.putImageData(imageData, 0, 0);
 
-  return tileOnWhite(scratch, minX, minY, maxX - minX + 1, maxY - minY + 1, sourceName, "clean");
+  return { canvas: scratch, x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 };
 }
 
 // Normalised 0..1 box with the origin at the top left, as returned by the
@@ -345,7 +386,7 @@ function makeCanvas(width: number, height: number): HTMLCanvasElement {
   return canvas;
 }
 
-function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
+function toBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Could not encode image"))),
