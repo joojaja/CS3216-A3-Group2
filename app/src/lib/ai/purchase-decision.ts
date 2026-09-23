@@ -38,3 +38,32 @@ export function applyDecisionLabelFloor(
 
   return label;
 }
+
+type ComparableItem = {
+  category: string;
+  primary_colour: string | null;
+  secondary_colours: string[];
+};
+
+// Scores how closely an owned item matches the prospective purchase.
+// Category is worth 0.6, a matching primary colour 0.3, and a primary colour
+// that only appears among the owned item's secondary colours 0.15.
+export function purchaseSimilarity(
+  attrs: { category: string; primary_colour: string },
+  item: ComparableItem,
+): number {
+  let score = 0;
+  if (item.category === attrs.category) score += 0.6;
+  const colour = attrs.primary_colour.toLowerCase();
+  if (item.primary_colour?.toLowerCase() === colour) {
+    score += 0.3;
+  } else if (item.secondary_colours.map((c) => c.toLowerCase()).includes(colour)) {
+    score += 0.15;
+  }
+  return score;
+}
+
+// A strong match is same category and same primary colour. 0.6 + 0.3 is
+// 0.8999999999999999 in floating point, so the cut-off sits below 0.9 on
+// purpose. Category plus a secondary colour (0.75) stays below it.
+export const STRONG_MATCH_THRESHOLD = 0.85;
