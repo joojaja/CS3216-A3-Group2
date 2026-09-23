@@ -29,12 +29,15 @@
   align-items: center;
 }
 .onboarding-wordmark {
-  font-size: 30px;
-  font-weight: 600;
-  letter-spacing: -1.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -1.3px;
 }
-.onboarding-wordmark span {
-  color: #b76650;
+.onboarding-wordmark b {
+  font-weight: 700;
 }
 .onboarding-layout {
   max-width: 1240px;

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
@@ -42,8 +43,9 @@ export function Rail({ user, weather }: { user: RailUser; weather: RailWeather }
     <>
       {/* Desktop rail */}
       <aside className="app-rail hidden h-full flex-col bg-cobalt pt-6 text-white md:flex">
-        <Link href="/wardrobe" className="app-wordmark px-6 pb-6 text-xl font-semibold tracking-tight">
-          wear<span>abouts</span>
+        <Link href="/wardrobe" aria-label="Wearabouts wardrobe" className="app-wordmark flex items-center gap-2 px-6 pb-6 text-xl font-semibold tracking-tight">
+          <Image src="/landing/brand-mark.png" alt="" width={36} height={24} className="brightness-0 invert" />
+          <span className="font-semibold">wear<span>abouts</span></span>
         </Link>
         <nav aria-label="Main navigation" className="relative flex flex-col">
           {active >= 0 && (
