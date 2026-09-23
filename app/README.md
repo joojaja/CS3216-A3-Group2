@@ -16,6 +16,7 @@ Fill the service variables in `.env.local` to use real accounts and private ward
 
 ```bash
 npm run lint
+npx tsc --noEmit
 npm test
 npm run build
 ```

@@ -14,11 +14,13 @@ All from `app/`, not the repository root (there is no root `package.json`):
 ```bash
 npm ci
 npm run lint
+npx tsc --noEmit
 npm test
 npm run build -- --webpack
 ```
 
 - `npm run lint` runs ESLint (`eslint.config.mjs`); no separate `next lint` step.
+- `npx tsc --noEmit` typechecks the whole app. CI runs it after lint.
 - `npm test` runs `node --test tests/*.test.mjs`, the built-in Node test runner importing TypeScript directly. This needs Node 22.18 or newer; on an older Node, the run fails with an import error that looks unrelated to the actual test, so check `node --version` first if that happens.
 - `npm run build` normally uses Turbopack; CI and this project's own docs use the `--webpack` flag because the default Turbopack build has been unreliable in some sandboxed environments (a local port-binding failure). Use plain `npm run build` locally if Turbopack works for you, but use `-- --webpack` if you need to match CI exactly or if the default build fails to bind a port.
 
