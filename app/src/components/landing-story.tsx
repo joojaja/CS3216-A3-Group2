@@ -48,16 +48,30 @@ export default function LandingStory() {
     const updateMode = () =>
       setEnhanced(window.innerWidth >= 901 && !media.matches);
     updateMode();
+    document.documentElement.classList.add("drape-motion-ready");
+    const header = document.querySelector<HTMLElement>(".drape-header");
+    const onHeaderScroll = () => header?.classList.toggle("is-compact", window.scrollY > 70);
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => entry.target.classList.toggle("is-visible", entry.isIntersecting));
-    }, { threshold: 0.12 });
-    document.querySelectorAll(".drape-feature-tour article").forEach((article) => observer.observe(article));
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -10% 0px" });
+    document
+      .querySelectorAll(
+        ".drape-bridge, .drape-feature-heading, .drape-feature-tour article, .drape-pricing-heading, .drape-price-card, .drape-story-mobile article",
+      )
+      .forEach((el) => (media.matches ? el.classList.add("is-visible") : observer.observe(el)));
+    window.addEventListener("scroll", onHeaderScroll, { passive: true });
+    onHeaderScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", updateMode);
     media.addEventListener("change", updateMode);
     onScroll();
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onHeaderScroll);
       window.removeEventListener("resize", updateMode);
       media.removeEventListener("change", updateMode);
       observer.disconnect();
@@ -84,8 +98,9 @@ export default function LandingStory() {
             <span style={{ width: `${((active + 1) / 4) * 100}%` }} />
           </div>
         </div>
-        <div className="drape-story-controller" aria-label="Story stages">
-          {stages.map((stage, i) => <button key={stage[0]} type="button" aria-current={i === active ? "step" : undefined} onClick={() => sectionScroll(i)}>{["Wardrobe", "Context", "Comparison", "Outfit"][i]}</button>)}
+        <div className="drape-story-controller" role="group" aria-label="Story stages">
+          <span className="drape-story-controller-capsule" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
+          {stages.map((stage, i) => <button key={stage[0]} type="button" aria-current={i === active ? "step" : undefined} aria-label={`Stage ${i + 1}: ${stage[0]}`} onClick={() => sectionScroll(i)}>{["Wardrobe", "Context", "Comparison", "Outfit"][i]}</button>)}
         </div>
         <div className="drape-story-images">
           {[0, 1, 2, 3].map((_, i) => (
