@@ -30,8 +30,17 @@ Tests use Node's built-in runner with TypeScript support, requiring Node 22.18 o
 | `/login` | Sign in or register |
 | `/auth/callback` | Exchange an email-confirmation code for a session |
 | `/onboarding` | Optional preferences and first confirmed wardrobe item |
-| `/wardrobe` | Existing private wardrobe |
-| `/planner`, `/evaluator`, `/profile` | Existing teammate-owned product flows |
+| `/wardrobe` | Private wardrobe grid |
+| `/wardrobe/new` | Upload and confirm a new item |
+| `/wardrobe/[id]` | Item detail and editing |
+| `/wardrobe/today` | Rule-first daily outfit feed |
+| `/wardrobe/outfits` | Saved outfits |
+| `/planner` | Occasion-based outfit planner |
+| `/evaluator` | Purchase evaluator |
+| `/explore` | Curated product feed (needs at least five confirmed items) |
+| `/style` | Colour and style archetype breakdown |
+| `/sizing` | Size-chart and shopping-screenshot checker |
+| `/profile`, `/profile/measurements` | Preferences, sizes and privacy controls |
 | `/privacy` | Data-use explanation and analytics controls |
 | `/robots.txt`, `/sitemap.xml`, `/opengraph-image` | Search and social metadata |
 
