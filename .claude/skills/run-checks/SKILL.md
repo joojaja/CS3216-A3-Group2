@@ -25,7 +25,7 @@ npm run build -- --webpack
 ## What these checks do not cover
 
 - They do not call Gemini. No test in `app/tests/` exercises a live model call; see the `no-paid-gemini` skill before adding one that would.
-- They do not verify a live Supabase project, a live deployment, or cross-account authorization on real data. Those need a human with real credentials; see `docs/release-readiness.md` for the list of what still needs one.
+- They do not verify a live Supabase project, a live deployment, or cross-account authorization on real data. Those need a human with real credentials, exercising the actual deployed app; see `docs/deployment.md` for the production setup they would be checking.
 - A green build does not mean a feature is wired into the actual user journey or works on a phone-sized screen. Check those by hand too.
 
 ## Before claiming a check "passes" in a doc or PR description

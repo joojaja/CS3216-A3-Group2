@@ -23,10 +23,10 @@ Before finishing any task that produces prose: a doc in `docs/`, `README.md`, `a
    - Filler and hedging (rules 23, 24): "in order to", "it is important to note that", stacked hedges.
    - Passive voice where an actor is known (rule 29).
 3. Self-audit: read it back and ask what specifically makes a sentence say nothing about this project. Cut or rewrite it (rule 27). A sentence about Wearabouts should name a file, a route, a number, or a concrete behavior, not a mood.
-4. For anything making a claim about the shipped product (a feature exists, a metric holds, a check passed), verify it against the actual code or a command you ran in this session before writing it down. `AGENTS.md`'s honesty principle and this repository's own history of stale claims (see `docs/release-readiness.md`) both depend on this, not just style.
+4. For anything making a claim about the shipped product (a feature exists, a metric holds, a check passed), verify it against the actual code or a command you ran in this session before writing it down. `AGENTS.md`'s honesty principle depends on this, not just style, and this repository has shipped stale claims before once a later feature outran an earlier doc.
 
 ## Known repository quirks
 
 - "Drape" is the retired working name. It is correct only in a clearly historical sentence (a past commit, an old file, a naming-history note); everywhere else, use Wearabouts.
-- The milestone report and evidence map (`docs/milestones-report.md`, `docs/assignment-evidence.md`) use `[bracketed text]` for a submission field or evidence gap still to fill in, matching that document's own stated convention. Keep using that pattern there rather than inventing a new one.
+- When drafting milestone text for `group-<number>-milestones.pdf` (see the `write-milestone` skill), mark an open field or evidence gap with `[bracketed text]` rather than inventing a different placeholder style, so a final pass before export can find every open item by searching for `[`.
 - Do not add a Co-Authored-By trailer or credit an AI assistant as a commit or PR author; naming a coding tool in a resources or acknowledgments section of a document is fine and expected.
