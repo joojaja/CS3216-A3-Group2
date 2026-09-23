@@ -58,7 +58,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   useEffect(() => {
     if (state.saved && state !== lastSaved.current) {
       lastSaved.current = state;
-      if (state.gender) setGender(state.gender);
       trackFunnel("preferences_saved");
       toast("Preferences saved");
     }
