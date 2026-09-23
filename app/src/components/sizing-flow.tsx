@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { trackFunnel } from "@/lib/analytics";
 import { Choice, MeasurementWizard } from "@/components/measurement-wizard";
 import { PurchaseSummary } from "@/components/purchase-summary";
 import { SizeResult } from "@/components/size-result";
@@ -94,6 +95,12 @@ export function SizingFlow({
     if (sizing.status === "ready") answer.current?.focus();
   }, [sizing.status, sizing.context]);
 
+  // Records the result of a completed lookup once, when a match or a known
+  // gap (no chart, no brand, and so on) is reached
+  useEffect(() => {
+    if (ready && outcome) trackFunnel("sizing_result", { result: outcome.kind });
+  }, [ready, outcome]);
+
   function pickFile(file: File | null | undefined, merge: boolean) {
     if (!file) return;
     if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_BYTES) {
@@ -101,6 +108,9 @@ export function SizingFlow({
       return;
     }
     setFileError(null);
+    // Adding a size-chart screenshot to an item already picked is part of
+    // the same lookup, not a new one
+    if (!merge) trackFunnel("sizing_requested", { source: "screenshot" });
     sizing.readScreenshot(file, merge);
   }
 
@@ -114,6 +124,7 @@ export function SizingFlow({
     if (!brand.trim()) return setFormError("Enter the brand you are buying from.");
     if (!category) return setFormError("Pick what kind of item it is.");
     setFormError(null);
+    trackFunnel("sizing_requested", { source: "manual" });
     sizing.startManual({
       source: "manual",
       brand: brand.trim(),
