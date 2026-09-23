@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "motion/react";
@@ -10,6 +10,7 @@ import { BookmarkIcon } from "@/components/outfit-planner";
 import { FEEDBACK_REASONS, type Reason } from "@/components/planner-context";
 import { useToast } from "@/components/toast";
 import { markDailyShown } from "@/components/daily-auto-open";
+import { CUTOUTS_UPDATED_EVENT } from "@/lib/image/cutout";
 import { trackFunnel } from "@/lib/analytics";
 import { saveOutfit, unsaveOutfit } from "@/lib/outfits/saved-client";
 import type { DailyAction, DailyCard, DailyFeed } from "@/lib/outfits/types";
@@ -68,10 +69,18 @@ export function useDailyFeed() {
         });
       }
     }
+    // New cut-outs were just made on this page: show them
+    function onCutouts() {
+      void fetchFeed().then((next) => {
+        if (live) apply(next);
+      });
+    }
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener(CUTOUTS_UPDATED_EVENT, onCutouts);
     return () => {
       live = false;
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener(CUTOUTS_UPDATED_EVENT, onCutouts);
     };
   }, [apply]);
 
@@ -463,6 +472,7 @@ function ReadyFeed({
       )}
 
       <div className="mx-auto w-full max-w-[440px] flex-1 px-4">
+        {!feed.hasFootwear && !done && <ShoeTip />}
         <div className="relative">
           {/* The next card peeks out behind the current one */}
           {next && (
@@ -481,10 +491,7 @@ function ReadyFeed({
                 onSwipeLeft={() => skip(card, index)}
                 onSwipeRight={() => swipeRight(card, index)}
               >
-                <OutfitCollage
-                  items={card.itemIds.map((id) => feed.items[id]).filter(Boolean)}
-                  showAddFootwear={!feed.hasFootwear}
-                />
+                <OutfitCollage items={card.itemIds.map((id) => feed.items[id]).filter(Boolean)} />
                 <div className="grid gap-2 px-1.5 pt-3 pb-1.5">
                   <p className="text-[14.5px] leading-relaxed text-body">
                     <b className="font-semibold text-ink">Why this: </b>
@@ -581,6 +588,63 @@ function ReadyFeed({
         </div>
       )}
     </>
+  );
+}
+
+// A dismissed shoe tip stays away for a week, then returns if the wardrobe
+// still has no shoes
+const SHOE_TIP_KEY = "wearabouts:shoe-tip-dismissed";
+const SHOE_TIP_EVENT = "wearabouts:shoe-tip-toggle";
+const SHOE_TIP_QUIET_MS = 7 * 24 * 60 * 60 * 1000;
+
+function shoeTipDismissed() {
+  try {
+    const at = Number(localStorage.getItem(SHOE_TIP_KEY));
+    return Number.isFinite(at) && at > 0 && Date.now() - at < SHOE_TIP_QUIET_MS;
+  } catch {
+    return false;
+  }
+}
+
+function subscribeShoeTip(onChange: () => void) {
+  window.addEventListener(SHOE_TIP_EVENT, onChange);
+  return () => window.removeEventListener(SHOE_TIP_EVENT, onChange);
+}
+
+// Suggests adding shoes without taking a slot in the outfit itself
+function ShoeTip() {
+  // Hidden on the server and until storage has been read
+  const dismissed = useSyncExternalStore(subscribeShoeTip, shoeTipDismissed, () => true);
+  if (dismissed) return null;
+
+  function dismiss() {
+    try {
+      localStorage.setItem(SHOE_TIP_KEY, String(Date.now()));
+    } catch {
+      // Storage blocked: hidden until the page reloads
+    }
+    window.dispatchEvent(new Event(SHOE_TIP_EVENT));
+  }
+
+  return (
+    <div className="mb-3 flex items-center gap-2 rounded-full bg-white/10 py-1.5 pr-1.5 pl-4 text-[13px] text-white/90">
+      <span className="min-w-0 flex-1">
+        Outfits look finished with shoes.{" "}
+        <Link href="/wardrobe/new" className="font-semibold text-white underline underline-offset-2">
+          Add a pair
+        </Link>
+      </span>
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Dismiss the shoes tip"
+        className="grid size-8 shrink-0 place-items-center rounded-full transition hover:bg-white/10"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="size-4" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </div>
   );
 }
 

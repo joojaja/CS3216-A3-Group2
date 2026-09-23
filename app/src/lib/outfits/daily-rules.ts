@@ -312,12 +312,17 @@ function explain(pieces: RuleItem[], weather: DayWeather, input: DailyInput): st
   return sentences.join(" ");
 }
 
+// Written into cards before the feed showed a separate tip for a wardrobe
+// with no shoes. Stored batches may still carry it, so the feed filters it out
+export const LEGACY_NO_SHOES_WARNING =
+  "There are no shoes in your wardrobe yet, so this outfit has an empty shoe slot.";
+
+// Card warnings. A wardrobe with no shoes gets one tip in the feed instead of
+// a warning on every card
 function warn(pieces: RuleItem[], weather: DayWeather, hasFootwear: boolean): string[] {
   const warnings: string[] = [];
   const shoe = pieces.find((item) => item.category === "footwear");
-  if (!hasFootwear) {
-    warnings.push("There are no shoes in your wardrobe yet, so this outfit has an empty shoe slot.");
-  } else if (weather.rainy && shoe && !shoe.weather_tags.includes("rain")) {
+  if (hasFootwear && weather.rainy && shoe && !shoe.weather_tags.includes("rain")) {
     warnings.push("Showers are forecast and these shoes are not tagged for rain.");
   }
   return warnings;

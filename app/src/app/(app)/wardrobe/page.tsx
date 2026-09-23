@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { SetupNotice } from "@/components/setup-notice";
 import { WardrobeTabs } from "@/components/wardrobe-tabs";
 import { DailyStrip } from "@/components/daily-strip";
+import { CutoutBackfill, type BackfillItem } from "@/components/cutout-backfill";
 import type { WardrobeItem } from "@/lib/types";
 import { demoItems } from "@/lib/demo-items";
 
@@ -92,6 +93,16 @@ export default async function WardrobePage() {
 
   const count = itemsWithUrls.length;
 
+  // Items still without a transparent cut-out for outfit cards. Only once
+  // the item cut-outs migration has added the column
+  const cutoutsReady = (items ?? []).some((item) => "cutout_path" in item);
+  const backfill: BackfillItem[] = cutoutsReady
+    ? itemsWithUrls.map((item) => ({
+        id: item.id,
+        needsCutout: !item.cutout_path && !item.ai_confidence?.cutout_failed,
+      }))
+    : [];
+
   return (
     <>
       <PageHeader
@@ -105,6 +116,7 @@ export default async function WardrobePage() {
       />
       <div className="px-5 py-5 pb-24 md:px-9 md:py-6">
         {count > 0 && <DailyStrip />}
+        {backfill.some((item) => item.needsCutout) && <CutoutBackfill items={backfill} />}
         <WardrobeTabs active="items" savedCount={savedCount ?? null} />
         <StatsStrip
           stats={[
