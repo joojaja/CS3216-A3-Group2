@@ -118,13 +118,12 @@ export default function LandingPage() {
         </section>
         <div className="drape-hero-ctas">
           <div className="drape-container">
-            <Link className="drape-button drape-primary-cta" href="/login?mode=signup&next=/onboarding">Get early access <span aria-hidden="true">→</span></Link>
+            <Link className="drape-button drape-primary-cta" href="/login?mode=signup&next=/onboarding">Try Wearabouts now <span aria-hidden="true">→</span></Link>
             <a className="drape-how-link" href="#story">See how it works</a>
           </div>
         </div>
         <section className="drape-bridge" aria-label="Wearabouts proposition">
           <div className="drape-container">
-            <span className="drape-eyebrow drape-bridge-eyebrow">Wearabouts</span>
             <h2>
               Wearabouts turns the clothes you already own into outfits for today, any occasion and smarter decisions about what to buy next.
             </h2>
@@ -205,7 +204,7 @@ export default function LandingPage() {
                   className="drape-button"
                   href="/login?mode=signup&next=/onboarding"
                 >
-                  Join the beta <span aria-hidden="true">↗</span>
+                  Join Wearabouts <span aria-hidden="true">↗</span>
                 </Link>
               </article>
               <article className="drape-price-card drape-price-planned">
