@@ -6,6 +6,7 @@ import "./landing.css";
 import "./landing-cinematic.css";
 import "./landing-refresh.css";
 import "./landing-hero.css";
+import "./landing-sections.css";
 import LandingStory from "@/components/landing-story";
 
 export const metadata: Metadata = {
@@ -15,8 +16,8 @@ export const metadata: Metadata = {
 const featureRows = [
   {
     number: "01 · Build your wardrobe",
-    title: "Your clothes, finally searchable.",
-    body: "Add a piece, review the suggested details, and keep the version you confirm.",
+    title: "Your clothes, finally searchable",
+    body: "Add a photo and Wearabouts picks out useful details such as category, colour and material. You can correct any tag, find any piece and rediscover your clothes.",
     src: "/landing/feature-wardrobe.webp",
     alt: "Six realistic wardrobe product photos: an ivory shirt, olive trousers, black T-shirt, beige overshirt, white sneakers and blue Oxford shirt",
     shotLabel: "My wardrobe · 24 pieces",
@@ -25,33 +26,71 @@ const featureRows = [
   },
   {
     number: "02 · Dress for the day",
-    title: "Tell it where life is taking you.",
-    body: "Plan around Singapore heat, humidity and rain with recommendations built from your own clothes.",
-    src: "/landing/feature-weather.webp",
-    alt: "A man in Singapore wearing an ivory overshirt, black T-shirt, olive trousers and white sneakers",
-    shotLabel: "Outfit planner · Dinner tonight",
-    width: 1400,
-    height: 933,
+    title: "Plan beyond the dress code",
+    body: "Where you are going matters. So does the weather and everything else happening that day. Wearabouts considers it all before suggesting one complete look.",
+    src: "/landing/feature-weather-screenshot.png",
+    alt: "The Today's outfits screen recommending a navy striped shirt with cargo pants for hot, humid weather with thundery showers, and explaining why it suits the forecast",
+    shotLabel: "Outfit planner · Today's outfits",
+    width: 632,
+    height: 1024,
   },
   {
     number: "03 · Explore your style",
-    title: "Inspiration you can actually recreate.",
-    body: "See curated looks matched to your confirmed wardrobe and personal style.",
-    src: "/landing/feature-style.webp",
-    alt: "Four curated Singapore smart-casual looks personalised to the same style profile",
+    title: "Inspiration you can actually wear.",
+    body: "Browse looks curated by the Wearabouts team and matched to your style profile. Instead of saving outfits built from someone else's closet, discover ideas that feel more like you and work with what you already own.",
+    src: "/landing/feature-explore-screenshot.png",
+    alt: "The Explore page showing a grid of curated clothing pieces from local retailers, each with a product name, price and short explanation of why it complements the wardrobe",
     shotLabel: "Explore · Curated for you",
-    width: 1400,
-    height: 933,
+    width: 1024,
+    height: 667,
   },
   {
     number: "04 · Check before buying",
-    title: "Know whether a new piece earns its place.",
-    body: "Compare a prospective piece with what you own before it becomes another forgotten purchase.",
+    title: "Make every new piece earn its place.",
+    body: "Compare a prospective purchase with your wardrobe before it becomes another forgotten item. See what it works with, what it might repeat and whether it adds something you will genuinely wear.",
     src: "/landing/feature-purchase.webp",
     alt: "Wearabouts purchase analysis for a light blue jersey, including redundancy and wardrobe compatibility",
     shotLabel: "Purchase check · Live analysis",
     width: 1600,
     height: 983,
+  },
+];
+
+const faqItems = [
+  {
+    question: "What does Wearabouts actually do?",
+    answer:
+      "Wearabouts helps you organise the clothes you own, find outfits for real plans and think through potential purchases. It brings together your wardrobe, preferences, occasion and local weather to recommend one complete look and explain why it works.",
+  },
+  {
+    question: "Do I need to upload my whole wardrobe before I can start?",
+    answer:
+      "Not at all. Start with the clothes you wear most and add more whenever you feel like it. Wearabouts becomes more useful as your wardrobe grows, but there is no need to add everything at once.",
+  },
+  {
+    question: "How does Wearabouts choose an outfit?",
+    answer:
+      "It considers what you own, where you are going, the weather, how much you might move and the preferences you share over time. You will also see why the outfit was chosen, so you can decide whether it feels right for you.",
+  },
+  {
+    question: "What if Wearabouts gets something wrong?",
+    answer:
+      "You can review and correct details such as category, colour and material. You can also respond to recommendations, helping Wearabouts understand your taste better over time.",
+  },
+  {
+    question: "Is my wardrobe private?",
+    answer:
+      "Yes. Your wardrobe is private by default and is used to personalise your experience. You stay in control of the clothes and information you add.",
+  },
+  {
+    question: "Is Wearabouts free?",
+    answer:
+      "The core wardrobe experience is free during beta. A Wearabouts Plus plan is intended for people who want higher usage limits, deeper history and more advanced personalisation.",
+  },
+  {
+    question: "Is Wearabouts trying to stop me from shopping?",
+    answer:
+      "No. It is here to help you shop with more intention. If something new genuinely works with your wardrobe, Wearabouts helps you see why. If it does not, you can find out before spending.",
   },
 ];
 
@@ -129,10 +168,21 @@ export default function LandingPage() {
           </div>
         </section>
         <section className="drape-bridge" aria-label="Wearabouts proposition">
-          <div className="drape-container">
+          <div className="drape-container drape-bridge-block">
             <h2>
-              Wearabouts turns the clothes you already own into outfits for today, any occasion and smarter decisions about what to buy next.
+              Wear more of what you own.
+              <br />
+              <em>Love more of what you wear.</em>
             </h2>
+            <p>
+              Rediscover old favourites, find combinations you have never tried and stop saving your best clothes for a day that never seems to come.
+            </p>
+          </div>
+          <div className="drape-container drape-bridge-block">
+            <h2>Fashion keeps telling us we need something new.</h2>
+            <p>
+              Wearabouts starts with what is already in your wardrobe, helping turn them into outfits for any occasion and make smarter decisions about what to buy next.
+            </p>
           </div>
         </section>
         <LandingStory />
@@ -140,8 +190,9 @@ export default function LandingPage() {
           <div className="drape-container">
             <div className="drape-feature-heading">
               <span className="drape-eyebrow">Inside Wearabouts</span>
-              <h2>From a full wardrobe to one clear decision.</h2>
-              <p className="drape-feature-intro">See how Wearabouts turns the clothes you own into useful, personal answers.</p>
+              <h2>
+                The magic of Wearabouts is how it <em>all</em> works together to make personal style feel <em>simpler</em>
+              </h2>
             </div>
             <div className="drape-feature-tour">
               {featureRows.map((row, index) => (
@@ -157,14 +208,14 @@ export default function LandingPage() {
                           <span>All</span><span>Tops</span><span>Bottoms</span><span>Outerwear</span>
                         </div>
                       )}
-                      {index === 1 && (
-                        <div className="drape-weather-card">
-                          <span><b>Warm, with rain later</b><br />Singapore · 29°C · humid</span>
-                          <strong aria-hidden="true">☂</strong>
-                        </div>
-                      )}
                       <div className={index === 2 ? "drape-explore-visual" : ""}>
-                        <Image className={`drape-shot-image${index === 3 ? " is-purchase" : ""}`} src={row.src} alt={row.alt} width={row.width} height={row.height} />
+                        <Image
+                          className={`drape-shot-image${index === 1 ? " is-mobile" : ""}${index === 3 ? " is-purchase" : ""}`}
+                          src={row.src}
+                          alt={row.alt}
+                          width={row.width}
+                          height={row.height}
+                        />
                         {index === 2 && (
                           <div className="drape-badges" aria-hidden="true">
                             <span>Matched to your style</span>
@@ -186,9 +237,9 @@ export default function LandingPage() {
               <span className="drape-eyebrow">Pricing</span>
               <h2>Start free. Go deeper when you need to.</h2>
               <p>
-                The core wardrobe experience is free in beta. Wearabouts Plus
-                is planned for users who want more frequent analysis and
-                richer history.
+                The core Wearabouts experience is free during beta. Wearabouts
+                Plus is tailored for people who want more frequent analysis, a
+                deeper wardrobe history and more personalised recommendations.
               </p>
             </div>
             <div className="drape-price-grid">
@@ -238,12 +289,28 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+        <section id="faq" className="drape-section drape-faq">
+          <div className="drape-container drape-narrow">
+            <div className="drape-faq-heading">
+              <span className="drape-eyebrow">Frequently asked questions</span>
+              <h2>A few things you might be wondering.</h2>
+            </div>
+            <div className="drape-faq-list">
+              {faqItems.map((item) => (
+                <details className="drape-faq-item" key={item.question}>
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
         <section id="join" className="drape-join">
           <div className="drape-container drape-narrow">
             <span className="drape-eyebrow">Dress for what is next</span>
-            <h2>Your easiest outfit starts here.</h2>
+            <h2>Fall back in love with getting dressed.</h2>
             <p>
-              Start with the clothes you already own. Review every suggestion, understand the reason and decide what earns a place next.
+              Rediscover what you own, find outfits that feel like you and make getting ready something to look forward to again.
             </p>
             <Link
               className="drape-button"
