@@ -1,10 +1,10 @@
 # Wearabouts agent skills
 
-Project-specific skills for coding agents working in this repository, referenced from `AGENTS.md` rule 1. Each one packages a rule from `AGENTS.md` or `UNSLOP.md` as concrete, checkable steps grounded in the current code, rather than restating the policy.
+Project-specific skills for coding agents working in this repository, referenced from `AGENTS.md` rule 1. Each one packages a rule from `AGENTS.md` as concrete, checkable steps grounded in the current code, rather than restating the policy.
 
 | Skill | Use it when |
 | --- | --- |
-| [`unslop`](unslop/SKILL.md) | Writing or editing any user-facing text: docs, `README.md`, landing copy, the milestone report. |
+| [`unslop`](unslop/SKILL.md) | Writing or editing any user-facing text: docs, `README.md`, landing copy, the milestone report. Holds the full writing rules. |
 | [`no-paid-gemini`](no-paid-gemini/SKILL.md) | Testing, running, or debugging anything that touches `/api/items/analyze`, `/api/items/locate`, `/api/items/enhance`, `/api/purchases/evaluate`, `/api/sizing/extract`, or a `GOOGLE_GENERATIVE_AI_*` key. |
 | [`add-supabase-migration`](add-supabase-migration/SKILL.md) | Adding a table, column, or policy to the database. |
 | [`run-checks`](run-checks/SKILL.md) | Verifying a change before opening a pull request. |
