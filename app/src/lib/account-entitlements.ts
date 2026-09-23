@@ -1,11 +1,11 @@
 export const FREE_BEAUTIFY_CREDITS = 5;
 
 export const BEAUTIFY_LIMIT_MESSAGE =
-  "You have used all 5 free Beautify edits. Upgrade to Premium for more Beautify edits.";
+  "You have used all 5 free Beautify edits. Upgrade to Wearabouts Plus for more Beautify edits.";
 export const EXPLORE_REFRESH_LIMIT_MESSAGE =
-  "Refreshing Explore is a Premium feature. Upgrade to Premium for new recommendations.";
+  "Refreshing Explore is part of Wearabouts Plus. Upgrade for new recommendations.";
 export const OUTFIT_CREDIT_LIMIT_MESSAGE =
-  "The free-tier outfit planner has run out of AI credits. Upgrade to Premium for uninterrupted outfit planning.";
+  "The free-tier outfit planner has run out of AI credits. Upgrade to Wearabouts Plus for uninterrupted outfit planning.";
 
 export type AccountTier = "free" | "premium";
 

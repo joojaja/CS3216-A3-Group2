@@ -38,7 +38,7 @@ function ProfileSidebar({
     <aside className="rounded-xl border border-cobalt/25 bg-cobalt-light/45 px-4.5 py-4 text-sm">
       <div className="flex items-center justify-between gap-3">
         <b className="font-semibold">
-          {accountTier === "premium" ? "Premium Tier" : "Free Tier"}
+          {accountTier === "premium" ? "Wearabouts Plus" : "Free"}
         </b>
         {accountTier === "free" && (
           <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-cobalt">
@@ -48,7 +48,7 @@ function ProfileSidebar({
       </div>
       {accountTier === "free" && (
         <>
-          <h2 className="mt-4 text-base font-semibold text-ink">Unlock Premium</h2>
+          <h2 className="mt-4 text-base font-semibold text-ink">Unlock Wearabouts Plus</h2>
           <ul className="mt-2 grid list-disc gap-1.5 pl-5 leading-relaxed text-body">
             <li>More Beautify edits</li>
             <li>Refresh your Explore recommendations</li>
