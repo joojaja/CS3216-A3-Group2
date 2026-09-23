@@ -6,11 +6,11 @@ import { trackFunnel } from "@/lib/analytics";
 import { Choice, MeasurementWizard } from "@/components/measurement-wizard";
 import { PurchaseSummary } from "@/components/purchase-summary";
 import { SizeResult } from "@/components/size-result";
-import { inputClass } from "@/components/measurement-step";
+import { BrandCombobox } from "@/components/brand-combobox";
 import { useSizing } from "@/components/sizing-context";
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@/lib/image/validate";
 import { CATEGORY_FIELDS, CATEGORY_LABELS } from "@/lib/sizing/categories";
-import { STORED_BRANDS, STORED_CHARTS, findChart, normaliseBrand } from "@/lib/sizing/charts";
+import { STORED_BRANDS, STORED_CHARTS, brandCoverage, findChart, fitToCoverage, normaliseBrand } from "@/lib/sizing/charts";
 import { validateChart } from "@/lib/sizing/chart-schema";
 import { chartForContext } from "@/lib/sizing/extraction";
 import { MEASUREMENT_BY_KEY } from "@/lib/sizing/measurements";
@@ -26,6 +26,8 @@ const CATEGORY_OPTIONS = (Object.keys(CATEGORY_LABELS) as SizingCategory[]).map(
 function listText(items: string[]) {
   return items.length > 1 ? `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}` : items[0];
 }
+
+const PLURAL: Record<SizingCategory, string> = { top: "tops", bottom: "bottoms", dress: "dresses", footwear: "shoes" };
 
 const rangeName = (r: string) => (r === "mens" ? "men's" : r === "womens" ? "women's" : "unisex");
 
@@ -80,8 +82,10 @@ export function SizingFlow({
   const [dragging, setDragging] = useState(false);
   const mergeNext = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const uploadButton = useRef<HTMLButtonElement>(null);
   const brandId = useId();
-  const listId = useId();
+  const coverage = useMemo(() => brandCoverage(brand), [brand]);
+  const coveredRanges = coverage && category ? coverage.ranges[category] ?? [] : null;
 
   const ready = sizing.status === "ready" ? sizing.context : null;
   const outcome = useMemo(() => resolve(ready, profile), [ready, profile]);
@@ -118,6 +122,39 @@ export function SizingFlow({
     mergeNext.current = merge;
     fileInput.current?.click();
   }
+
+  function applyCoverage(nextBrand: string, nextCategory: SizingCategory | null) {
+    const fitted = fitToCoverage(brandCoverage(nextBrand), nextCategory, sizeRange);
+    setCategory(fitted.category);
+    setSizeRange(fitted.range);
+  }
+
+  // Clears the answer and returns to the input. The manual form keeps its
+  // values so the user can adjust one and ask again
+  function closeResult() {
+    sizing.reset();
+    uploadButton.current?.focus();
+  }
+
+  // When we hold no stored chart that fits, the item's own chart is the way
+  // forward. A screenshot lookup adds it to the item being reviewed; a
+  // manual lookup starts a screenshot read instead
+  const chartScreenshotButton = (
+    <button
+      type="button"
+      onClick={() => {
+        if (ready?.source === "screenshot") {
+          sizing.edit();
+          chooseFile(true);
+        } else {
+          chooseFile(false);
+        }
+      }}
+      className="font-medium text-cobalt underline underline-offset-2"
+    >
+      Add a size chart screenshot
+    </button>
+  );
 
   function submitManual(e: React.FormEvent) {
     e.preventDefault();
@@ -157,6 +194,7 @@ export function SizingFlow({
           }}
         />
         <button
+          ref={uploadButton}
           type="button"
           onClick={() => chooseFile(false)}
           onDragOver={(e) => {
@@ -195,35 +233,54 @@ export function SizingFlow({
         <details className="mt-4 border-t border-line pt-3" open={!configured || undefined}>
           <summary className="min-h-10 cursor-pointer py-2 text-sm font-medium text-ink">Or pick the brand yourself</summary>
           <form onSubmit={submitManual} noValidate className="mt-2 grid gap-4">
-            <label htmlFor={brandId} className="block text-[13.5px] font-medium">
-              Brand
-              <input
+            <div>
+              <label htmlFor={brandId} className="block text-[13.5px] font-medium">
+                Brand
+              </label>
+              <BrandCombobox
                 id={brandId}
-                list={listId}
                 value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                autoComplete="off"
+                onChange={(next) => {
+                  setBrand(next);
+                  applyCoverage(next, category);
+                }}
                 placeholder="For example H&M"
-                maxLength={80}
-                className={inputClass}
               />
-              <datalist id={listId}>
-                {STORED_BRANDS.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
-            </label>
-            <Choice<SizingCategory | null> legend="What is it?" value={category} onChange={setCategory} options={CATEGORY_OPTIONS} />
-            <Choice<SizeRange | null>
-              legend="Size range"
-              value={sizeRange}
-              onChange={setSizeRange}
-              options={[
-                { value: "womens", label: "Women's" },
-                { value: "mens", label: "Men's" },
-                { value: null, label: "Not sure" },
-              ]}
-            />
+            </div>
+            <div>
+              <Choice<SizingCategory | null>
+                legend="What is it?"
+                value={category}
+                onChange={(next) => applyCoverage(brand, next)}
+                options={CATEGORY_OPTIONS.map((o) => ({
+                  ...o,
+                  disabled: !!coverage && !coverage.categories.includes(o.value),
+                }))}
+              />
+              {coverage && coverage.categories.length < CATEGORY_OPTIONS.length && (
+                <p className="mt-1.5 text-xs text-mute">
+                  We only have {coverage.brand}&apos;s size chart for {listText(coverage.categories.map((c) => PLURAL[c]))}. For
+                  anything else, screenshot the item&apos;s size chart.
+                </p>
+              )}
+            </div>
+            <div>
+              <Choice<SizeRange | null>
+                legend="Size range"
+                value={sizeRange}
+                onChange={setSizeRange}
+                options={[
+                  { value: "womens", label: "Women's", disabled: !!coveredRanges && !coveredRanges.includes("womens") },
+                  { value: "mens", label: "Men's", disabled: !!coveredRanges && !coveredRanges.includes("mens") },
+                  { value: null, label: "Not sure" },
+                ]}
+              />
+              {coverage && category && coveredRanges?.length === 1 && (
+                <p className="mt-1.5 text-xs text-mute">
+                  {coverage.brand}&apos;s {PLURAL[category]} chart is in {rangeName(coveredRanges[0])} sizes only.
+                </p>
+              )}
+            </div>
             {formError && <p role="alert" className="text-sm text-bad">{formError}</p>}
             <div>
               <button type="submit" className="min-h-11 rounded-lg bg-cobalt px-4 text-sm font-medium text-white transition hover:bg-cobalt-deep">
@@ -248,45 +305,52 @@ export function SizingFlow({
       )}
 
       <div ref={answer} tabIndex={-1} aria-live="polite" aria-label="Your size" className="grid gap-3 focus:outline-none">
-        {ready?.source === "screenshot" && (
-          <p className="text-sm text-body">
-            {[ready.brand, ready.productName, ready.category && CATEGORY_LABELS[ready.category]].filter(Boolean).join(", ")}.{" "}
-            <button type="button" onClick={sizing.edit} className="font-medium text-cobalt underline underline-offset-2">
-              Change
+        {ready && (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-body">
+              {[ready.brand, ready.productName, ready.category && CATEGORY_LABELS[ready.category]].filter(Boolean).join(", ")}.
+              {ready.source === "screenshot" && (
+                <>
+                  {" "}
+                  <button type="button" onClick={sizing.edit} className="font-medium text-cobalt underline underline-offset-2">
+                    Change
+                  </button>
+                </>
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={closeResult}
+              aria-label="Close your size result"
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-line bg-white transition hover:border-cobalt"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
             </button>
-          </p>
+          </div>
         )}
 
         {outcome?.kind === "unknown_brand" && (
           <Notice title={ready?.brand ? `We do not have ${ready.brand}'s size chart yet` : "We need the brand or a size chart"}>
-            Screenshot the size chart on the product page and we will use that. We have stored charts for {listText(STORED_BRANDS)}.
-            {ready?.source === "screenshot" && (
-              <>
-                {" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    sizing.edit();
-                    chooseFile(true);
-                  }}
-                  className="font-medium text-cobalt underline underline-offset-2"
-                >
-                  Add a size chart screenshot
-                </button>
-              </>
-            )}
+            Screenshot the size chart on the product page and we will use that. We have stored charts for {listText(STORED_BRANDS)}.{" "}
+            {chartScreenshotButton}
           </Notice>
         )}
 
         {outcome?.kind === "no_category" && (
           <Notice title={`No ${CATEGORY_LABELS[ready!.category!].toLowerCase()} chart for ${outcome.brandName}`}>
-            We have {outcome.brandName} charts for {listText(outcome.available)}. A screenshot of this item&apos;s size chart also works.
+            We have {outcome.brandName} charts for {listText(outcome.available)}. Screenshot this item&apos;s size chart and we
+            will use that instead.{" "}
+            {chartScreenshotButton}
           </Notice>
         )}
 
         {outcome?.kind === "no_range" && (
           <Notice title={`No ${rangeName(ready!.sizeRange!)} chart for this ${outcome.brandName} item`}>
-            We only have the {listText(outcome.ranges.map(rangeName))} chart for this item.
+            We only have the {listText(outcome.ranges.map(rangeName))} chart for this item. Screenshot this item&apos;s size
+            chart and we will use that instead.{" "}
+            {chartScreenshotButton}
           </Notice>
         )}
 

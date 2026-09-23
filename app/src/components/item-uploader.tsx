@@ -26,6 +26,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     originalPreview,
     cleaned,
     cleanedPreview,
+    cutout,
     ironed,
     ironedPreview,
     choice,
@@ -72,6 +73,8 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     // Recorded with the item so it is always clear whether the stored photo
     // is the shot itself, a cutout, a crop or an AI rendering
     form.set("image_source", choice);
+    // The garment alone on transparency, for outfit cards
+    if (cutout) form.set("cutout", cutout);
 
     try {
       const res = await fetch("/api/items", { method: "POST", body: form });

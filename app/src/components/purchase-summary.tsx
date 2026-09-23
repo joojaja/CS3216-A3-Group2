@@ -1,15 +1,38 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { BrandCombobox } from "@/components/brand-combobox";
 import { inputClass } from "@/components/measurement-step";
 import { ChartTable } from "@/components/size-result";
 import { CATEGORY_LABELS } from "@/lib/sizing/categories";
-import { STORED_BRANDS } from "@/lib/sizing/charts";
 import type { PurchaseContext, SizingCategory, Unit } from "@/lib/sizing/types";
 
 type Field = "brand" | "productName" | "category" | "sizeRange";
 
 const RANGE_LABELS: Record<string, string> = { womens: "Women's", mens: "Men's", unisex: "Unisex" };
+
+// Holds the typed brand while the chip is open and commits it on pick,
+// Enter or blur, like the other chip editors
+function BrandEditor({
+  initial,
+  onCommit,
+  onDone,
+}: {
+  initial: string;
+  onCommit: (value: string) => void;
+  onDone: () => void;
+}) {
+  const [value, setValue] = useState(initial);
+  const id = useId();
+  return (
+    <div>
+      <label htmlFor={id} className="block text-[13.5px] font-medium">
+        Brand
+      </label>
+      <BrandCombobox id={id} autoFocus value={value} onChange={setValue} onCommit={onCommit} onEnter={onDone} />
+    </div>
+  );
+}
 
 function CheckBadge() {
   return (
@@ -42,7 +65,6 @@ export function PurchaseSummary({
   const [editing, setEditing] = useState<Field | null>(null);
   const [chartChecked, setChartChecked] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
-  const listId = useId();
   const extraction = context.extraction;
   const uncertain = new Set(extraction?.uncertainFields ?? []);
   const lowConfidence = extraction?.confidence === "low";
@@ -99,23 +121,11 @@ export function PurchaseSummary({
       {editing && (
         <div className="mt-3 rounded-lg border border-line bg-wash p-3">
           {editing === "brand" && (
-            <label className="block text-[13.5px] font-medium">
-              Brand
-              <input
-                autoFocus
-                list={listId}
-                maxLength={80}
-                defaultValue={context.brand ?? ""}
-                onBlur={(e) => onChange({ brand: e.target.value.trim() || null })}
-                onKeyDown={(e) => e.key === "Enter" && (e.currentTarget.blur(), setEditing(null))}
-                className={inputClass}
-              />
-              <datalist id={listId}>
-                {STORED_BRANDS.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
-            </label>
+            <BrandEditor
+              initial={context.brand ?? ""}
+              onCommit={(value) => onChange({ brand: value.trim() || null })}
+              onDone={() => setEditing(null)}
+            />
           )}
           {editing === "productName" && (
             <label className="block text-[13.5px] font-medium">
