@@ -3,7 +3,7 @@
 // It sees candidate numbers and short item descriptions, never ids or
 // photos, and its answer is checked before anything is stored. If the call
 // fails or the answer does not check out, the rules' own top 3 and template
-// explanations ship instead. See docs/plans/daily-outfits-and-saved.md 1.1.
+// explanations ship instead. See docs/architecture.md, "Daily outfits."
 
 import type { DailyOutfit, DayWeather, RuleItem } from "./daily-rules.ts";
 
