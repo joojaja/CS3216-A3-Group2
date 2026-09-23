@@ -4,7 +4,7 @@ import { COTTONON_CHARTS } from "./cotton-on.ts";
 import { LOVEBONITO_CHARTS } from "./love-bonito.ts";
 import { NIKE_CHARTS } from "./nike.ts";
 
-// Uniqlo and Zara are not stored yet. See docs/plans/size-chart-sources.md.
+// Uniqlo and Zara are not stored yet. See docs/size-chart-sources.md.
 export const STORED_CHARTS: SizeChart[] = [
   ...HM_CHARTS,
   ...COTTONON_CHARTS,

@@ -1,6 +1,6 @@
 # Analytics
 
-This document covers the analytics setup for Wearabouts: the tools in use, the event dictionary, the funnels to build from them, how to verify events land, and a template for writing up insights once real usage data exists.
+This document covers the analytics setup for Wearabouts: the tools in use, the event dictionary, the funnels to build from them, and how to verify that events arrive.
 
 ## Tools and why
 
@@ -82,46 +82,9 @@ Do this after any change to an event name, property or call site, and before rel
 4. Walk through the flow you changed: navigate between pages and confirm a `page_view` appears for each client-side route change, not just the first load; then trigger the specific event (save an item, submit feedback, run a purchase check) and confirm it appears within a few seconds with the expected parameters.
 5. Confirm nothing appears if you decline consent, and confirm the app does not throw or block when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is unset.
 
-## Insight template
+## GA4 configuration
 
-Fill this in once the property has accumulated real usage, not before. Do not estimate or invent numbers ahead of that.
-
-```
-## Analytics insights, <date range>
-
-Report screenshot: <link or embedded image of the GA4 report used>
-
-### Acquisition to activation
-- Landing views: <count>
-- Signup starts / completions: <count> / <count>
-- Reached wardrobe_activated (5 items): <count> (<percent> of signups)
-- Where the funnel drops most: <step>
-
-### Outfit feedback loop
-- Outfits requested / generated: <count> / <count>
-- Feedback rate (feedback_saved / outfits_generated): <percent>
-- Most common rejection reason: <reason>, <count> occurrences
-- What this changed: <specific decision, e.g. a deterministic rule adjustment,
-  a prompt change, a UI change to surface the reason sooner>
-
-### Purchase-check usage
-- Purchases evaluated: <count>
-- Decision label split: likely_redundant <percent>, potentially_useful <percent>,
-  fills_wardrobe_gap <percent>, insufficient_information <percent>
-- What this suggests about the redundancy rules: <finding>
-
-### AI trust signal
-- item_attributes_corrected / item_saved: <percent>
-- What this says about extraction accuracy: <finding>
-```
-
-## Manual setup still needed
-
-The following cannot be done from the codebase and need a human with dashboard access:
-
-- Create a GA4 property (or confirm the existing one) and set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in the deployed environment.
-- Disable GA4 Enhanced Measurement on the data stream, so automatic scroll/outbound-click events do not mix into the curated event list above.
-- Register the event parameters listed above as custom dimensions.
-- Build the three funnel explorations described above in GA4's Explore tab.
-- Confirm the Vercel project has Web Analytics and Speed Insights enabled on its plan; custom Vercel events are not used here, so no plan upgrade is required for the events in this document.
-- Take the report screenshot for the milestone write-up once there is enough real traffic to show a funnel with more than a handful of events, and fill in the insight template above with real figures.
+- Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in the Vercel Production environment. Without it the GA4 script never loads.
+- Turn off Enhanced Measurement on the web data stream, so automatic scroll and outbound-click events stay out of the event list above.
+- Register `action`, `reason`, `decision_label`, `source`, `result`, `item_count` and `field_count` as event-scoped custom dimensions. GA4 cannot segment reports by a parameter until it is registered.
+- Build the three funnels above as Funnel explorations in the Explore tab.

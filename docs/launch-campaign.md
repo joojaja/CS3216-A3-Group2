@@ -48,7 +48,7 @@ Keep screenshots at one consistent browser size, hide personal information, and 
 - During the day, respond to questions with current product behaviour and known limits. Record repeated setup and trust concerns for the next product iteration.
 - After launch, review actual onboarding, outfit and purchase events. Report the observation window and sample size before making claims about conversion or retention.
 
-## Claim checks
+## Claims we avoid
 
 The landing page currently presents the beta as free. Wearabouts Plus at S$8.90 per month is marked planned and unavailable for purchase. Do not describe it as a live paid tier.
 
