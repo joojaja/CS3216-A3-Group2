@@ -34,7 +34,7 @@ Wearabouts has no ORM and no schema-migration tool. `app/supabase/schema.sql` is
 4. **Stamp `user_id` from the session, not from client input**, in every server action or route that writes to the new table.
 5. **Private image storage follows the existing `wardrobe-images` bucket pattern**: a private bucket, plus `storage.objects` policies scoped to a path prefix that encodes the owning user's id (see the `users read/write/delete own image folder` policies in `app/supabase/schema.sql`). Reuse that shape for any new private file type rather than inventing a new bucket policy style.
 6. **Update `app/src/lib/types.ts`** (and any Zod schema in `app/src/lib/schemas/`) to match the new columns, since nothing here uses a code generator to keep types and schema in sync automatically.
-7. Note the new migration in whatever plan or evidence doc covers the feature (see the `write-milestone` skill), so `docs/assignment-evidence.md` stays accurate.
+7. If the new table or column backs a feature described in `docs/architecture.md`, update that section. If it matters for the milestone write-up, note it there too (see the `write-milestone` skill).
 
 ## Before running it against the team project
 
