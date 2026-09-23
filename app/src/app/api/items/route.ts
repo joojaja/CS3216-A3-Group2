@@ -122,7 +122,17 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not save item" }, { status: 500 });
   }
 
-  return Response.json({ id: data.id }, { status: 201 });
+  // Used client-side only to flag the activation milestone in analytics, so
+  // failing to count is not worth failing the save over.
+  const { count } = await supabase
+    .from("wardrobe_items")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  return Response.json(
+    { id: data.id, item_count: count ?? undefined },
+    { status: 201 },
+  );
 }
 
 // Updates the user-editable attributes and notes of an item. Row level
