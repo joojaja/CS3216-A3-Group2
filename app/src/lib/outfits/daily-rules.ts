@@ -1,7 +1,7 @@
 // Builds the daily outfits from the user's own confirmed items with plain
 // rules: hard filters, then every valid combination scored, then a diverse
 // pick. No model is involved, so an outfit is always complete and always
-// made of items the user owns. See docs/plans/daily-outfits-and-saved.md 1.1.
+// made of items the user owns. See docs/architecture.md, "Daily outfits."
 
 export type RuleItem = {
   id: string;

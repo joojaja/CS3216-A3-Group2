@@ -1,6 +1,6 @@
 # Size chart sources
 
-The stored charts live in `app/src/lib/sizing/charts/`. An agent transcribed them on 21 September 2026 from each brand's own website. Nobody has checked them by hand yet.
+The stored charts live in `app/src/lib/sizing/charts/`. They were transcribed on 21 September 2026 from each brand's own website and have not yet been checked row by row against the source pages.
 
 | Chart key | Source URL | Published unit | Measurements included | Notes | Status |
 | --- | --- | --- | --- | --- | --- |
