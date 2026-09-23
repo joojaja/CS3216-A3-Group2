@@ -68,6 +68,28 @@
   border-color: var(--line);
 }
 
+/* Nav links and Sign in turn orange on hover and while active/clicked. */
+.drape-header .drape-links a,
+.drape-header .drape-nav-actions > a:first-child {
+  transition: color 0.18s ease;
+}
+.drape-header .drape-links a:hover,
+.drape-header .drape-links a:active,
+.drape-header .drape-nav-actions > a:first-child:hover,
+.drape-header .drape-nav-actions > a:first-child:active,
+.drape-header .drape-mobile-menu a:hover,
+.drape-header .drape-mobile-menu a:active {
+  color: #d97a4c;
+}
+.drape-header.is-compact .drape-links a:hover,
+.drape-header.is-compact .drape-links a:active,
+.drape-header.is-compact .drape-nav-actions > a:first-child:hover,
+.drape-header.is-compact .drape-nav-actions > a:first-child:active,
+.drape-header.is-compact .drape-mobile-menu a:hover,
+.drape-header.is-compact .drape-mobile-menu a:active {
+  color: #a8482c;
+}
+
 /* Cinematic home-wardrobe hero. */
 .drape-public .drape-hero {
   position: relative;
@@ -99,9 +121,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 140px;
+  height: 240px;
   z-index: 2;
-  background: linear-gradient(180deg, transparent 0%, var(--paper) 100%);
+  /* Warm greige ease, matching the reference's transition into the next
+     section, without touching the bridge's own background. */
+  background: linear-gradient(180deg, transparent 0%, rgb(214 199 184 / 0.55) 55%, var(--paper) 100%);
   pointer-events: none;
 }
 .drape-hero-backdrop {
