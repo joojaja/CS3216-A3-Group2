@@ -14,7 +14,11 @@ import {
   sanitizeClothingAttributesForPrompt,
   sanitizeWardrobeRowForPrompt,
 } from "@/lib/ai/prompt-sanitize";
-import { applyDecisionLabelFloor } from "@/lib/ai/purchase-decision";
+import {
+  applyDecisionLabelFloor,
+  purchaseSimilarity,
+  STRONG_MATCH_THRESHOLD,
+} from "@/lib/ai/purchase-decision";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -45,26 +49,6 @@ type WardrobeRow = {
   formality: string | null;
   image_path: string;
 };
-
-function similarity(
-  attrs: { category: string; primary_colour: string },
-  item: WardrobeRow,
-): number {
-  let score = 0;
-  if (item.category === attrs.category) score += 0.6;
-  if (
-    item.primary_colour?.toLowerCase() === attrs.primary_colour.toLowerCase()
-  ) {
-    score += 0.3;
-  } else if (
-    item.secondary_colours
-      .map((c) => c.toLowerCase())
-      .includes(attrs.primary_colour.toLowerCase())
-  ) {
-    score += 0.15;
-  }
-  return score;
-}
 
 // Two-step evaluation: extract attributes from the prospective purchase,
 // then judge redundancy against the user's wardrobe. Deterministic
@@ -124,12 +108,12 @@ export async function POST(request: Request) {
     });
 
     const scored = ((items ?? []) as WardrobeRow[])
-      .map((item) => ({ item, score: similarity(attrs, item) }))
+      .map((item) => ({ item, score: purchaseSimilarity(attrs, item) }))
       .sort((a, b) => b.score - a.score);
 
-    // Strong matches are same category AND same colour (score 0.6 + 0.3).
-    // This threshold also backs the deterministic decision-label floor below.
-    const similar = scored.filter((entry) => entry.score >= 0.9);
+    // Strong matches are same category and same colour. This list also backs
+    // the deterministic decision-label floor below.
+    const similar = scored.filter((entry) => entry.score >= STRONG_MATCH_THRESHOLD);
     const sameCategoryCount = scored.filter(
       (entry) => entry.item.category === attrs.category,
     ).length;
