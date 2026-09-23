@@ -15,7 +15,7 @@ export function StylePalette({ palette, thumbs }: { palette: Palette; thumbs: Re
         Colour palette
       </h2>
       <p className="mt-1 text-[13.5px] text-mute">
-        {palette.neutralPercent}% of your items are in neutral colours. Each item counts once, by its main colour.
+        {palette.neutralPercent}% of your items are in neutral colours.
       </p>
 
       <div
@@ -42,11 +42,6 @@ export function StylePalette({ palette, thumbs }: { palette: Palette; thumbs: Re
             />
             <span className="min-w-0">
               <b className="block text-[15px] font-medium">{row.name}</b>
-              {row.alsoIn > 0 && (
-                <span className="block text-xs text-mute">
-                  Also a second colour on {row.alsoIn} {row.alsoIn === 1 ? "item" : "items"}
-                </span>
-              )}
             </span>
             <span className="text-[13.5px] text-mute">
               {row.count} {row.count === 1 ? "item" : "items"}
