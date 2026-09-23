@@ -1,6 +1,6 @@
 # Size chart sources
 
-The stored charts live in `app/src/lib/sizing/charts/`. They were transcribed on 21 September 2026 from each brand's own website and have not yet been checked row by row against the source pages.
+The stored charts live in `app/src/lib/sizing/charts/`. They were transcribed on 21 September 2026 (the Cotton On men's charts on 24 September) from each brand's own website and have not yet been checked row by row against the source pages.
 
 | Chart key | Source URL | Published unit | Measurements included | Notes | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -10,6 +10,8 @@ The stored charts live in `app/src/lib/sizing/charts/`. They were transcribed on
 | `hm/womens/bottom` | https://th.hm.com/th_en/customer-service/sizeguide/ladies.html | cm | waist, hips (low hip) | Thailand page, as above. Inseam left out because the page lists 73 cm for every size. | transcribed |
 | `cottonon/womens/top` | https://cottonon.com/SG/size-guide.html | cm | chest (bust), waist, hips (seat) | "Women's Clothing" tab. One value per size, converted to ranges at midpoints. Each row has the published value in a comment. | transcribed |
 | `cottonon/womens/bottom` | https://cottonon.com/SG/size-guide.html | cm | waist, hips (seat) | Same table as the top chart. The page also lists thigh, which the app does not use. | transcribed |
+| `cottonon/mens/top` | https://cottonon.com/SG/size-guide.html | cm | chest | "Men's Tops" table, retrieved 24 September 2026. Chest only, one value per size, converted to ranges at midpoints. The inch table on the page agrees with the cm values. | transcribed |
+| `cottonon/mens/bottom` | https://cottonon.com/SG/size-guide.html | cm | waist, hips (seat) | "Men's Bottoms" table, retrieved 24 September 2026, converted the same way. "Men's Denim" repeats it. The page also lists thigh, which the app does not use. | transcribed |
 | `lovebonito/womens/top` | https://www.lovebonito.com/intl/global/general-size-charts-old | cm | chest (bust), waist, hips | The Singapore page loads its tables in the browser and could not be read. The numbers come from the "General sizes" CM table image on this international page, which is marked "old" in its URL. One general table covers all clothing. | transcribed |
 | `lovebonito/womens/bottom` | https://www.lovebonito.com/intl/global/general-size-charts-old | cm | waist, hips | Same general table as the top chart. | transcribed |
 | `lovebonito/womens/dress` | https://www.lovebonito.com/intl/global/general-size-charts-old | cm | chest (bust), waist, hips | Same general table as the top chart. | transcribed |

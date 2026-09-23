@@ -126,6 +126,26 @@ export function SizingFlow({
     uploadButton.current?.focus();
   }
 
+  // When we hold no stored chart that fits, the item's own chart is the way
+  // forward. A screenshot lookup adds it to the item being reviewed; a
+  // manual lookup starts a screenshot read instead
+  const chartScreenshotButton = (
+    <button
+      type="button"
+      onClick={() => {
+        if (ready?.source === "screenshot") {
+          sizing.edit();
+          chooseFile(true);
+        } else {
+          chooseFile(false);
+        }
+      }}
+      className="font-medium text-cobalt underline underline-offset-2"
+    >
+      Add a size chart screenshot
+    </button>
+  );
+
   function submitManual(e: React.FormEvent) {
     e.preventDefault();
     if (!brand.trim()) return setFormError("Enter the brand you are buying from.");
@@ -272,34 +292,24 @@ export function SizingFlow({
 
         {outcome?.kind === "unknown_brand" && (
           <Notice title={ready?.brand ? `We do not have ${ready.brand}'s size chart yet` : "We need the brand or a size chart"}>
-            Screenshot the size chart on the product page and we will use that. We have stored charts for {listText(STORED_BRANDS)}.
-            {ready?.source === "screenshot" && (
-              <>
-                {" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    sizing.edit();
-                    chooseFile(true);
-                  }}
-                  className="font-medium text-cobalt underline underline-offset-2"
-                >
-                  Add a size chart screenshot
-                </button>
-              </>
-            )}
+            Screenshot the size chart on the product page and we will use that. We have stored charts for {listText(STORED_BRANDS)}.{" "}
+            {chartScreenshotButton}
           </Notice>
         )}
 
         {outcome?.kind === "no_category" && (
           <Notice title={`No ${CATEGORY_LABELS[ready!.category!].toLowerCase()} chart for ${outcome.brandName}`}>
-            We have {outcome.brandName} charts for {listText(outcome.available)}. A screenshot of this item&apos;s size chart also works.
+            We have {outcome.brandName} charts for {listText(outcome.available)}. Screenshot this item&apos;s size chart and we
+            will use that instead.{" "}
+            {chartScreenshotButton}
           </Notice>
         )}
 
         {outcome?.kind === "no_range" && (
           <Notice title={`No ${rangeName(ready!.sizeRange!)} chart for this ${outcome.brandName} item`}>
-            We only have the {listText(outcome.ranges.map(rangeName))} chart for this item.
+            We only have the {listText(outcome.ranges.map(rangeName))} chart for this item. Screenshot this item&apos;s size
+            chart and we will use that instead.{" "}
+            {chartScreenshotButton}
           </Notice>
         )}
 
