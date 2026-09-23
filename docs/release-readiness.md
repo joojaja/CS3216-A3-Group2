@@ -1,40 +1,34 @@
 # Wearabouts release readiness
 
-Reviewed on 22 September 2026. Production URL supplied by the team: https://wearabouts-zeta.vercel.app.
+Checked on 23 September 2026 against `main` at `716265d`. This replaces `docs/repository-review.md`, `docs/verification.md`, `docs/ui-consistency-verification.md` and `docs/report-review.md`, which recorded a sequence of earlier reviews on branches that have since merged. Their still-relevant findings are folded in below; their branch-specific narration is not, since it describes work that is now part of `main` rather than a pending change.
 
-## Repository and ownership
+## Repository state
 
-Fetched origin before implementation. Remote main was `12f408d`; local main already included `63bc994`, the analytics and branded social-card commit. GitHub listed one open pull request, [#10, chian/sizing-feature](https://github.com/joojaja/CS3216-A3-Group2/pull/10). This release does not merge or duplicate that work.
+All feature branches that were open during earlier reviews are merged into `main`: `chian/sizing-feature` (PR #10), `outfit-planner` (PR #15), `chian/colour-palette` (PR #14), `chian/daily-outfit-cards` (PR #13) and `landing-page-design-refresh` (PR #16). `git branch -a` shows no other branch ahead of `main`. `AGENTS.md` already names Wearabouts throughout; see `docs/agents-md-proposal.md` for the edits still open for human approval.
 
-AGENTS.md already names Wearabouts. Its protected contents were not changed. The historical naming proposal now records that status. The repository tracks the Supabase and Postgres skills and their upstream hashes in `skills-lock.json`. No new skill dependency is needed.
+## What is implemented
 
-## Live deployment finding
+The application now covers, in code on `main`: account registration and sign-in, onboarding preferences, a private wardrobe with confirmed and editable AI attributes, an outfit planner that weights its suggestions by stored wore/liked/rejected feedback (`app/src/lib/outfit-feedback.ts`, wired into `app/src/app/api/outfits/route.ts` through `loadFeedbackContext`), a purchase evaluator, a curated Explore feed, a rule-first daily outfit feed with an optional model refinement step, saved outfits, a "My Style" colour and archetype page, and a sizing screenshot checker. Free and premium account tiers exist in the schema and gate Beautify image edits, Explore refreshes and outfit-planner AI credits (`app/src/lib/account-entitlements.ts`), though no payment or checkout flow sets a tier to premium; an operator would need to do that by hand today.
 
-The supplied production homepage responds, but the production metadata previously inspected used `https://drape-zeta.vercel.app` for its canonical and social URLs. The project owner must set `NEXT_PUBLIC_SITE_URL=https://wearabouts-zeta.vercel.app` for Production and redeploy. The code now falls back to Vercel's production domain when this variable is absent, but an explicitly configured old origin still takes precedence. After deployment, verify the live HTML and external preview as described in `docs/launch-setup.md`.
-
-The checkout has no `.vercel` project link and no Vercel CLI session established. The project belongs to a teammate. GitHub reports a successful Vercel status for remote main at `12f408d`, linked to the `drape` project in `joojajas-projects`. This establishes an existing Git integration. Check the deployment status after pushing the release commit.
+This is a materially larger feature set than the one described in earlier drafts of `docs/milestones-report.md`, which said the outfit route stored feedback without reading it back and treated sizing as an unmerged branch. Both statements were corrected in this pass; see that report for the current wording.
 
 ## Deployment configuration
 
-Use the Next.js framework preset and `app` as the root directory. Install with `npm ci`. The production build is `npm run build`; `npm run build -- --webpack` is also supported. Use Node 22.18 or newer for the repository tests.
+Use the Next.js framework preset with `app` as the project root, install with `npm ci`, and build with `npm run build` (or `npm run build -- --webpack` where the default Turbopack build cannot bind a local port). CI (`.github/workflows/checks.yml`) runs `npm ci`, `npm run lint`, `npm test` and `npm run build -- --webpack` on Node 22.18.0 for every pull request and push to `main`, without production secrets.
 
-Configure the Supabase URL and publishable key, the paid Gemini key for human-triggered photo workflows, the separate free planner key and the separate unbilled Explore key. Keep secrets in Vercel environment settings. Do not paste them into reports or commit them. Keep the existing database; the schema reset script is not a deployment migration.
+Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, the paid `GOOGLE_GENERATIVE_AI_API_KEY`, the free `GOOGLE_GENERATIVE_AI_FREE_API_KEY` and the free `GOOGLE_GENERATIVE_AI_RAG_API_KEY` (see `app/.env.example` for the full list, including the optional `GEMINI_MODEL`, `GEMINI_RAG_MODEL`, `GEMINI_IMAGE_MODEL` and `NEXT_PUBLIC_GA_MEASUREMENT_ID`). Set `NEXT_PUBLIC_SITE_URL=https://wearabouts-zeta.vercel.app` in the Vercel project's Production environment and redeploy; the code falls back to Vercel's own production domain when this is unset, but an explicitly configured older value still wins, and an earlier check found the live site still serving `drape-zeta.vercel.app` metadata. Confirm the Supabase project's site URL and redirect allowlist include `https://wearabouts-zeta.vercel.app/auth/callback`.
 
-Confirm the production site URL and `/auth/callback` in Supabase redirect configuration. Enable Web Analytics in Vercel. Check the Speed Insights plan and allowance before enabling any paid upgrade. GA4 is optional and requires its measurement ID and the application's consent flow.
+This documentation pass did not install dependencies or run `npm run lint`, `npm test` or `npm run build` in this worktree, since it changes no application code. Run all three from `app/` before submission and record the result here or in the pull request.
 
-## Local verification
+## What still needs a human, not an agent
 
-The integrated change passes ESLint, all 20 Node tests and the Webpack production build, including TypeScript and all 23 static pages. The build initially caught a server-to-client callback serialization error in Speed Insights. Moving its callback into the client analytics wrapper fixed it. The generated Open Graph and Twitter outputs are identical 1200 by 630 PNGs. The Open Graph PNG was visually inspected for readable text and clipping. These checks made no paid AI requests.
+- Verify the production URL, the Supabase redirect configuration and the social metadata after the `NEXT_PUBLIC_SITE_URL` change above, including an external Open Graph preview.
+- Run the full checks (`npm run lint`, `npm test`, `npm run build`) from `app/` on the commit being submitted, and fix anything that fails.
+- Exercise the paid-key routes (`/api/items/analyze`, `/api/items/locate`, `/api/items/enhance`, `/api/purchases/evaluate`, `/api/sizing/extract`) with a real account. AGENTS.md rule 6 bans agents from doing this; only a person may.
+- Sign in as two different accounts and confirm neither can read the other's wardrobe items, images or purchase evaluations.
+- Capture a real GA4 and Vercel Analytics report after actual use, with the observation window and sample size, for milestone 19.
+- Fill in team names, matriculation numbers, contributions and the confirmed live URL in `README.md` and `docs/milestones-report.md`.
+- Confirm the source, creator and usage rights for the supplied landing images, fonts and W/hanger logo mark before the final write-up claims them.
+- Run the sizing screenshot eval (`app/tests/fixtures/sizing/README.md`) with a real key and record the totals for milestone 11.
 
-A GitHub Actions workflow now runs dependency installation, lint, tests and the Webpack build on pull requests and main pushes, without supplying production secrets. It has not yet run on GitHub.
-
-## Submission evidence still required
-
-- Real analytics report and observation period, with findings based on actual visitors.
-- Human verification of the paid photo analysis and purchase flows.
-- Cross-user access checks against the configured Supabase project.
-- Team names, matriculation numbers and contribution summaries.
-- Actual model comparisons, model-quality evaluations and measured latency or costs.
-- Final report and pitch PDF exports once missing evidence is supplied.
-
-The supplied assignment text says 25 September 2026 at 11:59 PM. AGENTS.md retains 26 September at 7:59 AM. Check Coursemology for the authoritative deadline; do not rely on the later time. Internal completion remains 23 September.
+See `docs/assignment-evidence.md` for the full milestone-by-milestone evidence map.
