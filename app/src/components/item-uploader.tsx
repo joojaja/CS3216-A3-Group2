@@ -1,6 +1,6 @@
 "use client";
 
-import { trackFunnel } from "@/lib/analytics";
+import { trackFunnel, isActivationMilestone } from "@/lib/analytics";
 
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -82,7 +82,16 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
         return;
       }
       if (typeof body.id !== "string") throw new Error("Invalid save response");
-      trackFunnel("item_saved");
+      const itemCount = typeof body.item_count === "number" ? body.item_count : undefined;
+      trackFunnel("item_saved", itemCount === undefined ? undefined : { item_count: itemCount });
+      if (itemCount !== undefined && isActivationMilestone(itemCount)) {
+        trackFunnel("wardrobe_activated", { item_count: itemCount });
+      }
+      // The AI suggestion is only worth flagging as corrected once the user
+      // has actually changed a field it populated, not just reviewed it.
+      if (aiTouched && edited.size > 0) {
+        trackFunnel("item_attributes_corrected", { field_count: edited.size });
+      }
       reset();
       if (onSaved) { onSaved(body.id); return; }
       toast("Saved to your wardrobe");

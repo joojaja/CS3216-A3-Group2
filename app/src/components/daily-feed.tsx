@@ -427,7 +427,7 @@ function ReadyFeed({
       toast("Could not save feedback");
       return;
     }
-    trackFunnel("daily_outfit_rejected");
+    trackFunnel("daily_outfit_rejected", picked[0] ? { reason: picked[0] } : undefined);
     toast("Feedback recorded. Future picks will avoid this.");
     goTo(at + 1, -1);
   }
