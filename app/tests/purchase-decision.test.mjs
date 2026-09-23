@@ -44,3 +44,14 @@ test("labels are left alone when no rule applies", () => {
     "fills_wardrobe_gap",
   );
 });
+
+test("same category and colour counts as a strong match despite floating-point rounding", async () => {
+  const { purchaseSimilarity, STRONG_MATCH_THRESHOLD } = await import("../src/lib/ai/purchase-decision.ts");
+  const attrs = { category: "top", primary_colour: "Navy" };
+  const exact = purchaseSimilarity(attrs, { category: "top", primary_colour: "navy", secondary_colours: [] });
+  const secondary = purchaseSimilarity(attrs, { category: "top", primary_colour: "white", secondary_colours: ["navy"] });
+  const categoryOnly = purchaseSimilarity(attrs, { category: "top", primary_colour: "red", secondary_colours: [] });
+  assert.ok(exact >= STRONG_MATCH_THRESHOLD);
+  assert.ok(secondary < STRONG_MATCH_THRESHOLD);
+  assert.ok(categoryOnly < STRONG_MATCH_THRESHOLD);
+});
