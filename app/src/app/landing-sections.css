@@ -1,15 +1,33 @@
-/* Content-only additions from the copy refresh: a second bridge block
-   and a new FAQ section. No other section's structure changes here. */
+/* Content-only additions from the copy refresh: bridge paragraph
+   styling and a new FAQ section. No other section's structure changes
+   here. */
 
-.drape-bridge-block + .drape-bridge-block {
-  margin-top: 64px;
-}
 .drape-public .drape-bridge p {
   max-width: 640px;
   margin: 20px auto 0;
   color: var(--muted);
   font-size: 17px;
   line-height: 1.65;
+}
+.drape-public .drape-bridge h2 b {
+  font-weight: 700;
+}
+
+/* "What works for / where you are going?" is wider than the other stage
+   headings at the same size, so it wraps to a third line without this. */
+.drape-public .drape-story-copy h2.is-tight {
+  font-size: clamp(38px, 4.4vw, 64px);
+}
+
+/* The new features heading is a full sentence, much longer than the
+   short headline it replaced, so it needs a smaller size and a wider
+   column to hold to two lines. */
+.drape-public .drape-feature-heading.is-wide {
+  max-width: 1080px;
+}
+.drape-public .drape-feature-heading.is-wide h2 {
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.25;
 }
 
 .drape-public .drape-faq {
@@ -71,8 +89,5 @@
   }
   .drape-faq-item summary {
     font-size: 17px;
-  }
-  .drape-bridge-block + .drape-bridge-block {
-    margin-top: 48px;
   }
 }
