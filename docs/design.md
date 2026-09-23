@@ -2,7 +2,7 @@
 
 ## Brand mark
 
-The Wearabouts mark combines a W with a clothes hanger, making the wardrobe context visible without a generic robot or sparkle icon. The public wordmark uses the weight contrast between "wear" and "abouts" shown in the supplied reference. The mark adapts reference artwork supplied to the team.
+The Wearabouts mark combines a W with a clothes hanger, making the wardrobe context visible without a generic robot or sparkle icon. The public wordmark uses the weight contrast between "wear" and "abouts" shown in the supplied reference. The team designed the mark.
 
 ## Visual tokens
 
@@ -10,7 +10,7 @@ Design tokens live in `app/src/app/globals.css` under `@theme` and that file is 
 
 ## Sources and asset handling
 
-The visual direction, copy rhythm and motion treatment were adapted from the supplied `design(1).md` and `Wearabouts_Cinematic_Landing (3).html` reference files. The unique embedded images from that reference were extracted once to `app/public/landing/`, with duplicate mobile and desktop copies removed.
+The visual direction, copy rhythm and motion treatment come from the team's own design document and cinematic landing prototype. The unique embedded images from that reference were extracted once to `app/public/landing/`, with duplicate mobile and desktop copies removed.
 
 ## Onboarding
 
