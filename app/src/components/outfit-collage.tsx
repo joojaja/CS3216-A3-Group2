@@ -10,16 +10,12 @@ export function itemLabel(item: Pick<CollageItem, "category" | "subcategory" | "
   return [item.primary_colour, item.subcategory ?? item.category].filter(Boolean).join(" ");
 }
 
-// Fades a photo's edges into the card, so an item without a cut-out has no
-// hard rectangle around it. Applied to the image element itself, which is
-// sized to the picture, so every edge fades whatever its shape
-const FADED_EDGES = "radial-gradient(ellipse closest-side, #000 72%, transparent 100%)";
-
 // The outfit card picture, laid out from the user's own photos. Nothing is
 // generated. Each item is its transparent cut-out, made on the device from
 // the user's photo, drawn straight onto the card. Items without one yet show
-// their photo with faded edges. "full" is the swipe card, which supplies its
-// own background; "thumb" is the wardrobe strip and saved list, on a tile.
+// their photo, multiplied so a white or pale background blends into the card.
+// "full" is the swipe card, which supplies its own background; "thumb" is
+// the wardrobe strip and saved list, on a tile.
 export function OutfitCollage({
   items,
   size = "full",
@@ -166,11 +162,6 @@ function Slot({
             if (cutout) setCutoutFailed(true);
             else setPhotoFailed(true);
           }}
-          style={
-            cutout
-              ? undefined
-              : { maskImage: FADED_EDGES, WebkitMaskImage: FADED_EDGES }
-          }
           className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${
             cutout
               ? thumb
