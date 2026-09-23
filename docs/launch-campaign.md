@@ -30,7 +30,7 @@ We would value feedback on the first upload, whether the outfit reasoning is cle
 
 ## Gallery plan
 
-Use the supplied Wearabouts mark, warm neutral palette and real product captures. Do not use fabricated usage counts, ratings, testimonials or claims about measured savings.
+Use the Wearabouts mark, warm neutral palette and real product captures. Do not use fabricated usage counts, ratings, testimonials or claims about measured savings.
 
 1. **Cover graphic.** Use `app/public/launch/product-hunt-cover.svg`. It states the product promise and shows the actual W and hanger mark.
 2. **Wardrobe setup.** Capture the real add-item screen with one sample garment and the editable suggested attributes visible. Use seeded demo data or a team-owned garment.

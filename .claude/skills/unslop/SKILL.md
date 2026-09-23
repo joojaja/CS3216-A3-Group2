@@ -1,32 +1,75 @@
 ---
 name: unslop
-description: Apply the Wearabouts UNSLOP.md writing rules to any user-facing text, documentation, commit message body, or write-up before it ships. Use when drafting or editing README files, docs/, the milestone report, landing or onboarding copy, or any prose a person (not just code) will read.
+description: Wearabouts writing rules. Apply them to any user-facing text, documentation, PR description or write-up before it ships. Use when drafting or editing README files, docs/, the milestone report, landing or onboarding copy, or any prose a person will read.
 ---
 
 # Unslop
 
-`AGENTS.md` rule 1 requires every agent to read and apply `UNSLOP.md` (repository root) to everything user-facing it writes. This skill is the operational checklist for doing that in this repository specifically.
+Every piece of user-facing text in this repository follows these rules: docs, `README.md`, `app/README.md`, landing and onboarding copy in `app/src/`, milestone and pitch write-ups, and PR descriptions.
 
-## When to run this
+## Process
 
-Before finishing any task that produces prose: a doc in `docs/`, `README.md`, `app/README.md`, landing or onboarding copy in `app/src/`, a milestone or pitch write-up, or a PR description. Not needed for code comments or commit subject lines, though the same instincts help there too.
+1. Scan the text for the patterns below.
+2. Rewrite. Keep the meaning and the intended tone.
+3. Self-audit. Ask what makes the text read as machine-written, and fix what remains.
+4. Check every claim about the shipped product (a feature exists, a metric holds, a check passed) against the code or a command you ran. A correct sentence matters more than a well-styled one.
 
-## Checklist
+## Patterns to detect and fix
 
-1. Read `UNSLOP.md` in full if you have not already this session; its rule numbers are cited below and are stable.
-2. Scan the text for:
-   - Em dashes (rule 13). This repository has none outside vendored files; keep it that way. Use a period or comma instead.
-   - Curly quotes (rule 19). Straight quotes only.
-   - Title Case Headings (rule 17). Every heading in this repo is sentence case: `## How the team worked`, not `## How The Team Worked`.
-   - Inline bold-label lists (rule 16): `**Label:** restates the line`. Convert to prose, or to a bold lead-in that ends in a period and is followed by new detail (`**Cover graphic.** Use ...`).
-   - AI vocabulary (rule 7): delve, crucial, enduring, fostering, garner, interplay, intricate, pivotal, showcase, tapestry, testament, underscore, vibrant, leverage, utilize.
-   - Filler and hedging (rules 23, 24): "in order to", "it is important to note that", stacked hedges.
-   - Passive voice where an actor is known (rule 29).
-3. Self-audit: read it back and ask what specifically makes a sentence say nothing about this project. Cut or rewrite it (rule 27). A sentence about Wearabouts should name a file, a route, a number, or a concrete behavior, not a mood.
-4. For anything making a claim about the shipped product (a feature exists, a metric holds, a check passed), verify it against the actual code or a command you ran in this session before writing it down. `AGENTS.md`'s honesty principle depends on this, not just style, and this repository has shipped stale claims before once a later feature outran an earlier doc.
 
-## Known repository quirks
+Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
 
-- "Drape" is the retired working name. It is correct only in a clearly historical sentence (a past commit, an old file, a naming-history note); everywhere else, use Wearabouts.
-- When drafting milestone text for `group-<number>-milestones.pdf` (see the `write-milestone` skill), mark an open field or evidence gap with `[bracketed text]` rather than inventing a different placeholder style, so a final pass before export can find every open item by searching for `[`.
-- Do not add a Co-Authored-By trailer or credit an AI assistant as a commit or PR author; naming a coding tool in a resources or acknowledgments section of a document is fine and expected.
+### Content
+
+3. **Superficial -ing phrases.** "highlighting...", "ensuring...", "reflecting...", "showcasing...", "fostering...". Delete or expand with real sources.
+5. **Vague attributions.** "Experts believe", "Industry reports suggest", "Some critics argue". Name the source or delete.
+
+### Language
+
+7. **AI vocabulary.** Additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape (abstract), pivotal, showcase, tapestry (abstract), testament, underscore, vibrant. Replace with plain words.
+8. **Fancy ways to say "is".** "serves as", "stands as", "boasts", "features". Just say "is" or "has".
+9. **"Not just X, but Y."** State the point directly instead.
+10. **Rule of three.** Forcing ideas into groups of three. Use the natural number.
+11. **Synonym cycling.** Protagonist, main character, central figure, hero all in one paragraph. Pick one, repeat it.
+12. **False ranges.** "from X to Y" where X and Y aren't on a meaningful scale. List topics directly.
+
+### Style
+
+13. **Em dash overuse.** Avoid em dashes entirely. Use periods or commas only (no parentheses, no en dashes, no hyphen-as-dash substitutes). If a thought needs separation, end the sentence or use a comma.
+14. **Colon overuse.** Colons are fine before a list or example. Not as mid-sentence connectors. "If you're coming from traditional automation: instead of registering event handlers, you describe conditions" adds nothing with the colon. Rewrite to let the point stand on its own without comparison framing. "Describing when the scheduler should fire works best as plain English." Same meaning, no crutch punctuation.
+15. **Boldface overuse.** Don't bold every proper noun or acronym.
+16. **Inline-header lists.** The tell is a bold label and colon that restates the line: "**Performance:** Performance improved...". Convert those to prose. A bold lead-in that ends in a period, names the item, and is followed by genuinely new detail ("**Schema in TypeScript.** Tables live in one file.") is fine, not a tell.
+17. **Title case headings.** Use sentence case.
+18. **Decorative emojis.** Remove from headings and bullets.
+19. **Curly quotes.** Replace with straight quotes.
+
+### Communication artifacts
+
+20. **Chatbot phrases.** "I hope this helps!", "Let me know if...", "Of course!", "Certainly!", "Found the smoking gun!" Remove.
+22. **Sycophantic tone.** "Great question! You're absolutely right!" Respond directly.
+
+### Filler
+
+23. **Filler phrases.** "In order to" becomes "To". "Due to the fact that" becomes "Because". "It is important to note that" gets deleted.
+24. **Excessive hedging.** "could potentially possibly be argued that it might" becomes "may".
+25. **Generic conclusions.** "The future looks bright." State specific plans or facts.
+
+### Jargon
+
+26. **Abstract metaphor nouns.** Substrate, wedge, vector, locus, vantage, nexus, primitive (as noun), harness (as metaphor), surface (as in "API surface"), bedrock, scaffolding (as metaphor), modality, paradigm, gold-plating, ratchet (as metaphor), evacuate (for moving code), endgame, north star, flywheel. These read as technical but usually have a plainer concrete word. "Substrate" becomes "base". "Wedge in" becomes "add". "Vector" becomes "way" or "method". "Gold-plating" becomes "more than the job needs". "Ratchet" becomes the mechanism's real name or "a limit that only tightens". "Evacuate" becomes "move out". "Endgame" becomes "the last phase". Pick the concrete word.
+
+### Plain speech
+
+27. **Say what it does, not how it feels.** "the database stays close at hand", "SQL you can read", "types that follow your schema" name a feeling. The fix names the mechanism or a number: "`.toSQL()` returns the exact string sent to the database", "a column rename fails the build". Ask what the sentence tells the reader to do or know, then write that. If you can't restate it as a concrete instruction, fact, or number, cut it. One more check: if the sentence could appear unchanged in another project's docs, it says nothing about this one. Cut it.
+28. **Shorten or split dense sentences.** If the reader has to backtrack to parse a sentence, break it in two or drop clauses. One idea per sentence.
+29. **Active voice.** Prefer it. Catch "is/are/was/were + past participle" and name the actor: "queries are validated" becomes "the compiler validates queries", "the file is parsed by the loader" becomes "the loader parses the file". Passive is fine only when the actor is unknown or genuinely doesn't matter.
+30. **Cut adverbs, or use a stronger verb.** "runs quickly" becomes "is fast" or the number. "significantly improves" becomes the measured delta. An adverb propping up a weak verb means the verb is wrong.
+31. **Prefer the plain word.** "utilize" becomes "use", "leverage" becomes "use", "facilitate" becomes "help", "numerous" becomes "many", "in the event that" becomes "if". The fancier synonym is rarely clearer.
+32. **Mannered prose.** Metaphor or flourish where a literal phrase exists: aphorisms ("wire it or delete it"), rhetorical fragments for effect, personified code ("the plan holds it"), figurative verbs ("rides along", "stands on"), stock framing phrases. "A dial worth turning" becomes "a parameter worth varying". Say what you mean. Rule 26 covers the metaphor nouns.
+33. **Over-compression.** Dropped articles, verbless fragments, symbol-speak, and abbreviations that make the reader decode instead of read. "Parser rejects bad date → exit 2, no write" becomes "The parser rejects a bad date, exits with code 2, and writes nothing." Write whole sentences with their articles and verbs, and spell out arrows and abbreviations.
+
+## Repository conventions
+
+- "Drape" is the retired working name. Use it only in a clearly historical sentence. Everywhere else, write Wearabouts.
+- Mark an open field or evidence gap in a write-up with `[TO FILL: ...]`, so a final pass can find every open item by searching for `[`.
+- Do not add a Co-Authored-By trailer or credit an AI assistant as a commit or PR author. Naming a coding tool in a resources section is fine.
