@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -63,8 +64,9 @@ export default async function OnboardingPage() {
   return (
     <main className="drape-public onboarding-page">
       <header className="onboarding-header">
-        <Link href="/" className="onboarding-wordmark">
-          Wearabouts<span>.</span>
+        <Link href="/" className="onboarding-wordmark" aria-label="Wearabouts home">
+          <Image src="/landing/brand-mark.png" alt="" width={36} height={24} />
+          <span><b>wear</b>abouts</span>
         </Link>
         <Link href="/wardrobe">Finish later</Link>
       </header>

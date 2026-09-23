@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { PrivacyBackButton } from "@/components/privacy-back-button";
 import "../landing.css";
@@ -12,8 +13,9 @@ export default function PrivacyPage() {
   return (
     <main className="drape-public onboarding-page">
       <header className="onboarding-header">
-        <Link className="onboarding-wordmark" href="/">
-          Wearabouts
+        <Link className="onboarding-wordmark" href="/" aria-label="Wearabouts home">
+          <Image src="/landing/brand-mark.png" alt="" width={36} height={24} />
+          <span><b>wear</b>abouts</span>
         </Link>
         <Link href="/login">Sign in</Link>
       </header>
