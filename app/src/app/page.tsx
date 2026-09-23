@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { siteUrl, siteDescription } from "@/lib/site";
 import Image from "next/image";
@@ -5,6 +6,10 @@ import "./landing.css";
 import "./landing-cinematic.css";
 import "./landing-refresh.css";
 import LandingStory from "@/components/landing-story";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const featureRows = [
   {

@@ -161,6 +161,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         if (ac.signal.aborted) return;
+        trackFunnel("outfit_failed");
         patchTurn(turn.id, {
           status: "error",
           error: err instanceof Error ? err.message : "Recommendation failed",
@@ -212,6 +213,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
   const retry = useCallback(async () => {
     const last = state.turns[state.turns.length - 1];
     if (!last || last.status !== "error") return;
+    trackFunnel("outfit_retried");
     patchTurn(last.id, { status: "loading", error: null });
     setState((prev) => ({ ...prev, seen: false }));
     await run(last, state.turns.slice(0, -1));
@@ -240,7 +242,7 @@ export function PlannerProvider({ children }: { children: React.ReactNode }) {
         }),
       });
       if (!res.ok) return false;
-      trackFunnel("feedback_saved");
+      trackFunnel("feedback_saved", picked?.[0] ? { action, reason: picked[0] } : { action });
       setState((prev) => ({
         ...prev,
         sentFeedback: { ...prev.sentFeedback, [recommendationId]: action },
