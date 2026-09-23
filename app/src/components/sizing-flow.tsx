@@ -80,6 +80,7 @@ export function SizingFlow({
   const [dragging, setDragging] = useState(false);
   const mergeNext = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const uploadButton = useRef<HTMLButtonElement>(null);
   const brandId = useId();
   const listId = useId();
 
@@ -117,6 +118,13 @@ export function SizingFlow({
   function chooseFile(merge: boolean) {
     mergeNext.current = merge;
     fileInput.current?.click();
+  }
+
+  // Clears the answer and returns to the input. The manual form keeps its
+  // values so the user can adjust one and ask again
+  function closeResult() {
+    sizing.reset();
+    uploadButton.current?.focus();
   }
 
   function submitManual(e: React.FormEvent) {
@@ -157,6 +165,7 @@ export function SizingFlow({
           }}
         />
         <button
+          ref={uploadButton}
           type="button"
           onClick={() => chooseFile(false)}
           onDragOver={(e) => {
@@ -248,13 +257,30 @@ export function SizingFlow({
       )}
 
       <div ref={answer} tabIndex={-1} aria-live="polite" aria-label="Your size" className="grid gap-3 focus:outline-none">
-        {ready?.source === "screenshot" && (
-          <p className="text-sm text-body">
-            {[ready.brand, ready.productName, ready.category && CATEGORY_LABELS[ready.category]].filter(Boolean).join(", ")}.{" "}
-            <button type="button" onClick={sizing.edit} className="font-medium text-cobalt underline underline-offset-2">
-              Change
+        {ready && (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-body">
+              {[ready.brand, ready.productName, ready.category && CATEGORY_LABELS[ready.category]].filter(Boolean).join(", ")}.
+              {ready.source === "screenshot" && (
+                <>
+                  {" "}
+                  <button type="button" onClick={sizing.edit} className="font-medium text-cobalt underline underline-offset-2">
+                    Change
+                  </button>
+                </>
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={closeResult}
+              aria-label="Close your size result"
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-line bg-white transition hover:border-cobalt"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
             </button>
-          </p>
+          </div>
         )}
 
         {outcome?.kind === "unknown_brand" && (
