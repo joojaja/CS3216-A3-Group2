@@ -168,27 +168,21 @@ export default function LandingPage() {
           </div>
         </section>
         <section className="drape-bridge" aria-label="Wearabouts proposition">
-          <div className="drape-container drape-bridge-block">
+          <div className="drape-container">
             <h2>
-              Wear more of what you own.
+              <b>Wear more</b> of what you own.
               <br />
-              <em>Love more of what you wear.</em>
+              <b>Love more</b> of what you wear.
             </h2>
             <p>
-              Rediscover old favourites, find combinations you have never tried and stop saving your best clothes for a day that never seems to come.
-            </p>
-          </div>
-          <div className="drape-container drape-bridge-block">
-            <h2>Fashion keeps telling us we need something new.</h2>
-            <p>
-              Wearabouts starts with what is already in your wardrobe, helping turn them into outfits for any occasion and make smarter decisions about what to buy next.
+              Rediscover old favourites, find combinations you have never tried and stop saving your best clothes for a day that never seems to come. Wearabouts starts with what is already in your wardrobe, helping turn them into outfits for any occasion and make smarter decisions about what to buy next.
             </p>
           </div>
         </section>
         <LandingStory />
         <section id="features" className="drape-section drape-feature-section">
           <div className="drape-container">
-            <div className="drape-feature-heading">
+            <div className="drape-feature-heading is-wide">
               <span className="drape-eyebrow">Inside Wearabouts</span>
               <h2>
                 The magic of Wearabouts is how it <em>all</em> works together to make personal style feel <em>simpler</em>
@@ -208,7 +202,7 @@ export default function LandingPage() {
                           <span>All</span><span>Tops</span><span>Bottoms</span><span>Outerwear</span>
                         </div>
                       )}
-                      <div className={index === 2 ? "drape-explore-visual" : ""}>
+                      <div>
                         <Image
                           className={`drape-shot-image${index === 1 ? " is-mobile" : ""}${index === 3 ? " is-purchase" : ""}`}
                           src={row.src}
@@ -216,12 +210,6 @@ export default function LandingPage() {
                           width={row.width}
                           height={row.height}
                         />
-                        {index === 2 && (
-                          <div className="drape-badges" aria-hidden="true">
-                            <span>Matched to your style</span>
-                            <span>Looks you can recreate</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -235,12 +223,11 @@ export default function LandingPage() {
           <div className="drape-container">
             <div className="drape-pricing-heading">
               <span className="drape-eyebrow">Pricing</span>
-              <h2>Start free. Go deeper when you need to.</h2>
-              <p>
-                The core Wearabouts experience is free during beta. Wearabouts
-                Plus is tailored for people who want more frequent analysis, a
-                deeper wardrobe history and more personalised recommendations.
-              </p>
+              <h2>
+                Start free.
+                <br />
+                Go deeper when you need to.
+              </h2>
             </div>
             <div className="drape-price-grid">
               <article className="drape-price-card drape-price-primary">
@@ -274,8 +261,8 @@ export default function LandingPage() {
                   or S$79 a year, saving about 25%
                 </p>
                 <p>
-                  For users who want more frequent analysis and deeper wardrobe
-                  history.
+                  Tailored for people who want more frequent analysis, a deeper
+                  wardrobe history and more personalised recommendations.
                 </p>
                 <ul>
                   <li>Higher AI analysis limits</li>
