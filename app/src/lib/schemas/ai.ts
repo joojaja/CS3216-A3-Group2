@@ -154,8 +154,11 @@ export const sizingExtractionSchema = z.object({
             .array(
               z.object({
                 measurement: z.enum(SIZING_MEASUREMENTS),
-                min: z.number().nullable(),
-                max: z.number().nullable(),
+                // min(0) is not just validation: a bare z.number().nullable()
+                // is sent to Gemini as anyOf plus nullable with no type, which
+                // the API rejects with 400 "Request contains an invalid argument"
+                min: z.number().min(0).nullable(),
+                max: z.number().min(0).nullable(),
               }),
             )
             .max(8),
