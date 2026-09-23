@@ -35,6 +35,15 @@ test("findChart matches brand, category and size range", () => {
   assert.equal(findChart("Unknown Brand", "top", "womens"), null);
 });
 
+test("Cotton On covers men's and women's tops and bottoms", () => {
+  // Men's was missing, so a men's lookup returned no size
+  assert.equal(findChart("Cotton On", "top", "mens")?.key, "cottonon/mens/top");
+  assert.equal(findChart("Cotton On", "bottom", "mens")?.key, "cottonon/mens/bottom");
+  assert.equal(findChart("Cotton On", "top", "womens")?.key, "cottonon/womens/top");
+  // With both ranges stored, an unknown range asks instead of assuming women's
+  assert.equal(findChart("Cotton On", "top", null), null);
+});
+
 test("brand suggestions list every brand once one is picked", () => {
   // A native datalist filtered to the picked brand and showed nothing, so
   // the picker looked dead after a selection

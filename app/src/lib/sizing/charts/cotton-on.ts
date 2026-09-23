@@ -10,6 +10,7 @@ import type { SizeChart } from "../types.ts";
 
 const URL = "https://cottonon.com/SG/size-guide.html";
 const RETRIEVED = "2026-09-21";
+const MENS_RETRIEVED = "2026-09-24";
 
 export const COTTONON_CHARTS: SizeChart[] = [
   {
@@ -59,5 +60,53 @@ export const COTTONON_CHARTS: SizeChart[] = [
       { label: "5XL (AU 24)", ranges: { waist: [113.5, 120.5], hips: [139.5, 146.5] } }, // waist 117, seat 143
     ],
     source: { type: "stored", url: URL, retrievedAt: RETRIEVED },
+  },
+  // From the "Men's Tops" and "Men's Bottoms" tables on the same page,
+  // converted at midpoints the same way. The page gives only chest for
+  // tops. Bottoms also list thigh, which the app does not use; "Men's
+  // Denim" repeats the bottoms table.
+  {
+    key: "cottonon/mens/top",
+    brand: "Cotton On",
+    brandKey: "cottonon",
+    category: "top",
+    sizeRange: "mens",
+    scope: "brand",
+    basis: "body",
+    unit: "cm",
+    rows: [
+      { label: "3XS", ranges: { chest: [74, 80] } }, // chest 77
+      { label: "2XS", ranges: { chest: [80, 86] } }, // chest 83
+      { label: "XS", ranges: { chest: [86, 92] } }, // chest 89
+      { label: "S", ranges: { chest: [92, 97.5] } }, // chest 95
+      { label: "M", ranges: { chest: [97.5, 102.5] } }, // chest 100
+      { label: "L", ranges: { chest: [102.5, 108] } }, // chest 105
+      { label: "XL", ranges: { chest: [108, 114] } }, // chest 111
+      { label: "2XL", ranges: { chest: [114, 120] } }, // chest 117
+      { label: "3XL", ranges: { chest: [120, 126] } }, // chest 123
+    ],
+    source: { type: "stored", url: URL, retrievedAt: MENS_RETRIEVED },
+  },
+  {
+    key: "cottonon/mens/bottom",
+    brand: "Cotton On",
+    brandKey: "cottonon",
+    category: "bottom",
+    sizeRange: "mens",
+    scope: "brand",
+    basis: "body",
+    unit: "cm",
+    rows: [
+      { label: "3XS", ranges: { waist: [59.5, 64.5], hips: [79.5, 84.5] } }, // waist 62, seat 82
+      { label: "2XS", ranges: { waist: [64.5, 69.5], hips: [84.5, 89.5] } }, // waist 67, seat 87
+      { label: "XS", ranges: { waist: [69.5, 74.5], hips: [89.5, 94.5] } }, // waist 72, seat 92
+      { label: "S", ranges: { waist: [74.5, 79.5], hips: [94.5, 99.5] } }, // waist 77, seat 97
+      { label: "M", ranges: { waist: [79.5, 84.5], hips: [99.5, 104.5] } }, // waist 82, seat 102
+      { label: "L", ranges: { waist: [84.5, 89.5], hips: [104.5, 109.5] } }, // waist 87, seat 107
+      { label: "XL", ranges: { waist: [89.5, 94.5], hips: [109.5, 114.5] } }, // waist 92, seat 112
+      { label: "2XL", ranges: { waist: [94.5, 99.5], hips: [114.5, 119.5] } }, // waist 97, seat 117
+      { label: "3XL", ranges: { waist: [99.5, 104.5], hips: [119.5, 124.5] } }, // waist 102, seat 122
+    ],
+    source: { type: "stored", url: URL, retrievedAt: MENS_RETRIEVED },
   },
 ];
