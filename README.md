@@ -11,10 +11,10 @@ CS3216 Assignment 3, Group 2.
 
 | Name | Contribution |
 | --- | --- |
-| Maahir Garg | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
-| TODO (GitHub: joojaja) | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
-| TODO (git name: tsaichian) | Sizing (measurement profiles, stored brand charts, screenshot reader), daily outfit feed, saved outfits, My Style |
-| Sanjeev Ravichandran | Landing page redesign: hero, header, feature tour, pricing and story motion |
+| Maahir Garg (@maahir-garg) | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
+| Brian (@joojaja) | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
+| Chi An (@tsaichian) | Sizing (measurement profiles, stored brand charts, screenshot reader), daily outfit feed, saved outfits, My Style |
+| Sanjeev Ravichandran (@sanjeevr123) | Landing page redesign: hero, header, feature tour, pricing and story motion |
 
 ## What it does
 
@@ -56,11 +56,10 @@ The 198 tests cover deterministic and security-sensitive code: size matching, ou
 
 ## How we built it
 
-We used OpenAI Codex and Claude Code as coding agents throughout. Three files kept them on track.
+We used OpenAI Codex and Claude Code as coding agents throughout. Two things kept them on track.
 
 - `AGENTS.md` is the product and engineering spec: scope, data model, AI workflows, security requirements and rules for agents, including a ban on agents calling the billed Gemini key.
-- `UNSLOP.md` is the writing standard for every user-facing string and document.
-- `.claude/skills/` packages the repository's conventions (writing style, the billed-key boundary, Supabase migrations, pre-PR checks, milestone write-ups) as skills an agent loads before that kind of work.
+- `.claude/skills/` packages the repository's conventions (the writing rules in `unslop`, the billed-key boundary, Supabase migrations, pre-PR checks, milestone write-ups) as skills an agent loads before that kind of work.
 
 Every change went through a pull request and had to pass CI before it merged.
 
@@ -80,7 +79,8 @@ Every change went through a pull request and had to pass CI before it merged.
 - [data.gov.sg](https://data.gov.sg/) NEA 2-hour, 24-hour and 4-day forecast APIs.
 - [IMG.LY background removal](https://github.com/imgly/background-removal-js) (AGPL-3.0), bundled under `app/public/vendor/background-removal/` with its licence.
 - [Supabase agent skills](https://github.com/supabase/agent-skills), vendored under `.agents/skills/`.
-- The W-and-hanger mark, landing images and self-hosted fonts are adapted from the Wearabouts cinematic landing reference supplied to the team. See [`docs/design.md`](docs/design.md).
+- The W-and-hanger mark and landing imagery were designed by the Wearabouts team. See [`docs/design.md`](docs/design.md).
+- [Fraunces](https://fonts.google.com/specimen/Fraunces) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License), self-hosted.
 - OpenAI Codex and Claude Code as coding agents.
 
 ## Licence

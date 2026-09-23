@@ -4,10 +4,10 @@
 
 These rules apply to every agent working in this repository before any other work begins
 
-1) **Read UNSLOP.md first** Every agent must read and process `UNSLOP.md` in the repository root and apply it to all user-facing text, documentation, write-ups and marketing copy it produces. `.claude/skills/` packages this and the other repository-specific rules (the paid-Gemini boundary, Supabase migration conventions, the checks to run before a PR, and how to write a milestone answer from evidence) as loadable skills; use them where they apply
+1) **Apply the writing rules first** Every agent must read the `unslop` skill (`.claude/skills/unslop/SKILL.md`) and apply it to all user-facing text, documentation, write-ups and marketing copy it produces. `.claude/skills/` packages this and the other repository-specific rules (the paid-Gemini boundary, Supabase migration conventions, the checks to run before a PR, and how to write a milestone answer from evidence) as loadable skills; use them where they apply
 2) **Never edit this file autonomously** Agents must not directly edit `AGENTS.md` under any circumstances. Any proposed change to this file requires explicit human approval. When proposing a change, present the exact edit clearly marked as a proposal (show the location, the current text and the replacement text) and wait for the human to approve before applying it
 3) **Check the team before starting a feature** Before implementing any feature, inspect the GitHub repository branches and open pull requests (for example `git fetch` then `git branch -a`, and review open PRs) to check whether a teammate is already working on that feature. If someone is, highlight this clearly to the user, name the branch or PR, and coordinate instead of duplicating work
-4) **The product is called Wearabouts** Refer to it as `Wearabouts` everywhere in code, copy and documentation. The supplied design document defines the visual identity. The name was reconfirmed on 20 September 2026.
+4) **The product is called Wearabouts** Refer to it as `Wearabouts` everywhere in code, copy and documentation. The team's design document defines the visual identity. The name was reconfirmed on 20 September 2026.
 5) **Respect the deadline** The web application must be fully completed by 23 September 2026. Plan and scope work around that date, not the original two-week estimate
 6) **Never spend on the paid Gemini tier** Agents must not make any call that is billed to the paid Google project, for any reason, including verification. That means never calling the Gemini API directly with `GOOGLE_GENERATIVE_AI_API_KEY`, never running probes, scripts or browser tests that reach `/api/items/analyze`, `/api/items/locate`, `/api/items/enhance`, `/api/purchases/evaluate` or `/api/sizing/extract` with a real key, and never routing new work to the paid key. Test those routes with mocked responses (`SIZING_EXTRACT_MOCK` covers sizing) or in the unconfigured demo mode. Only a human using the app may trigger a paid call. The outfit planner, the Explore feed and the style and daily-outfit features run on unbilled free-tier keys (`GOOGLE_GENERATIVE_AI_FREE_API_KEY` and `GOOGLE_GENERATIVE_AI_RAG_API_KEY`); agents may exercise these during verification, sparingly, within their free-tier limits
 
@@ -29,7 +29,7 @@ The product must not become a generic AI stylist, open-ended chatbot or shopping
 
 ## Deadline and scope
 
-The web application must be fully completed by **23 September 2026**. The official CS3216 Assignment 3 submission deadline is **26 September 2026 at 7:59 am**, so the 23rd is the internal completion date and leaves a short buffer for submission material
+The web application must be fully completed by **23 September 2026**. The official CS3216 Assignment 3 submission deadline is **Friday 25 September 2026 at 11:59 pm**, so the 23rd is the internal completion date and leaves a short buffer for submission material
 
 This means the original two-week scope is now roughly **8 days** of build time. Treat scope decisions as urgent. Defer anything that does not directly support the demo journey or a graded milestone
 
@@ -62,7 +62,7 @@ This project is graded against the milestones published at `https://cs3216.githu
 
 ### Phase 4: design
 
-- **Name and logo:** the product name is Wearabouts. The supplied reference mark combines a W and a clothes hanger. Document the naming rationale and credit the reference artwork in the milestone write-up
+- **Name and logo:** the product name is Wearabouts. The team-designed mark combines a W and a clothes hanger. Document the naming rationale in the milestone write-up
 - **Technology stack:** justify UI, database, web server, hosting and authentication choices against alternatives → document decisions as they are made
 - **User experience:** describe three common workflows and why they were chosen → covered by the user journey, Demo scenario and Recommended application pages
 - **AI-specific UI:** show UI decisions made because the app uses AI, beyond trivial disclaimers → covered by editable AI attributes, uncertainty display, suggest-accept flows and feedback controls in the User experience requirements
@@ -862,7 +862,7 @@ Integrate work daily instead of waiting until the end of the project
 
 ## Engineering guidelines
 
-- Read and apply `UNSLOP.md` to all writing produced for this project
+- Read and apply the `unslop` skill (`.claude/skills/unslop/SKILL.md`) to all writing produced for this project
 - Never edit `AGENTS.md` without explicit human approval; present proposed edits clearly marked for review
 - Inspect existing files before introducing new dependencies or architecture
 - Reuse the repository's established patterns where reasonable
