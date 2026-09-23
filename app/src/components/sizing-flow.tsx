@@ -10,7 +10,7 @@ import { BrandCombobox } from "@/components/brand-combobox";
 import { useSizing } from "@/components/sizing-context";
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@/lib/image/validate";
 import { CATEGORY_FIELDS, CATEGORY_LABELS } from "@/lib/sizing/categories";
-import { STORED_BRANDS, STORED_CHARTS, findChart, normaliseBrand } from "@/lib/sizing/charts";
+import { STORED_BRANDS, STORED_CHARTS, brandCoverage, findChart, fitToCoverage, normaliseBrand } from "@/lib/sizing/charts";
 import { validateChart } from "@/lib/sizing/chart-schema";
 import { chartForContext } from "@/lib/sizing/extraction";
 import { MEASUREMENT_BY_KEY } from "@/lib/sizing/measurements";
@@ -26,6 +26,8 @@ const CATEGORY_OPTIONS = (Object.keys(CATEGORY_LABELS) as SizingCategory[]).map(
 function listText(items: string[]) {
   return items.length > 1 ? `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}` : items[0];
 }
+
+const PLURAL: Record<SizingCategory, string> = { top: "tops", bottom: "bottoms", dress: "dresses", footwear: "shoes" };
 
 const rangeName = (r: string) => (r === "mens" ? "men's" : r === "womens" ? "women's" : "unisex");
 
@@ -82,6 +84,8 @@ export function SizingFlow({
   const fileInput = useRef<HTMLInputElement>(null);
   const uploadButton = useRef<HTMLButtonElement>(null);
   const brandId = useId();
+  const coverage = useMemo(() => brandCoverage(brand), [brand]);
+  const coveredRanges = coverage && category ? coverage.ranges[category] ?? [] : null;
 
   const ready = sizing.status === "ready" ? sizing.context : null;
   const outcome = useMemo(() => resolve(ready, profile), [ready, profile]);
@@ -117,6 +121,12 @@ export function SizingFlow({
   function chooseFile(merge: boolean) {
     mergeNext.current = merge;
     fileInput.current?.click();
+  }
+
+  function applyCoverage(nextBrand: string, nextCategory: SizingCategory | null) {
+    const fitted = fitToCoverage(brandCoverage(nextBrand), nextCategory, sizeRange);
+    setCategory(fitted.category);
+    setSizeRange(fitted.range);
   }
 
   // Clears the answer and returns to the input. The manual form keeps its
@@ -227,19 +237,50 @@ export function SizingFlow({
               <label htmlFor={brandId} className="block text-[13.5px] font-medium">
                 Brand
               </label>
-              <BrandCombobox id={brandId} value={brand} onChange={setBrand} placeholder="For example H&M" />
+              <BrandCombobox
+                id={brandId}
+                value={brand}
+                onChange={(next) => {
+                  setBrand(next);
+                  applyCoverage(next, category);
+                }}
+                placeholder="For example H&M"
+              />
             </div>
-            <Choice<SizingCategory | null> legend="What is it?" value={category} onChange={setCategory} options={CATEGORY_OPTIONS} />
-            <Choice<SizeRange | null>
-              legend="Size range"
-              value={sizeRange}
-              onChange={setSizeRange}
-              options={[
-                { value: "womens", label: "Women's" },
-                { value: "mens", label: "Men's" },
-                { value: null, label: "Not sure" },
-              ]}
-            />
+            <div>
+              <Choice<SizingCategory | null>
+                legend="What is it?"
+                value={category}
+                onChange={(next) => applyCoverage(brand, next)}
+                options={CATEGORY_OPTIONS.map((o) => ({
+                  ...o,
+                  disabled: !!coverage && !coverage.categories.includes(o.value),
+                }))}
+              />
+              {coverage && coverage.categories.length < CATEGORY_OPTIONS.length && (
+                <p className="mt-1.5 text-xs text-mute">
+                  We only have {coverage.brand}&apos;s size chart for {listText(coverage.categories.map((c) => PLURAL[c]))}. For
+                  anything else, screenshot the item&apos;s size chart.
+                </p>
+              )}
+            </div>
+            <div>
+              <Choice<SizeRange | null>
+                legend="Size range"
+                value={sizeRange}
+                onChange={setSizeRange}
+                options={[
+                  { value: "womens", label: "Women's", disabled: !!coveredRanges && !coveredRanges.includes("womens") },
+                  { value: "mens", label: "Men's", disabled: !!coveredRanges && !coveredRanges.includes("mens") },
+                  { value: null, label: "Not sure" },
+                ]}
+              />
+              {coverage && category && coveredRanges?.length === 1 && (
+                <p className="mt-1.5 text-xs text-mute">
+                  {coverage.brand}&apos;s {PLURAL[category]} chart is in {rangeName(coveredRanges[0])} sizes only.
+                </p>
+              )}
+            </div>
             {formError && <p role="alert" className="text-sm text-bad">{formError}</p>}
             <div>
               <button type="submit" className="min-h-11 rounded-lg bg-cobalt px-4 text-sm font-medium text-white transition hover:bg-cobalt-deep">
