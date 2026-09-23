@@ -4,6 +4,8 @@ import { COTTONON_CHARTS } from "./cotton-on.ts";
 import { LOVEBONITO_CHARTS } from "./love-bonito.ts";
 import { NIKE_CHARTS } from "./nike.ts";
 
+const CATEGORY_ORDER: SizingCategory[] = ["top", "bottom", "dress", "footwear"];
+
 // Uniqlo and Zara are not stored yet. See docs/size-chart-sources.md.
 export const STORED_CHARTS: SizeChart[] = [
   ...HM_CHARTS,
@@ -44,6 +46,38 @@ export function brandSuggestions(query: string, brands: string[] = STORED_BRANDS
   const q = normaliseBrand(query);
   if (!q || brands.some((b) => normaliseBrand(b) === q)) return brands;
   return brands.filter((b) => normaliseBrand(b).includes(q));
+}
+
+export type BrandCoverage = {
+  brand: string;
+  categories: SizingCategory[];
+  ranges: Partial<Record<SizingCategory, SizeRange[]>>;
+};
+
+// What a stored brand's charts cover, so the picker can grey out the rest
+// before the user asks. A unisex chart counts as both ranges. Null for a
+// brand we hold no chart for.
+export function brandCoverage(brand: string): BrandCoverage | null {
+  const brandKey = normaliseBrand(brand);
+  const charts = STORED_CHARTS.filter((c) => c.brandKey === brandKey);
+  if (!brandKey || charts.length === 0) return null;
+  const ranges: BrandCoverage["ranges"] = {};
+  for (const c of charts) {
+    const add: SizeRange[] = c.sizeRange === "unisex" ? ["womens", "mens"] : [c.sizeRange];
+    ranges[c.category] = [...new Set([...(ranges[c.category] ?? []), ...add])];
+  }
+  return { brand: charts[0].brand, categories: CATEGORY_ORDER.filter((cat) => ranges[cat]), ranges };
+}
+
+// Keeps the manual picks inside what the brand's stored charts cover: a
+// brand with one category gets it preselected, a pick the brand has no
+// chart for is cleared, and a category with one size range gets that range
+export function fitToCoverage(cov: BrandCoverage | null, category: SizingCategory | null, range: SizeRange | null) {
+  if (!cov) return { category, range };
+  const cat = cov.categories.length === 1 ? cov.categories[0] : category && cov.categories.includes(category) ? category : null;
+  const ranges = cat ? cov.ranges[cat] ?? [] : [];
+  const fitted = !cat || !range || ranges.includes(range) ? range : ranges.length === 1 ? ranges[0] : null;
+  return { category: cat, range: fitted };
 }
 
 // Exact match on brandKey and category; prefers the requested size range,
