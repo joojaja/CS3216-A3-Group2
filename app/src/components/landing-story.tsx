@@ -14,6 +14,7 @@ const stages = [
     label: "The context",
     heading: ["What works for", "where you are going?"],
     body: "A morning class. Dinner after work. Tell Wearabouts what you have planned, and it finds the clothes that fit the day.",
+    tightHeading: true,
   },
   {
     label: "The comparison",
@@ -102,7 +103,7 @@ export default function LandingStory() {
       <h2 className="sr-only">How Wearabouts works</h2>
       <div className="drape-story-desktop">
         <div className="drape-story-copy">
-          <h2>
+          <h2 className={stages[active].tightHeading ? "is-tight" : undefined}>
             {stages[active].heading[0]}
             <br />
             {stages[active].heading[1]}

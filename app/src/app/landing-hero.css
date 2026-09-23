@@ -137,19 +137,16 @@
 }
 .drape-public .drape-hero h1 {
   max-width: 540px;
-  font-family: DrapeInter, Arial, sans-serif;
-  font-weight: 600;
+  font-family: DrapeFraunces, Georgia, serif;
+  font-weight: 400;
   font-size: clamp(58px, 6.3vw, 98px);
   line-height: 0.96;
   letter-spacing: -0.045em;
   text-shadow: 0 5px 28px rgb(16 10 7 / 0.28);
 }
 .drape-public .drape-hero h1 em {
-  font-family: DrapeFraunces, Georgia, serif;
   font-style: normal;
-  font-weight: 400;
   color: #eef0d8;
-  letter-spacing: -0.045em;
 }
 .drape-hero-ctas {
   position: absolute;
