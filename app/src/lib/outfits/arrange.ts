@@ -76,9 +76,3 @@ export function arrangeOutfit<T extends ArrangeableItem>(items: T[]): Arranged<T
 
   return arranged;
 }
-
-// Images that went through background removal sit on white, so the card can
-// blend them into its panel. Raw photos keep their background and get a frame
-export function blendsIntoPanel(imageSource: string | null | undefined): boolean {
-  return imageSource === "cleaned" || imageSource === "isolated" || imageSource === "ironed";
-}
