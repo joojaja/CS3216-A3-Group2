@@ -249,13 +249,6 @@
   width: min(540px, 43vw);
   transform: translateY(-50%);
 }
-.drape-story-count {
-  display: block;
-  margin-bottom: 28px;
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
 .drape-story-copy h2 {
   font-size: clamp(58px, 5.4vw, 92px);
   line-height: 1.03;
@@ -760,9 +753,6 @@
   .drape-story-mobile article img {
     height: 430px;
     order: -1;
-  }
-  .drape-story-mobile .drape-story-count {
-    margin-bottom: 18px;
   }
   .drape-footer .drape-container {
     align-items: flex-start;

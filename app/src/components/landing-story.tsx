@@ -4,26 +4,26 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 const stages = [
-  [
-    "The wardrobe",
-    "Plenty of clothes. Still no clear answer.",
-    "Seeing everything at once does not make the decision easier. Wearabouts begins by understanding what is actually available.",
-  ],
-  [
-    "The context",
-    "What works for where you're going?",
-    "Dinner at seven, smart casual, 29°C and a walk from the MRT narrow the options.",
-  ],
-  [
-    "The comparison",
-    "Not just a suggestion. A reason.",
-    "Olive trousers beat charcoal for comfort without losing the right level of formality.",
-  ],
-  [
-    "The outfit",
-    "One outfit. Zero second-guessing.",
-    "Ivory overshirt, black tee, olive trousers and white sneakers.",
-  ],
+  {
+    label: "The wardrobe",
+    heading: ["Plenty of clothes.", "Still no clear answer."],
+    body: "Seeing everything at once does not make the decision easier. Wearabouts begins by understanding what is actually available.",
+  },
+  {
+    label: "The context",
+    heading: ["What works for", "where you're going?"],
+    body: "Your plans and surroundings narrow the wardrobe to what genuinely fits tonight.",
+  },
+  {
+    label: "The comparison",
+    heading: ["Not just a suggestion.", "A reason."],
+    body: "Olive stays smart enough for dinner while feeling lighter and easier for the walk than charcoal.",
+  },
+  {
+    label: "The outfit",
+    heading: ["One outfit.", "Zero second-guessing."],
+    body: "Every piece now answers the same occasion, weather and practical needs.",
+  },
 ];
 
 export default function LandingStory() {
@@ -89,26 +89,27 @@ export default function LandingStory() {
       <h2 className="sr-only">How Wearabouts works</h2>
       <div className="drape-story-desktop">
         <div className="drape-story-copy">
-          <span className="drape-story-count">
-            0{active + 1} / 04 · {stages[active][0]}
-          </span>
-          <h2>{stages[active][1]}</h2>
-          <p>{stages[active][2]}</p>
+          <h2>
+            {stages[active].heading[0]}
+            <br />
+            {stages[active].heading[1]}
+          </h2>
+          <p>{stages[active].body}</p>
           <div className="drape-progress" role="progressbar" aria-valuemin={1} aria-valuemax={4} aria-valuenow={active + 1}>
             <span style={{ width: `${((active + 1) / 4) * 100}%` }} />
           </div>
         </div>
         <div className="drape-story-controller" role="group" aria-label="Story stages">
           <span className="drape-story-controller-capsule" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
-          {stages.map((stage, i) => <button key={stage[0]} type="button" aria-current={i === active ? "step" : undefined} aria-label={`Stage ${i + 1}: ${stage[0]}`} onClick={() => sectionScroll(i)}>{["Wardrobe", "Context", "Comparison", "Outfit"][i]}</button>)}
+          {stages.map((stage, i) => <button key={stage.label} type="button" aria-current={i === active ? "step" : undefined} aria-label={`Stage ${i + 1}: ${stage.label}`} onClick={() => sectionScroll(i)}>{["Wardrobe", "Context", "Comparison", "Outfit"][i]}</button>)}
         </div>
         <div className="drape-story-images">
-          {[0, 1, 2, 3].map((_, i) => (
+          {stages.map((stage, i) => (
             <Image
               className={i === active ? "is-active" : ""}
-              key={i}
+              key={stage.label}
               src={`/landing/${["story-wardrobe", "story-context", "story-comparison", "story-outfit"][i]}.webp`}
-              alt={stages[i][2]}
+              alt={stage.body}
               aria-hidden={i === active ? undefined : true}
               fill
               sizes="100vw"
@@ -118,13 +119,14 @@ export default function LandingStory() {
       </div>
       <div className="drape-story-mobile drape-container">
         {stages.map((stage, i) => (
-          <article key={stage[0]}>
+          <article key={stage.label}>
             <div>
-              <span className="drape-story-count">
-                0{i + 1} / 04 · {stage[0]}
-              </span>
-              <h3>{stage[1]}</h3>
-              <p>{stage[2]}</p>
+              <h3>
+                {stage.heading[0]}
+                <br />
+                {stage.heading[1]}
+              </h3>
+              <p>{stage.body}</p>
             </div>
             <Image
               src={`/landing/${["story-wardrobe", "story-context", "story-comparison", "story-outfit"][i]}.webp`}
