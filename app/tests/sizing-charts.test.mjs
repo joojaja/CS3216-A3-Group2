@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { STORED_CHARTS, STORED_BRANDS, findChart, normaliseBrand } from "../src/lib/sizing/charts/index.ts";
+import { STORED_CHARTS, STORED_BRANDS, brandSuggestions, findChart, normaliseBrand } from "../src/lib/sizing/charts/index.ts";
 import { validateChart } from "../src/lib/sizing/chart-schema.ts";
 
 test("every stored chart passes validation", () => {
@@ -33,6 +33,21 @@ test("findChart matches brand, category and size range", () => {
   // Unisex charts serve either range
   assert.equal(findChart("nike", "footwear", "womens")?.key, "nike/unisex/footwear");
   assert.equal(findChart("Unknown Brand", "top", "womens"), null);
+});
+
+test("brand suggestions list every brand once one is picked", () => {
+  // A native datalist filtered to the picked brand and showed nothing, so
+  // the picker looked dead after a selection
+  assert.deepEqual(brandSuggestions(""), STORED_BRANDS);
+  assert.deepEqual(brandSuggestions("H&M"), STORED_BRANDS);
+  assert.deepEqual(brandSuggestions("cotton on"), STORED_BRANDS);
+});
+
+test("brand suggestions filter on the normalised name", () => {
+  assert.deepEqual(brandSuggestions("hnm"), STORED_BRANDS);
+  assert.deepEqual(brandSuggestions("cott"), ["Cotton On"]);
+  assert.deepEqual(brandSuggestions("bonito"), ["Love, Bonito"]);
+  assert.deepEqual(brandSuggestions("Shein"), []);
 });
 
 test("the autocomplete list has one entry per brand", () => {
