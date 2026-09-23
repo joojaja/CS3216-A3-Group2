@@ -10,6 +10,7 @@ import {
   PersistentUploadWorkspace,
   UploadQueueProvider,
 } from "@/components/multi-item-uploader";
+import { DailyAutoOpen } from "@/components/daily-auto-open";
 import { createClient } from "@/lib/supabase/server";
 import { getSingaporeForecast } from "@/lib/weather";
 
@@ -52,6 +53,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 />
                 <main id="app-content" tabIndex={-1} className="order-first overflow-hidden md:order-none">
                   <div className="h-full overflow-y-auto"><div className="app-mobile-header flex items-center justify-between md:hidden"><Link href="/" aria-label="Wearabouts home" className="app-wordmark flex items-center gap-2 font-semibold"><Image src="/landing/brand-mark.png" alt="" width={36} height={24} /><span className="font-semibold">wear<span>abouts</span></span></Link><Link href="/privacy" className="text-xs text-mute">Privacy</Link></div>{children}<PersistentUploadWorkspace /></div>
+                  {(authUser || !supabase) && <DailyAutoOpen />}
                 </main>
               </div>
             </SizingProvider>
