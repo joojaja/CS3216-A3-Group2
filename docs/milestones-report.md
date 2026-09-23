@@ -38,8 +38,6 @@ The comparison below uses what the products currently advertise publicly. Featur
 
 Wearabouts does not have a defensible feature lead simply because it uses AI. Its product position is the connected workflow: maintain a private, editable wardrobe; get outfit options tied to an occasion and Singapore forecast; compare a prospective purchase to existing clothes; and keep the user in control. The shipped implementation supports wardrobe management, outfit planning, purchase evaluation, sizing checks and a curated product Explore feed. The proposed style-ranked inspiration feed of other users' complete looks is not shipped and is excluded from the product claims here.
 
-[The team should reconcile this section's comparison set (Whering, Acloset, Alta) with `docs/competitor-onboarding-review.md`, which analyses supplied Cloey and Acloset screenshots, and with `AGENTS.md`'s own suggested list (Acloset, Cloey, AI Closet). Pick one final set of three competitors, backed by a source each, before export.]
-
 ## M2 · Product vision, objectives and user stories
 
 Wearabouts is a web application for wardrobe-based decisions. Users create an email-and-password account, add clothing photographs, review AI-suggested attributes, browse their confirmed items, request occasion outfits and evaluate a prospective purchase. Preferences and wardrobe records persist under the account. Authentication is meaningful because the application sends a selected set of that account's wardrobe and preferences to the model for each personalised request.
