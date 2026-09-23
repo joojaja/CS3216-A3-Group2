@@ -78,7 +78,7 @@ Every change went through a pull request and had to pass CI before it merged.
 - [Next.js](https://nextjs.org/docs), [Supabase](https://supabase.com/docs), [Vercel AI SDK](https://ai-sdk.dev/docs) and [Gemini API](https://ai.google.dev/gemini-api/docs) documentation.
 - [data.gov.sg](https://data.gov.sg/) NEA 2-hour, 24-hour and 4-day forecast APIs.
 - [IMG.LY background removal](https://github.com/imgly/background-removal-js) (AGPL-3.0), bundled under `app/public/vendor/background-removal/` with its licence.
-- [Supabase agent skills](https://github.com/supabase/agent-skills), vendored under `.agents/skills/`.
+- [Supabase agent skills](https://github.com/supabase/agent-skills), vendored under `.claude/skills/`.
 - The W-and-hanger mark and landing imagery were designed by the Wearabouts team. See [`docs/design.md`](docs/design.md).
 - [Fraunces](https://fonts.google.com/specimen/Fraunces) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License), self-hosted.
 - OpenAI Codex and Claude Code as coding agents.
