@@ -46,7 +46,7 @@ Routes: `POST /api/sizing/extract`, `POST /api/sizing/flag`. Page: `/sizing`.
 
 The only model call is `extract`, which reads a shopping screenshot with the paid model into a `sizingExtractionSchema` (brand, product, category, any visible size chart, measurement basis, units), using the versioned prompt in `app/src/lib/sizing/prompts.ts`. `SIZING_EXTRACT_MOCK=1` swaps this for canned fixtures in development; `app/src/lib/sizing/mock-extraction.ts` never calls Gemini. Screenshot reads are capped per user at 2 a minute and 5 a day (`EXTRACTIONS_PER_MINUTE`, `FREE_DAILY_EXTRACTIONS`).
 
-Everything after extraction is deterministic. `app/src/lib/sizing/match.ts` compares the user's stored body measurements against a size chart row by row and returns a size, an alternative, a confidence level (high, medium or low) and which measurement decided the fit. Charts are static data under `app/src/lib/sizing/charts/`, transcribed from brand size guides and tracked in `docs/plans/size-chart-sources.md`. No model chooses a size.
+Everything after extraction is deterministic. `app/src/lib/sizing/match.ts` compares the user's stored body measurements against a size chart row by row and returns a size, an alternative, a confidence level (high, medium or low) and which measurement decided the fit. Charts are static data under `app/src/lib/sizing/charts/`, transcribed from brand size guides and tracked in `docs/size-chart-sources.md`. No model chooses a size.
 
 ## My Style
 
