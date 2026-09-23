@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import type { ClothingAttributes, EditableAttributes } from "@/lib/schemas/ai";
+import { trackFunnel } from "@/lib/analytics";
 import {
   cleanGarmentPhoto,
   NothingDetectedError,
@@ -163,6 +164,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const enhanceController = useRef<AbortController | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const stateRef = useRef(state);
+  // Set on a failed analysis so the next attempt can be told apart from a
+  // first try, without storing anything about the image or the failure
+  const analysisFailed = useRef(false);
   // The removal library cannot be aborted, so results are tagged with the
   // generation they belong to and stale ones are ignored
   const generation = useRef(0);
@@ -426,6 +430,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const analyze = useCallback(async () => {
     if (!file) return;
 
+    if (analysisFailed.current) trackFunnel("item_analysis_retried");
+
     controller.current?.abort();
     const ac = new AbortController();
     controller.current = ac;
@@ -450,10 +456,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       clearTimers();
 
       if (!res.ok) {
+        analysisFailed.current = true;
+        trackFunnel("item_analysis_failed");
         setState((prev) => ({ ...prev, step: "pick", error: body.error ?? "Analysis failed" }));
         return;
       }
 
+      analysisFailed.current = false;
       setState((prev) => ({
         ...prev,
         step: "review",
@@ -465,6 +474,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       if (ac.signal.aborted) return;
       clearTimers();
+      analysisFailed.current = true;
+      trackFunnel("item_analysis_failed");
       setState((prev) => ({
         ...prev,
         step: "pick",
