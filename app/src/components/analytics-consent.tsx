@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { FUNNEL_EVENTS, analyticsPage, type FunnelEvent } from "@/lib/analytics";
+import {
+  FUNNEL_EVENTS,
+  analyticsPage,
+  type FunnelEvent,
+  type FunnelEventProps,
+} from "@/lib/analytics";
 import { usePathname } from "next/navigation";
 
 const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -65,20 +70,24 @@ export function AnalyticsConsent() {
       script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
       document.head.appendChild(script);
     }
-    const send = (name: string) =>
+    const send = (name: string, eventProps?: FunnelEventProps) =>
       win.gtag?.("event", name, {
         page_location: window.location.origin,
         page_referrer: "",
         page_title: `Wearabouts | ${page}`,
         page_group: page,
+        ...eventProps,
       });
     if (page !== "other") {
       send("page_view");
       if (page === "landing" || page === "onboarding") send(`${page}_view`);
     }
     const funnel = (event: Event) => {
-      const name = (event as CustomEvent).detail;
-      if (FUNNEL_EVENTS.includes(name as FunnelEvent)) send(name);
+      const detail = (event as CustomEvent).detail as {
+        name: string;
+        props?: FunnelEventProps;
+      };
+      if (FUNNEL_EVENTS.includes(detail.name as FunnelEvent)) send(detail.name, detail.props);
     };
     const click = (event: MouseEvent) => {
       const link =

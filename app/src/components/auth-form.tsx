@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { safeAuthDestination } from "@/lib/auth-navigation";
 import { createClient } from "@/lib/supabase/client";
+import { trackFunnel } from "@/lib/analytics";
 
 // Frontend-only development credentials. Used only when Supabase env vars
 // are absent; has no effect once Supabase is configured.
@@ -59,6 +60,7 @@ export function AuthForm() {
       const supabase = createClient();
 
       if (mode === "signup") {
+        trackFunnel("sign_up_started");
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -67,6 +69,7 @@ export function AuthForm() {
           },
         });
         if (signUpError) throw signUpError;
+        trackFunnel("sign_up_completed");
 
         if (data.session) {
           // Confirmation is disabled, so the account is already signed in

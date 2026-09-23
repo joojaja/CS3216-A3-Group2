@@ -80,7 +80,7 @@ export function PurchaseEvaluator() {
         return;
       }
       setResult(body);
-      trackFunnel("purchase_evaluated");
+      trackFunnel("purchase_evaluated", { decision_label: body.evaluation.decision_label });
     } catch {
       trackFunnel("purchase_failed");
       setError("We couldn't finish the comparison. Your photo is still here. Please try again.");
