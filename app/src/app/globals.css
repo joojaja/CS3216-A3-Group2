@@ -187,7 +187,7 @@ body:has(.wearabouts-app) {
 .app-page-header p { line-height: 1.65; margin-top: 12px; }
 .app-rail { background: #171916; }
 .app-wordmark { letter-spacing: -1.3px; font-size: 25px; }
-.app-wordmark span { font-weight: 400; }
+.app-wordmark span span { font-weight: 400; }
 .wearabouts-app main { min-width: 0; }
 .wearabouts-app main > div > div:not(.flex), .wearabouts-app main > div > section { max-width: 1440px; margin-inline: auto; }
 .wearabouts-app main h2 { font-family: WearaboutsEditorial, Georgia, serif; font-size: 28px; font-weight: 400; letter-spacing: -.035em; }
