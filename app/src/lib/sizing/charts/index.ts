@@ -3,15 +3,26 @@ import { HM_CHARTS } from "./hm.ts";
 import { COTTONON_CHARTS } from "./cotton-on.ts";
 import { LOVEBONITO_CHARTS } from "./love-bonito.ts";
 import { NIKE_CHARTS } from "./nike.ts";
+import { ADIDAS_CHARTS } from "./adidas.ts";
+import { CHARLESKEITH_CHARTS } from "./charles-and-keith.ts";
+import { GAP_CHARTS } from "./gap.ts";
+import { LEVIS_CHARTS } from "./levis.ts";
+import { MANGO_CHARTS } from "./mango.ts";
 
 const CATEGORY_ORDER: SizingCategory[] = ["top", "bottom", "dress", "footwear"];
 
-// Uniqlo and Zara are not stored yet. See docs/size-chart-sources.md.
+// Uniqlo, Zara and others with no public general chart are not stored. See
+// docs/size-chart-sources.md.
 export const STORED_CHARTS: SizeChart[] = [
   ...HM_CHARTS,
   ...COTTONON_CHARTS,
   ...LOVEBONITO_CHARTS,
   ...NIKE_CHARTS,
+  ...ADIDAS_CHARTS,
+  ...CHARLESKEITH_CHARTS,
+  ...GAP_CHARTS,
+  ...LEVIS_CHARTS,
+  ...MANGO_CHARTS,
 ];
 
 const ALIASES: Record<string, string> = {
@@ -21,6 +32,10 @@ const ALIASES: Record<string, string> = {
   cottonon: "cottonon",
   lovebonito: "lovebonito",
   nikesg: "nike",
+  adidasoriginals: "adidas",
+  charleskeith: "charlesandkeith",
+  levi: "levis",
+  levistrauss: "levis",
   uniqlosg: "uniqlo",
   zarasg: "zara",
 };
