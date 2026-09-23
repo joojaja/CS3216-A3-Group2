@@ -2,19 +2,19 @@
 
 ## Product Hunt listing
 
-**Tagline**
+### Tagline
 
 Make more outfits from the clothes you own.
 
-**Description**
+### Description
 
 Wearabouts turns your wardrobe into a private outfit planner. Add and confirm your clothes, get occasion ideas shaped by Singapore's forecast, and compare a potential purchase with what you already own.
 
-**Topics**
+### Topics
 
 Fashion, Lifestyle, Artificial Intelligence, Productivity
 
-**Launch link**
+### Launch link
 
 Use [https://wearabouts-zeta.vercel.app](https://wearabouts-zeta.vercel.app). Keep the beta free while the paid plan remains marked as planned in the product.
 
@@ -32,11 +32,11 @@ We would value feedback on the first upload, whether the outfit reasoning is cle
 
 Use the supplied Wearabouts mark, warm neutral palette and real product captures. Do not use fabricated usage counts, ratings, testimonials or claims about measured savings.
 
-1. **Cover graphic:** use `app/public/launch/product-hunt-cover.svg`. It states the product promise and shows the actual W and hanger mark.
-2. **Wardrobe setup:** capture the real add-item screen with one sample garment and the editable suggested attributes visible. Use seeded demo data or a team-owned garment.
-3. **Outfit planning:** capture an actual recommendation with its clothing items, explanation and forecast context. Label the date and forecast state if they appear in the capture.
-4. **Purchase comparison:** capture a real evaluation response and the owned items used as evidence. Do not present a mocked example as a live result.
-5. **Privacy and control:** capture the correction or feedback controls and link to the privacy page in the caption.
+1. **Cover graphic.** Use `app/public/launch/product-hunt-cover.svg`. It states the product promise and shows the actual W and hanger mark.
+2. **Wardrobe setup.** Capture the real add-item screen with one sample garment and the editable suggested attributes visible. Use seeded demo data or a team-owned garment.
+3. **Outfit planning.** Capture an actual recommendation with its clothing items, explanation and forecast context. Label the date and forecast state if they appear in the capture.
+4. **Purchase comparison.** Capture a real evaluation response and the owned items used as evidence. Do not present a mocked example as a live result.
+5. **Privacy and control.** Capture the correction or feedback controls and link to the privacy page in the caption.
 
 Keep screenshots at one consistent browser size, hide personal information, and check text legibility at Product Hunt's displayed thumbnail size. Re-capture after deployment so the gallery matches the live beta.
 
@@ -48,7 +48,7 @@ Keep screenshots at one consistent browser size, hide personal information, and 
 - During the day, respond to questions with current product behaviour and known limits. Record repeated setup and trust concerns for the next product iteration.
 - After launch, review actual onboarding, outfit and purchase events. Report the observation window and sample size before making claims about conversion or retention.
 
-## Claim checks
+## Claims we avoid
 
 The landing page currently presents the beta as free. Wearabouts Plus at S$8.90 per month is marked planned and unavailable for purchase. Do not describe it as a live paid tier.
 
