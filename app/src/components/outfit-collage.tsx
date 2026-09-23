@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { arrangeOutfit, blendsIntoPanel } from "@/lib/outfits/arrange";
+import { arrangeOutfit } from "@/lib/outfits/arrange";
 import type { CollageItem } from "@/lib/outfits/types";
 
 export type { CollageItem };
@@ -12,8 +12,9 @@ export function itemLabel(item: Pick<CollageItem, "category" | "subcategory" | "
 }
 
 // The outfit card picture, laid out from the user's own photos. Nothing is
-// generated: cleaned images sit on white, so multiply blends them into the
-// light panel and they read as cut-outs. Raw photos get a framed tile.
+// generated. Every photo sits straight on the light panel with no frame, and
+// multiply blends white or pale backgrounds into it so items read as cut-outs.
+// A photo with a dark or busy background still shows it.
 // "full" is the swipe card, "thumb" is the wardrobe strip and saved list.
 export function OutfitCollage({
   items,
@@ -130,7 +131,6 @@ function Slot({
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const label = itemLabel(item);
-  const blend = blendsIntoPanel(item.image_source);
 
   if (!item.signed_image_url || failed) {
     return (
@@ -147,11 +147,7 @@ function Slot({
 
   return (
     <div className={className}>
-      <div
-        className={`relative size-full overflow-hidden ${
-          blend ? "" : "rounded-xl border border-line bg-white"
-        } ${loaded ? "" : "shim"}`}
-      >
+      <div className={`relative size-full overflow-hidden ${loaded ? "" : "shim"}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           // A cached image can finish before hydration attaches onLoad
@@ -163,9 +159,9 @@ function Slot({
           loading="lazy"
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`size-full transition-opacity duration-300 ${
-            blend ? "object-contain mix-blend-multiply" : "object-cover"
-          } ${loaded ? "opacity-100" : "opacity-0"}`}
+          className={`size-full object-contain mix-blend-multiply transition-opacity duration-300 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
         />
       </div>
     </div>
