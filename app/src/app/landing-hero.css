@@ -39,29 +39,35 @@
   color: #fff;
   pointer-events: auto;
 }
-/* The frosted pill is a pseudo-element, not the nav itself, so the blur
-   can be clipped to the rounded shape (overflow: hidden) without also
-   clipping the mobile dropdown, which is a real child of .drape-nav and
-   needs to render outside this box. */
-.drape-public .drape-nav:before {
-  content: "";
+/* The frosted pill is built from two nested, decorative layers instead of
+   .drape-nav itself, so the mobile dropdown (a real child of .drape-nav)
+   is never clipped. It is also split into two elements rather than one:
+   Safari does not reliably clip an element's own backdrop-filter to its
+   own border-radius, even with overflow: hidden set on that same element.
+   The outer layer owns the rounding and the clip; the inner layer owns
+   the blur and is clipped by the outer one instead of by itself. */
+.drape-public .drape-nav-glass {
   position: absolute;
   inset: 0;
   z-index: -1;
+  display: block;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.28);
   border-radius: 999px;
-  background: rgb(27 22 18 / 0.64);
   box-shadow:
     0 18px 48px rgb(21 14 10 / 0.24),
     inset 0 1px 0 rgb(255 255 255 / 0.18);
+  pointer-events: none;
+  transition: border-color 0.35s, box-shadow 0.35s;
+}
+.drape-public .drape-nav-blur {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: rgb(27 22 18 / 0.64);
   backdrop-filter: blur(16px) saturate(120%);
   -webkit-backdrop-filter: blur(16px) saturate(120%);
-  pointer-events: none;
-  transition:
-    background 0.35s,
-    border-color 0.35s,
-    box-shadow 0.35s;
+  transition: background 0.35s;
 }
 .drape-header .drape-wordmark {
   font-size: 23px;
