@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import type { ClothingAttributes, EditableAttributes } from "@/lib/schemas/ai";
+import { trackFunnel } from "@/lib/analytics";
 import {
   cleanGarmentPhoto,
   NothingDetectedError,
@@ -61,6 +62,9 @@ type State = {
   // Output of background removal, once available
   cleaned: File | null;
   cleanedPreview: string | null;
+  // Transparent PNG of the garment from the same removal, saved alongside
+  // whichever version is chosen so outfit cards can draw the item alone
+  cutout: File | null;
   // Fallback crop to the garment when removal fails, once available
   cropped: File | null;
   croppedPreview: string | null;
@@ -118,6 +122,7 @@ const initial: State = {
   originalPreview: null,
   cleaned: null,
   cleanedPreview: null,
+  cutout: null,
   cropped: null,
   croppedPreview: null,
   isolated: null,
@@ -163,6 +168,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const enhanceController = useRef<AbortController | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const stateRef = useRef(state);
+  // Set on a failed analysis so the next attempt can be told apart from a
+  // first try, without storing anything about the image or the failure
+  const analysisFailed = useRef(false);
   // The removal library cannot be aborted, so results are tagged with the
   // generation they belong to and stale ones are ignored
   const generation = useRef(0);
@@ -305,14 +313,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             : { ...prev.bg, phase: "process", progress: 1 },
       }));
     }, ac.signal)
-      .then((cleaned) => {
+      .then(({ tile, cutout }) => {
         if (gen !== generation.current) return;
         setState((prev) => {
           if (prev.cleanedPreview) URL.revokeObjectURL(prev.cleanedPreview);
           return {
             ...prev,
-            cleaned,
-            cleanedPreview: URL.createObjectURL(cleaned),
+            cleaned: tile,
+            cutout,
+            cleanedPreview: URL.createObjectURL(tile),
             choice: "cleaned",
             bg: { status: "done", phase: "process", progress: 1, message: null },
           };
@@ -426,6 +435,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const analyze = useCallback(async () => {
     if (!file) return;
 
+    if (analysisFailed.current) trackFunnel("item_analysis_retried");
+
     controller.current?.abort();
     const ac = new AbortController();
     controller.current = ac;
@@ -450,10 +461,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       clearTimers();
 
       if (!res.ok) {
+        analysisFailed.current = true;
+        trackFunnel("item_analysis_failed");
         setState((prev) => ({ ...prev, step: "pick", error: body.error ?? "Analysis failed" }));
         return;
       }
 
+      analysisFailed.current = false;
       setState((prev) => ({
         ...prev,
         step: "review",
@@ -465,6 +479,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       if (ac.signal.aborted) return;
       clearTimers();
+      analysisFailed.current = true;
+      trackFunnel("item_analysis_failed");
       setState((prev) => ({
         ...prev,
         step: "pick",

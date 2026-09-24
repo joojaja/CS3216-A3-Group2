@@ -6,9 +6,9 @@ export const metadata: Metadata = { title: "Today's outfits" };
 export default async function TodayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ start?: string }>;
+  searchParams: Promise<{ start?: string; auto?: string }>;
 }) {
-  const { start } = await searchParams;
+  const { start, auto } = await searchParams;
   const parsed = Number.parseInt(start ?? "", 10);
-  return <DailyFeedView start={Number.isInteger(parsed) ? parsed : null} />;
+  return <DailyFeedView start={Number.isInteger(parsed) ? parsed : null} auto={auto === "1"} />;
 }

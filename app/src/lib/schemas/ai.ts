@@ -150,15 +150,16 @@ export const sizingExtractionSchema = z.object({
       .array(
         z.object({
           label: z.string().max(24),
-          values: z
-            .array(
-              z.object({
-                measurement: z.enum(SIZING_MEASUREMENTS),
-                min: z.number().nullable(),
-                max: z.number().nullable(),
-              }),
-            )
-            .max(8),
+          // No .max() here: Gemini rejects a maxItems nested inside the
+          // maxItems on rows with 400 "Request contains an invalid argument".
+          // Either limit alone is accepted, so only rows keeps one
+          values: z.array(
+            z.object({
+              measurement: z.enum(SIZING_MEASUREMENTS),
+              min: z.number().nullable(),
+              max: z.number().nullable(),
+            }),
+          ),
         }),
       )
       .max(20),

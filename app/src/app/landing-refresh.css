@@ -1,0 +1,461 @@
+/* Reference-led refresh: hero, header, bridge, feature tour and reveal-on-scroll. */
+
+.drape-public {
+  --coral: #c9654b;
+}
+
+/* Header */
+.drape-public .drape-header {
+  height: 98px;
+  transition:
+    height 260ms ease,
+    box-shadow 260ms ease;
+}
+.drape-public .drape-links {
+  gap: 40px;
+  font-size: 16px;
+}
+.drape-public .drape-nav-actions {
+  gap: 32px;
+  font-size: 16px;
+}
+.drape-public .drape-nav-actions .drape-button {
+  min-height: 56px;
+  padding: 0 26px;
+  border-radius: 20px;
+  font-size: 15px;
+}
+.drape-public .drape-header.is-compact {
+  height: 74px;
+  box-shadow: 0 8px 24px #0000000f;
+}
+
+/* Hero */
+.drape-public .drape-hero {
+  position: relative;
+  padding: 0;
+  min-height: 480px;
+  height: min(760px, calc(100vw * 0.525));
+  overflow: hidden;
+  background: #191713;
+  color: #faf6ee;
+  display: flex;
+  align-items: center;
+}
+.drape-hero-backdrop {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  animation: drape-hero-settle 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.drape-hero-copy {
+  position: relative;
+  z-index: 1;
+  padding-top: 12px;
+  padding-bottom: 30px;
+}
+.drape-public .drape-hero .drape-eyebrow {
+  text-align: left;
+  max-width: 48%;
+  color: #faf6ee;
+  margin-bottom: 34px;
+  line-height: 1.7;
+  animation: drape-fade-up 700ms ease both;
+  animation-delay: 0.4s;
+}
+.drape-public .drape-hero h1 {
+  text-align: left;
+  white-space: normal;
+  max-width: 49%;
+  font-size: clamp(52px, 7.3vw, 112px);
+  line-height: 1.01;
+}
+.drape-public .drape-hero h1 em {
+  color: #e9e6dc;
+}
+.drape-hero-line {
+  display: block;
+  animation: drape-line-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.drape-hero-line:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.drape-hero-line:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.drape-hero-line:nth-child(3) {
+  animation-delay: 0.27s;
+}
+.drape-hero-ctas {
+  padding: 32px 0 36px;
+  background: var(--paper);
+}
+.drape-hero-ctas .drape-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 38px;
+}
+.drape-primary-cta {
+  border-radius: 99px;
+  padding: 18px 30px;
+  font-size: 17px;
+}
+.drape-how-link {
+  font-size: 17px;
+  font-weight: 600;
+  border-bottom: 1px solid currentColor;
+  padding: 8px 0;
+}
+@keyframes drape-hero-settle {
+  from {
+    transform: scale(1.035);
+    filter: blur(2px);
+  }
+  to {
+    transform: scale(1);
+    filter: none;
+  }
+}
+@keyframes drape-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes drape-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Bridge: a plain intro paragraph directly above the four-stage story */
+.drape-public .drape-bridge {
+  min-height: 0;
+  display: block;
+  padding: 60px 0;
+  border-top: 0;
+  background: var(--paper);
+}
+.drape-public .drape-bridge h2 {
+  max-width: 820px;
+  margin: 0 auto;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.3;
+}
+
+/* Feature and pricing intros are centered blocks */
+.drape-public .drape-feature-heading,
+.drape-public .drape-pricing-heading {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+.drape-public .drape-feature-heading .drape-eyebrow {
+  color: #b74b34;
+}
+.drape-feature-number {
+  display: block;
+  margin-bottom: 22px;
+  color: #b74b34;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Product-shot chrome */
+.drape-feature-tour article.is-reversed .drape-product-shot {
+  order: 2;
+}
+.drape-product-shot {
+  overflow: hidden;
+  border: 1px solid #d2cec5;
+  border-radius: 25px;
+  background: #fff;
+  box-shadow: 0 28px 70px #2d30291a;
+}
+.drape-shot-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e3e0d8;
+  background: #fbfaf6;
+  color: #6c7069;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.drape-shot-dots {
+  display: flex;
+  gap: 6px;
+}
+.drape-shot-dots i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d3cfc6;
+}
+.drape-shot-dots i:first-child {
+  background: var(--accent);
+}
+.drape-shot-body {
+  padding: 28px;
+  background: #f4f1e9;
+}
+.drape-shot-body.is-photo {
+  padding: 0;
+}
+.drape-shot-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.drape-shot-image.is-purchase {
+  object-position: center top;
+}
+.drape-shot-image.is-mobile {
+  width: auto;
+  max-width: 240px;
+  max-height: 480px;
+  margin: 0 auto;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px #24282326;
+}
+.drape-shot-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+.drape-shot-filter span {
+  padding: 7px 11px;
+  border: 1px solid #d8d5cc;
+  border-radius: 99px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 11px;
+}
+.drape-shot-filter span:first-child {
+  background: var(--dark);
+  color: #fff;
+  border-color: var(--dark);
+}
+
+/* Pricing plus-card edge pass */
+.drape-price-planned {
+  position: relative;
+}
+.drape-price-planned:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.drape-price-card.is-visible.drape-price-planned:after {
+  animation: drape-edge-pass 1500ms 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes drape-edge-pass {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  40% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Story controller: a wide bottom-center glass capsule with a sliding indicator */
+.drape-story-controller {
+  position: absolute;
+  z-index: 9;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 72px));
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 5px;
+  border-radius: 99px;
+  background: rgb(23 26 23 / 0.55);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  backdrop-filter: blur(12px) saturate(125%);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+  box-shadow:
+    0 18px 42px #0004,
+    inset 1px 1px 0 #ffffff30;
+}
+.drape-story-controller-capsule {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  bottom: 5px;
+  width: calc((100% - 10px) / 4);
+  border-radius: 99px;
+  background: rgb(246 243 236 / 0.19);
+  border: 1px solid #ffffff3b;
+  box-shadow:
+    0 9px 24px #0003,
+    inset 1px 1px 0 #ffffff57;
+  pointer-events: none;
+  transition: transform 400ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.drape-story-controller button {
+  position: relative;
+  min-height: 44px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 99px;
+  background: none;
+  color: #fff;
+  font: 13px DrapeInter, Arial, sans-serif;
+  cursor: pointer;
+}
+.drape-story-controller button[aria-current="step"] {
+  color: #ffcab9;
+}
+.drape-story-controller button:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+
+/* Reveal on scroll (progressive enhancement; content is visible without JS) */
+.drape-motion-ready .drape-bridge,
+.drape-motion-ready .drape-feature-heading,
+.drape-motion-ready .drape-feature-tour article,
+.drape-motion-ready .drape-pricing-heading,
+.drape-motion-ready .drape-price-card,
+.drape-motion-ready .drape-story-mobile article {
+  transition:
+    opacity 700ms ease,
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drape-motion-ready .drape-bridge:not(.is-visible),
+.drape-motion-ready .drape-feature-heading:not(.is-visible),
+.drape-motion-ready .drape-feature-tour article:not(.is-visible),
+.drape-motion-ready .drape-pricing-heading:not(.is-visible),
+.drape-motion-ready .drape-price-card:not(.is-visible),
+.drape-motion-ready .drape-story-mobile article:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.drape-motion-ready .drape-price-card:nth-child(2) {
+  transition-delay: 90ms;
+}
+
+@media (max-width: 900px) {
+  .drape-public .drape-header {
+    height: 84px;
+  }
+  .drape-public .drape-header.is-compact {
+    height: 68px;
+  }
+  .drape-public .drape-nav-actions .drape-button {
+    min-height: 46px;
+    padding: 0 18px;
+    font-size: 13px;
+  }
+  .drape-public .drape-hero {
+    min-height: 420px;
+  }
+  .drape-public .drape-hero .drape-eyebrow,
+  .drape-public .drape-hero h1 {
+    max-width: 62%;
+  }
+  .drape-public .drape-hero h1 {
+    font-size: clamp(42px, 8vw, 84px);
+  }
+}
+@media (max-width: 640px) {
+  .drape-public .drape-header {
+    height: 72px;
+  }
+  .drape-public .drape-header.is-compact {
+    height: 64px;
+  }
+  .drape-public .drape-hero {
+    height: auto;
+    min-height: 560px;
+    padding: 0;
+    align-items: flex-end;
+  }
+  .drape-public .drape-hero h1 {
+    font-size: clamp(36px, 11vw, 56px);
+    line-height: 1.05;
+  }
+  .drape-public .drape-hero:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #11111d00 0%, #111119aa 55%, #171916 100%);
+  }
+  .drape-hero-copy {
+    position: relative;
+    z-index: 2;
+    padding-bottom: 34px;
+  }
+  .drape-public .drape-hero .drape-eyebrow,
+  .drape-public .drape-hero h1 {
+    max-width: 100%;
+  }
+  .drape-hero-ctas .drape-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .drape-primary-cta {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drape-hero-backdrop,
+  .drape-hero-line,
+  .drape-public .drape-hero .drape-eyebrow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .drape-motion-ready .drape-bridge,
+  .drape-motion-ready .drape-feature-heading,
+  .drape-motion-ready .drape-feature-tour article,
+  .drape-motion-ready .drape-pricing-heading,
+  .drape-motion-ready .drape-price-card,
+  .drape-motion-ready .drape-story-mobile article {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .drape-price-planned:after {
+    animation: none !important;
+  }
+}
+
+.drape-price-card > p.drape-price-annual {
+  margin: -6px 0 20px !important;
+  font-size: 14px;
+  opacity: 0.72;
+}

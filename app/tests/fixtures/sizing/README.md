@@ -23,6 +23,6 @@ From `app/`:
 SIZING_EVAL_I_AM_HUMAN=1 GOOGLE_GENERATIVE_AI_API_KEY=... node scripts/eval-sizing.mjs
 ```
 
-The script prints each case as PASS or FAIL with what differed, then totals for fields, charts, injection cases, latency and tokens. Record the totals and the prompt version in `docs/assignment-evidence.md`, and rerun after any change to `SIZING_EXTRACT_PROMPT`.
+The script prints each case as PASS or FAIL with what differed, then totals for fields, charts, injection cases, latency and tokens. Record the totals and the prompt version in the milestone write-up's evaluation section, and rerun after any change to `SIZING_EXTRACT_PROMPT`.
 
 The cases already in `expected.json` are placeholders. Replace the file names and expected values with the real screenshots.

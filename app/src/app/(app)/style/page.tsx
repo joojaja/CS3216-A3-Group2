@@ -16,10 +16,6 @@ import { cachedGroupingFor, loadStyleData, readStyleCache, type StyleRow } from 
 export const metadata: Metadata = { title: "My Style" };
 export const dynamic = "force-dynamic";
 
-function describeCount(count: number) {
-  return `Based on ${count} confirmed ${count === 1 ? "item" : "items"} in your wardrobe`;
-}
-
 export default async function StylePage() {
   const supabase = await createClient();
 
@@ -106,10 +102,7 @@ export default async function StylePage() {
 
   return (
     <>
-      <PageHeader
-        title="My Style"
-        description={supabase ? describeCount(items.length) : `${items.length} demo items. Connect Supabase to see your own.`}
-      />
+      <PageHeader title="My Style" />
       <div className="px-5 py-5 pb-24 md:px-9 md:py-8">
         {!supabase && (
           <div className="mb-6">
@@ -121,7 +114,6 @@ export default async function StylePage() {
             <StyleArchetypes
               initial={grouping}
               thumbs={thumbs}
-              itemCount={items.length}
               preferredStyles={preferredStyles}
               refine={aiAvailable && !cached}
               aiAvailable={aiAvailable}

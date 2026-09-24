@@ -33,8 +33,8 @@ test("stored tier and countdown values are read without changing them", () => {
   );
 });
 
-test("free-tier limit messages explain the Premium option", () => {
+test("free-tier limit messages explain the Wearabouts Plus option", () => {
   assert.match(BEAUTIFY_LIMIT_MESSAGE, /all 5 free Beautify edits/i);
-  assert.match(EXPLORE_REFRESH_LIMIT_MESSAGE, /Premium/i);
-  assert.match(OUTFIT_CREDIT_LIMIT_MESSAGE, /Premium/i);
+  assert.match(EXPLORE_REFRESH_LIMIT_MESSAGE, /Wearabouts Plus/i);
+  assert.match(OUTFIT_CREDIT_LIMIT_MESSAGE, /Wearabouts Plus/i);
 });

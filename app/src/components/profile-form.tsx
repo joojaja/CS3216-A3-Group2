@@ -2,7 +2,7 @@
 
 import { trackFunnel } from "@/lib/analytics";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { saveProfile, type ProfileFormState } from "@/lib/actions/profile";
 import { useToast } from "@/components/toast";
 import {
@@ -47,9 +47,6 @@ function Field({
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const { toast } = useToast();
-  const [gender, setGender] = useState<Gender>(
-    profile.gender ?? DEFAULT_GENDER,
-  );
   const [state, action, pending] = useActionState<ProfileFormState, FormData>(saveProfile, {});
   const lastSaved = useRef<ProfileFormState | null>(null);
 
@@ -70,8 +67,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         Gender
         <select
           name="gender"
-          value={gender}
-          onChange={(event) => setGender(event.target.value as Gender)}
+          defaultValue={profile.gender ?? DEFAULT_GENDER}
           className={inputClass}
         >
           {genderOptions.map((option) => (

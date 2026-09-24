@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { STORED_CHARTS, STORED_BRANDS, findChart, normaliseBrand } from "../src/lib/sizing/charts/index.ts";
+import { STORED_CHARTS, STORED_BRANDS, brandCoverage, brandSuggestions, findChart, fitToCoverage, normaliseBrand } from "../src/lib/sizing/charts/index.ts";
 import { validateChart } from "../src/lib/sizing/chart-schema.ts";
 
 test("every stored chart passes validation", () => {
@@ -33,6 +33,67 @@ test("findChart matches brand, category and size range", () => {
   // Unisex charts serve either range
   assert.equal(findChart("nike", "footwear", "womens")?.key, "nike/unisex/footwear");
   assert.equal(findChart("Unknown Brand", "top", "womens"), null);
+});
+
+test("Cotton On covers men's and women's tops and bottoms", () => {
+  // Men's was missing, so a men's lookup returned no size
+  assert.equal(findChart("Cotton On", "top", "mens")?.key, "cottonon/mens/top");
+  assert.equal(findChart("Cotton On", "bottom", "mens")?.key, "cottonon/mens/bottom");
+  assert.equal(findChart("Cotton On", "top", "womens")?.key, "cottonon/womens/top");
+  // With both ranges stored, an unknown range asks instead of assuming women's
+  assert.equal(findChart("Cotton On", "top", null), null);
+});
+
+test("the added brands resolve under their common spellings", () => {
+  assert.equal(findChart("Charles & Keith", "footwear", "womens")?.key, "charlesandkeith/womens/footwear");
+  assert.equal(findChart("charles and keith", "footwear", null)?.key, "charlesandkeith/womens/footwear");
+  assert.equal(findChart("Levi's", "bottom", "mens")?.key, "levis/mens/bottom");
+  // A men's-only brand still asks for the range rather than assuming men's
+  assert.equal(findChart("Levis", "bottom", null), null);
+  assert.equal(findChart("adidas Originals", "top", "womens")?.key, "adidas/womens/top");
+  assert.equal(findChart("GAP", "bottom", "mens")?.key, "gap/mens/bottom");
+  assert.equal(findChart("Mango", "dress", null)?.key, "mango/womens/dress");
+});
+
+test("brand suggestions list every brand once one is picked", () => {
+  // A native datalist filtered to the picked brand and showed nothing, so
+  // the picker looked dead after a selection
+  assert.deepEqual(brandSuggestions(""), STORED_BRANDS);
+  assert.deepEqual(brandSuggestions("H&M"), STORED_BRANDS);
+  assert.deepEqual(brandSuggestions("cotton on"), STORED_BRANDS);
+});
+
+test("brand suggestions filter on the normalised name", () => {
+  assert.deepEqual(brandSuggestions("hnm"), STORED_BRANDS);
+  assert.deepEqual(brandSuggestions("cott"), ["Cotton On"]);
+  assert.deepEqual(brandSuggestions("bonito"), ["Love, Bonito"]);
+  assert.deepEqual(brandSuggestions("Shein"), []);
+});
+
+test("brand coverage lists the categories and ranges a brand has charts for", () => {
+  assert.deepEqual(brandCoverage("Nike")?.categories, ["footwear"]);
+  // A unisex chart serves both ranges
+  assert.deepEqual(brandCoverage("Nike")?.ranges.footwear, ["womens", "mens"]);
+  assert.deepEqual(brandCoverage("Love Bonito")?.ranges.top, ["womens"]);
+  assert.ok(!brandCoverage("H&M")?.categories.includes("dress"));
+  assert.equal(brandCoverage("Unknown Brand"), null);
+  assert.equal(brandCoverage(""), null);
+});
+
+test("manual picks are kept inside what the brand covers", () => {
+  const nike = brandCoverage("Nike");
+  const lb = brandCoverage("Love Bonito");
+  const hm = brandCoverage("H&M");
+  // One category: preselected
+  assert.deepEqual(fitToCoverage(nike, "top", "mens"), { category: "footwear", range: "mens" });
+  // A category the brand lacks is cleared, and the range left alone
+  assert.deepEqual(fitToCoverage(hm, "dress", "mens"), { category: null, range: "mens" });
+  // A range the category lacks moves to the only one there is
+  assert.deepEqual(fitToCoverage(lb, "top", "mens"), { category: "top", range: "womens" });
+  // Not sure stays not sure
+  assert.deepEqual(fitToCoverage(lb, "top", null), { category: "top", range: null });
+  // Unknown brands change nothing
+  assert.deepEqual(fitToCoverage(null, "dress", "mens"), { category: "dress", range: "mens" });
 });
 
 test("the autocomplete list has one entry per brand", () => {
