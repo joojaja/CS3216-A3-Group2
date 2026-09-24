@@ -102,6 +102,10 @@ export function UploadQueueProvider({ children }: { children: React.ReactNode })
 export function PersistentUploadWorkspace() {
   const pathname = usePathname();
   const onAddPage = pathname === "/wardrobe/new";
+  const [started, setStarted] = useState(onAddPage);
+  if (onAddPage && !started) setStarted(true);
+
+  if (!started) return null;
 
   return (
     <div className={onAddPage ? "px-5 py-5 pb-24 md:px-9 md:py-6" : "hidden"}>

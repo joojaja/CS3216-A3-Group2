@@ -37,4 +37,7 @@ next-env.d.ts
 
 # Local browser verification artifacts
 .playwright-cli/
-output/playwright/
+/output/
+
+# Local agent tool config
+.devin/

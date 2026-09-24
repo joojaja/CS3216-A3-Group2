@@ -1,7 +1,7 @@
 // The one model call in My Style. The model reads one line of confirmed tags
 // per item and groups the items into styles. It sees item numbers, never
 // ids or photos, and code checks its answer and computes every percentage.
-// See docs/plans/style-and-colour-palette.md section 2.
+// See docs/architecture.md, "My Style."
 
 import { createHash } from "node:crypto";
 import type { StyleItem } from "./archetypes.ts";
