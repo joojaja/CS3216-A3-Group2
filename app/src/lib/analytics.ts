@@ -1,16 +1,33 @@
 export const FUNNEL_EVENTS = [
-  "preferences_saved", "first_item_saved", "item_saved", "item_updated", "item_deleted",
-  "outfit_requested", "outfits_generated", "outfit_failed", "feedback_saved",
+  "sign_up_started", "sign_up_completed",
+  "preferences_saved", "onboarding_completed",
+  "first_item_saved", "item_saved", "wardrobe_activated", "item_attributes_corrected",
+  "item_analysis_failed", "item_analysis_retried",
+  "item_updated", "item_deleted",
+  "outfit_requested", "outfits_generated", "outfit_failed", "outfit_retried", "feedback_saved",
   "purchase_requested", "purchase_evaluated", "purchase_failed",
+  "sizing_requested", "sizing_result",
   "explore_feed_loaded", "explore_product_opened",
   "outfit_saved", "outfit_unsaved", "saved_outfit_worn",
   "daily_feed_opened", "daily_outfit_skipped", "daily_outfit_saved",
   "daily_outfit_worn", "daily_outfit_rejected", "daily_feed_finished",
-  "style_regrouped",
+  "style_regrouped", "pricing_viewed",
 ] as const;
 export type FunnelEvent = typeof FUNNEL_EVENTS[number];
-export function trackFunnel(name: FunnelEvent) {
-  window.dispatchEvent(new CustomEvent("drape-funnel", { detail: name }));
+
+// Event parameters must stay limited to counts, enums and booleans. Never
+// pass images, free-text notes, emails or other private data through here.
+export type FunnelEventProps = Record<string, string | number | boolean>;
+
+export function trackFunnel(name: FunnelEvent, props?: FunnelEventProps) {
+  window.dispatchEvent(new CustomEvent("drape-funnel", { detail: { name, props } }));
+}
+
+// The saved-item count that marks the activation milestone for analytics.
+// Centralised so the client and any future report agree on the same number.
+export const ACTIVATION_ITEM_COUNT = 5;
+export function isActivationMilestone(itemCount: number): boolean {
+  return itemCount === ACTIVATION_ITEM_COUNT;
 }
 export function analyticsPage(pathname: string) {
   if (pathname === "/") return "landing";
@@ -20,7 +37,8 @@ export function analyticsPage(pathname: string) {
   if (pathname.startsWith("/wardrobe/")) return "item_detail";
   const pages: Record<string, string> = {
     "/wardrobe": "wardrobe", "/style": "style", "/planner": "planner", "/evaluator": "evaluator", "/explore": "explore",
-    "/profile": "profile", "/privacy": "privacy", "/login": "login", "/onboarding": "onboarding",
+    "/profile": "profile", "/profile/measurements": "measurements", "/sizing": "sizing",
+    "/privacy": "privacy", "/login": "login", "/onboarding": "onboarding",
   };
   return pages[pathname] ?? "other";
 }

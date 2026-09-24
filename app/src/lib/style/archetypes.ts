@@ -3,7 +3,7 @@
 // patterned, activewear or not), items with the same signature form a
 // group, and small groups merge into their nearest neighbour. No model is
 // involved. This is what shows while the AI grouping runs, and what ships
-// when it fails. See docs/plans/style-and-colour-palette.md section 2.
+// when it fails. See docs/architecture.md, "My Style."
 
 import { PLAIN_PATTERNS } from "../outfits/daily-rules.ts";
 import { colourFamily } from "./colour-families.ts";

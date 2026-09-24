@@ -2,28 +2,29 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { trackFunnel } from "@/lib/analytics";
 
 const stages = [
-  [
-    "The wardrobe",
-    "Plenty of clothes. Still no clear answer.",
-    "Seeing everything at once does not make the decision easier. Wearabouts begins by understanding what is actually available.",
-  ],
-  [
-    "The context",
-    "What works for where you're going?",
-    "Dinner at seven, smart casual, 29°C and a walk from the MRT narrow the options.",
-  ],
-  [
-    "The comparison",
-    "Not just a suggestion. A reason.",
-    "Olive trousers beat charcoal for comfort without losing the right level of formality.",
-  ],
-  [
-    "The outfit",
-    "One outfit. Zero second-guessing.",
-    "Ivory overshirt, black tee, olive trousers and white sneakers.",
-  ],
+  {
+    label: "The wardrobe",
+    heading: ["A full wardrobe.", "Still no clear answer."],
+    body: "The right pieces are probably already there. The hard part is choosing what feels right for the moment.",
+  },
+  {
+    label: "The context",
+    heading: ["What does", "today call for?"],
+    body: "A morning class. Dinner after work. Tell Wearabouts what you have planned, and it finds the clothes that fit the day.",
+  },
+  {
+    label: "The comparison",
+    heading: ["Not just a suggestion.", "A reason."],
+    body: "See why each piece works for the occasion, weather, comfort and the rest of your outfit.",
+  },
+  {
+    label: "The outfit",
+    heading: ["One outfit.", "Zero second-guessing."],
+    body: "A complete look, ready for wherever the day takes you.",
+  },
 ];
 
 export default function LandingStory() {
@@ -34,11 +35,22 @@ export default function LandingStory() {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const section = document.querySelector<HTMLElement>(".drape-story");
     const readingProgress = document.querySelector<HTMLElement>(".drape-reading-progress span");
+    const heroBackdrop = document.querySelector<HTMLElement>(".drape-hero-backdrop");
     let latest = 0;
+    let heroFrame: number | null = null;
     const onScroll = () => {
       if (readingProgress) {
         const documentRange = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
         readingProgress.style.transform = `scaleX(${Math.max(0, Math.min(1, window.scrollY / documentRange))})`;
+      }
+      if (heroBackdrop && !media.matches && window.innerWidth >= 901 && heroFrame === null) {
+        const y = window.scrollY;
+        heroFrame = window.requestAnimationFrame(() => {
+          // Very limited parallax drift, capped so the image never outruns its frame.
+          const shift = Math.min(16, y * 0.04);
+          heroBackdrop.style.transform = `translateY(${shift}px)`;
+          heroFrame = null;
+        });
       }
       if (window.innerWidth < 901 || media.matches) return;
       if (!section) return;
@@ -48,16 +60,31 @@ export default function LandingStory() {
     const updateMode = () =>
       setEnhanced(window.innerWidth >= 901 && !media.matches);
     updateMode();
+    document.documentElement.classList.add("drape-motion-ready");
+    const header = document.querySelector<HTMLElement>(".drape-header");
+    const onHeaderScroll = () => header?.classList.toggle("is-compact", window.scrollY > 70);
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => entry.target.classList.toggle("is-visible", entry.isIntersecting));
-    }, { threshold: 0.12 });
-    document.querySelectorAll(".drape-feature-tour article").forEach((article) => observer.observe(article));
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        if (entry.target.classList.contains("drape-pricing-heading")) trackFunnel("pricing_viewed");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -10% 0px" });
+    document
+      .querySelectorAll(
+        ".drape-bridge, .drape-feature-heading, .drape-feature-tour article, .drape-pricing-heading, .drape-price-card, .drape-story-mobile article",
+      )
+      .forEach((el) => (media.matches ? el.classList.add("is-visible") : observer.observe(el)));
+    window.addEventListener("scroll", onHeaderScroll, { passive: true });
+    onHeaderScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", updateMode);
     media.addEventListener("change", updateMode);
     onScroll();
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onHeaderScroll);
       window.removeEventListener("resize", updateMode);
       media.removeEventListener("change", updateMode);
       observer.disconnect();
@@ -75,25 +102,27 @@ export default function LandingStory() {
       <h2 className="sr-only">How Wearabouts works</h2>
       <div className="drape-story-desktop">
         <div className="drape-story-copy">
-          <span className="drape-story-count">
-            0{active + 1} / 04 · {stages[active][0]}
-          </span>
-          <h2>{stages[active][1]}</h2>
-          <p>{stages[active][2]}</p>
+          <h2>
+            {stages[active].heading[0]}
+            <br />
+            {stages[active].heading[1]}
+          </h2>
+          <p>{stages[active].body}</p>
           <div className="drape-progress" role="progressbar" aria-valuemin={1} aria-valuemax={4} aria-valuenow={active + 1}>
             <span style={{ width: `${((active + 1) / 4) * 100}%` }} />
           </div>
         </div>
-        <div className="drape-story-controller" aria-label="Story stages">
-          {stages.map((stage, i) => <button key={stage[0]} type="button" aria-current={i === active ? "step" : undefined} onClick={() => sectionScroll(i)}>{["Wardrobe", "Context", "Comparison", "Outfit"][i]}</button>)}
+        <div className="drape-story-controller" role="group" aria-label="Story stages">
+          <span className="drape-story-controller-capsule" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
+          {stages.map((stage, i) => <button key={stage.label} type="button" aria-current={i === active ? "step" : undefined} aria-label={`Stage ${i + 1}: ${stage.label}`} onClick={() => sectionScroll(i)}>{["Wardrobe", "Context", "Comparison", "Outfit"][i]}</button>)}
         </div>
         <div className="drape-story-images">
-          {[0, 1, 2, 3].map((_, i) => (
+          {stages.map((stage, i) => (
             <Image
               className={i === active ? "is-active" : ""}
-              key={i}
+              key={stage.label}
               src={`/landing/${["story-wardrobe", "story-context", "story-comparison", "story-outfit"][i]}.webp`}
-              alt={stages[i][2]}
+              alt={stage.body}
               aria-hidden={i === active ? undefined : true}
               fill
               sizes="100vw"
@@ -103,13 +132,14 @@ export default function LandingStory() {
       </div>
       <div className="drape-story-mobile drape-container">
         {stages.map((stage, i) => (
-          <article key={stage[0]}>
+          <article key={stage.label}>
             <div>
-              <span className="drape-story-count">
-                0{i + 1} / 04 · {stage[0]}
-              </span>
-              <h3>{stage[1]}</h3>
-              <p>{stage[2]}</p>
+              <h3>
+                {stage.heading[0]}
+                <br />
+                {stage.heading[1]}
+              </h3>
+              <p>{stage.body}</p>
             </div>
             <Image
               src={`/landing/${["story-wardrobe", "story-context", "story-comparison", "story-outfit"][i]}.webp`}

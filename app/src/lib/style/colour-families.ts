@@ -2,7 +2,7 @@
 // written by the model and edited by the user, so "navy", "navy blue" and
 // "dark navy" need to land in one row. The hex values are display swatches
 // for the family, not colours measured from the photo.
-// See docs/plans/style-and-colour-palette.md section 1.
+// See docs/architecture.md, "My Style."
 
 export type ColourFamily = {
   key: string;

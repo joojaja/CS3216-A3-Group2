@@ -18,6 +18,7 @@ import { arrangeOutfit } from "@/lib/outfits/arrange";
 import {
   buildDailyOutfits,
   coreSignature,
+  LEGACY_NO_SHOES_WARNING,
   readForecast,
   type DailyOutfit,
   type RuleItem,
@@ -376,7 +377,8 @@ async function readyFeed(
       id: rec.id,
       itemIds: present,
       explanation: rec.explanation ?? "",
-      warnings: rec.warnings ?? [],
+      // A missing-shoes note is now one tip in the feed, not on every card
+      warnings: (rec.warnings ?? []).filter((warning) => warning !== LEGACY_NO_SHOES_WARNING),
       saved: saved.has(rec.id),
       action: actionByRec.get(rec.id) ?? null,
     });

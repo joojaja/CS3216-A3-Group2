@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { arrangeOutfit, blendsIntoPanel } from "@/lib/outfits/arrange";
+import { arrangeOutfit } from "@/lib/outfits/arrange";
 import type { CollageItem } from "@/lib/outfits/types";
 
 export type { CollageItem };
@@ -12,34 +11,32 @@ export function itemLabel(item: Pick<CollageItem, "category" | "subcategory" | "
 }
 
 // The outfit card picture, laid out from the user's own photos. Nothing is
-// generated: cleaned images sit on white, so multiply blends them into the
-// light panel and they read as cut-outs. Raw photos get a framed tile.
-// "full" is the swipe card, "thumb" is the wardrobe strip and saved list.
+// generated. Each item is its transparent cut-out, made on the device from
+// the user's photo, drawn straight onto the card. Items without one yet show
+// their photo, multiplied so a white or pale background blends into the card.
+// "full" is the swipe card, which supplies its own background; "thumb" is
+// the wardrobe strip and saved list, on a tile.
 export function OutfitCollage({
   items,
   size = "full",
   deletedCount = 0,
-  showAddFootwear = false,
 }: {
   items: CollageItem[];
   size?: "full" | "thumb";
   // Items the outfit referenced that have since been deleted
   deletedCount?: number;
-  // Shows an "Add shoes" tile when the wardrobe has no footwear yet
-  showAddFootwear?: boolean;
 }) {
   const slots = arrangeOutfit(items);
   const thumb = size === "thumb";
   const label = items.map(itemLabel).join(", ");
-  const hasFootwearSlot = Boolean(slots.footwear) || showAddFootwear;
-  const hasRight = slots.extras.length > 0 || hasFootwearSlot;
+  const hasRight = slots.extras.length > 0 || Boolean(slots.footwear);
 
   return (
     <div
       role="img"
       aria-label={label ? `Outfit: ${label}` : "Outfit"}
-      className={`relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-b from-white to-wash ${
-        thumb ? "rounded-xl p-[6%]" : "rounded-2xl p-[6%]"
+      className={`relative aspect-[4/5] w-full overflow-hidden p-[6%] ${
+        thumb ? "rounded-xl bg-wash/70" : ""
       }`}
     >
       <div
@@ -96,10 +93,8 @@ export function OutfitCollage({
                 <Slot key={item.id} item={item} thumb={thumb} className="relative min-h-0 flex-1" />
               ))}
             </div>
-            {slots.footwear ? (
+            {slots.footwear && (
               <Slot item={slots.footwear} thumb={thumb} className="relative h-[34%] shrink-0" />
-            ) : (
-              showAddFootwear && <AddFootwear thumb={thumb} />
             )}
           </div>
         )}
@@ -128,14 +123,17 @@ function Slot({
   className: string;
 }) {
   const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
+  // A cut-out that fails to load falls back to the photo, then to a label
+  const [cutoutFailed, setCutoutFailed] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const label = itemLabel(item);
-  const blend = blendsIntoPanel(item.image_source);
+  const cutout = item.cutout_url && !cutoutFailed ? item.cutout_url : null;
+  const src = cutout ?? (photoFailed ? null : item.signed_image_url);
 
-  if (!item.signed_image_url || failed) {
+  if (!src) {
     return (
       <div className={className}>
-        <div className="grid size-full place-items-center rounded-xl border border-dashed border-line bg-white/60 p-1 text-center">
+        <div className="grid size-full place-items-center p-1 text-center">
           {/* Thumbnails only have room for the category */}
           <span className={`max-w-full capitalize text-mute ${thumb ? "truncate text-[10px] leading-tight" : "text-xs"}`}>
             {thumb ? item.category : label || "Item"}
@@ -147,46 +145,32 @@ function Slot({
 
   return (
     <div className={className}>
-      <div
-        className={`relative size-full overflow-hidden ${
-          blend ? "" : "rounded-xl border border-line bg-white"
-        } ${loaded ? "" : "shim"}`}
-      >
+      <div className={`absolute inset-0 flex items-center justify-center ${loaded ? "" : "shim"}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          key={src}
           // A cached image can finish before hydration attaches onLoad
           ref={(el) => {
             if (el?.complete && el.naturalWidth > 0 && !loaded) setLoaded(true);
           }}
-          src={item.signed_image_url}
+          src={src}
           alt={label}
           loading="lazy"
           onLoad={() => setLoaded(true)}
-          onError={() => setFailed(true)}
-          className={`size-full transition-opacity duration-300 ${
-            blend ? "object-contain mix-blend-multiply" : "object-cover"
+          onError={() => {
+            setLoaded(false);
+            if (cutout) setCutoutFailed(true);
+            else setPhotoFailed(true);
+          }}
+          className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${
+            cutout
+              ? thumb
+                ? "drop-shadow-[0_2px_3px_rgba(26,28,25,0.14)]"
+                : "drop-shadow-[0_8px_14px_rgba(26,28,25,0.16)]"
+              : "mix-blend-multiply"
           } ${loaded ? "opacity-100" : "opacity-0"}`}
         />
       </div>
     </div>
-  );
-}
-
-function AddFootwear({ thumb }: { thumb: boolean }) {
-  const body = (
-    <span className={`text-center text-mute ${thumb ? "text-[10px]" : "text-xs"}`}>
-      {thumb ? "No shoes" : "Add shoes"}
-    </span>
-  );
-  const className =
-    "relative grid h-[34%] shrink-0 place-items-center rounded-xl border border-dashed border-mute/50 bg-white/50";
-
-  // A nested link inside the thumbnail's own link would be invalid markup
-  return thumb ? (
-    <div className={className}>{body}</div>
-  ) : (
-    <Link href="/wardrobe/new" className={`${className} transition hover:border-cobalt hover:bg-white`}>
-      {body}
-    </Link>
   );
 }

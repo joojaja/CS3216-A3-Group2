@@ -51,7 +51,7 @@ export function Choice<T extends string | null>({
   onChange,
 }: {
   legend: string;
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; disabled?: boolean }[];
   value: T;
   onChange: (value: T) => void;
 }) {
@@ -64,12 +64,13 @@ export function Choice<T extends string | null>({
             key={o.label}
             type="button"
             aria-pressed={value === o.value}
+            disabled={o.disabled}
             onClick={() => onChange(o.value)}
             className={`min-h-10 rounded-lg border px-3.5 text-sm transition ${
               value === o.value
                 ? "border-cobalt bg-cobalt-light font-medium text-cobalt-deep"
                 : "border-line text-body hover:border-cobalt"
-            }`}
+            } disabled:cursor-not-allowed disabled:border-dashed disabled:text-mute disabled:opacity-60 disabled:hover:border-line`}
           >
             {value === o.value && <span aria-hidden="true">✓ </span>}
             {o.label}

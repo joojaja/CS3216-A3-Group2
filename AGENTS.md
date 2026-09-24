@@ -4,12 +4,12 @@
 
 These rules apply to every agent working in this repository before any other work begins
 
-1) **Read UNSLOP.md first** Every agent must read and process `UNSLOP.md` in the repository root and apply it to all user-facing text, documentation, write-ups and marketing copy it produces
+1) **Apply the writing rules first** Every agent must read the `unslop` skill (`.claude/skills/unslop/SKILL.md`) and apply it to all user-facing text, documentation, write-ups and marketing copy it produces. `.claude/skills/` packages this and the other repository-specific rules (the paid-Gemini boundary, Supabase migration conventions, the checks to run before a PR, and how to write a milestone answer from evidence) as loadable skills; use them where they apply
 2) **Never edit this file autonomously** Agents must not directly edit `AGENTS.md` under any circumstances. Any proposed change to this file requires explicit human approval. When proposing a change, present the exact edit clearly marked as a proposal (show the location, the current text and the replacement text) and wait for the human to approve before applying it
 3) **Check the team before starting a feature** Before implementing any feature, inspect the GitHub repository branches and open pull requests (for example `git fetch` then `git branch -a`, and review open PRs) to check whether a teammate is already working on that feature. If someone is, highlight this clearly to the user, name the branch or PR, and coordinate instead of duplicating work
-4) **The product is called Wearabouts** Refer to it as `Wearabouts` everywhere in code, copy and documentation. The supplied design document defines the visual identity. The name was reconfirmed on 20 September 2026.
+4) **The product is called Wearabouts** Refer to it as `Wearabouts` everywhere in code, copy and documentation. The team's design document defines the visual identity. The name was reconfirmed on 20 September 2026.
 5) **Respect the deadline** The web application must be fully completed by 23 September 2026. Plan and scope work around that date, not the original two-week estimate
-6) **Never spend on the paid Gemini tier** Agents must not make any call that is billed to the paid Google project, for any reason, including verification. That means never calling the Gemini API directly with `GOOGLE_GENERATIVE_AI_API_KEY`, never running probes, scripts or browser tests that reach `/api/items/analyze`, `/api/items/locate`, `/api/items/enhance` or `/api/purchases/evaluate` with a real key, and never routing new work to the paid key. Test those routes with mocked responses or in the unconfigured demo mode. Only a human using the app may trigger a paid call. The outfit planner runs on `GOOGLE_GENERATIVE_AI_FREE_API_KEY`; agents may exercise it during verification, sparingly, within its free-tier limits
+6) **Never spend on the paid Gemini tier** Agents must not make any call that is billed to the paid Google project, for any reason, including verification. That means never calling the Gemini API directly with `GOOGLE_GENERATIVE_AI_API_KEY`, never running probes, scripts or browser tests that reach `/api/items/analyze`, `/api/items/locate`, `/api/items/enhance`, `/api/purchases/evaluate` or `/api/sizing/extract` with a real key, and never routing new work to the paid key. Test those routes with mocked responses (`SIZING_EXTRACT_MOCK` covers sizing) or in the unconfigured demo mode. Only a human using the app may trigger a paid call. The outfit planner, the Explore feed and the style and daily-outfit features run on unbilled free-tier keys (`GOOGLE_GENERATIVE_AI_FREE_API_KEY` and `GOOGLE_GENERATIVE_AI_RAG_API_KEY`); agents may exercise these during verification, sparingly, within their free-tier limits
 
 ## Project overview
 
@@ -29,7 +29,7 @@ The product must not become a generic AI stylist, open-ended chatbot or shopping
 
 ## Deadline and scope
 
-The web application must be fully completed by **23 September 2026**. The official CS3216 Assignment 3 submission deadline is **26 September 2026 at 7:59 am**, so the 23rd is the internal completion date and leaves a short buffer for submission material
+The web application must be fully completed by **23 September 2026**. The official CS3216 Assignment 3 submission deadline is **Friday 25 September 2026 at 11:59 pm**, so the 23rd is the internal completion date and leaves a short buffer for submission material
 
 This means the original two-week scope is now roughly **8 days** of build time. Treat scope decisions as urgent. Defer anything that does not directly support the demo journey or a graded milestone
 
@@ -62,7 +62,7 @@ This project is graded against the milestones published at `https://cs3216.githu
 
 ### Phase 4: design
 
-- **Name and logo:** the product name is Wearabouts. The supplied reference mark combines a W and a clothes hanger. Document the naming rationale and credit the reference artwork in the milestone write-up
+- **Name and logo:** the product name is Wearabouts. The team-designed mark combines a W and a clothes hanger. Document the naming rationale in the milestone write-up
 - **Technology stack:** justify UI, database, web server, hosting and authentication choices against alternatives → document decisions as they are made
 - **User experience:** describe three common workflows and why they were chosen → covered by the user journey, Demo scenario and Recommended application pages
 - **AI-specific UI:** show UI decisions made because the app uses AI, beyond trivial disclaimers → covered by editable AI attributes, uncertainty display, suggest-accept flows and feedback controls in the User experience requirements
@@ -145,32 +145,29 @@ This section supports the moat milestone. Expand it in the write-up with the tea
 
 This section supports the competitive landscape milestone, which requires the 3 closest competitors with pros and cons and an argument for why this product is better. Verify current offerings before finalizing the write-up, since these products change quickly
 
+### Whering
+
+A social digital wardrobe focused on wearing more of what users own. It reports more than 10 million users
+
+- **Pros:** free with no wardrobe size limit; tracks cost per wear and wardrobe usage; lets friends browse and style each other's wardrobes; backed by eBay Ventures and Google's AI Futures Fund
+- **Cons:** outfits are shuffles of owned items rather than suggestions matched to the user's taste; no way to request an outfit for a specific occasion; inspiration depends on which friends a user follows; no size guidance
+- **What to learn and improve:** keep the wardrobe-first message and usage tracking. Add occasion-based planning grounded in Singapore weather, with visible reasoning
+
 ### Acloset
 
-A mobile-first digital wardrobe app with AI auto-tagging and outfit suggestions
+A digital wardrobe and AI stylist with automatic tagging, weather-aware daily outfits and personal colour analysis
 
-- **Pros:** fast photo upload with automatic background removal and categorization; weather-aware outfit suggestions; outfit calendar and wardrobe statistics; polished onboarding
-- **Cons:** many features sit behind a subscription; no pre-purchase redundancy check against owned items; recommendations arrive without visible reasoning; social and shopping features dilute the wardrobe focus
-- **UI and UX:** clean card-grid wardrobe, soft neutral palette with pastel accents, bottom-tab navigation, mobile only. The upload-to-tag pipeline is low friction and worth copying
-- **What to learn and improve:** adopt the frictionless upload flow and calm neutral palette. Differentiate with transparent recommendation reasoning and purchase evaluation, which Acloset does not offer
+- **Pros:** fast setup, since one mirror selfie can register several items; daily outfits use the weather and the user's calendar; analyses which colours and silhouettes suit the user; polished onboarding
+- **Cons:** charges once a wardrobe passes 100 items, so the price rises as the app becomes more useful; suggestions need a well-tagged wardrobe before they work; the inspiration feed ranks popular users rather than the user's own style; no brand size guidance
+- **What to learn and improve:** copy the low-friction upload and calm neutral palette. Differentiate with editable AI tags, explained recommendations and purchase checks against the owned wardrobe
 
-### Cloey
+### Alta
 
-An AI stylist app built around a conversational chatbot that gives outfit and shopping advice
+The most AI-led of the three: an AI stylist that plans outfits from the user's wardrobe, activities, occasion, budget and weather, with avatar try-on and shopping suggestions
 
-- **Pros:** the conversational interface feels personal and requires little effort; styling quizzes give quick personalization
-- **Cons:** chat-first design offers little structure for correcting AI output; weak wardrobe management; advice cannot be audited at item level; leans toward shopping suggestions, which conflicts with deliberate consumption
-- **UI and UX:** a chat thread is the home screen with minimal chrome and fashion-magazine imagery. It looks polished but hides controls inside long threads
-- **What to learn and improve:** keep the personable tone in explanations, but avoid chat as the primary interface. Structured controls for uploads, corrections and feedback are a deliberate improvement
-
-### AI Closet
-
-A family of similarly named wardrobe apps offering photo upload, auto-categorization and outfit shuffling
-
-- **Pros:** quick setup and immediate outfit generation; simple mental model
-- **Cons:** generic design with default-looking components; little explanation of outputs; weak privacy posture; no local context such as Singapore weather; feature-gated paywalls
-- **UI and UX:** dense grids, stock icons and unstyled component kits. Functional but forgettable
-- **What to learn and improve:** the design bar in this category is low, so a focused, well-explained, locally grounded experience is a clear differentiator
+- **Pros:** broadest AI feature set; free with no ads and no wardrobe size limit; try-on uses an avatar that resembles the user
+- **Cons:** shopping suggestions earn Alta a commission, which conflicts with deliberate consumption; the inspiration feed is ranked socially; no size guidance when buying
+- **What to learn and improve:** match its occasion planning, but keep revenue from subscriptions so no suggestion is ranked by what pays us
 
 ### How Wearabouts competes
 
@@ -178,7 +175,7 @@ Wearabouts should learn from competitor UI/UX, colour schemes and features, then
 
 - Wardrobe-first recommendations with visible reasoning, not unexplained verdicts
 - User-confirmed AI attributes, so errors are correctable instead of silently trusted
-- Pre-purchase redundancy evaluation against the user's real wardrobe, a feature none of the three competitors offer
+- Pre-purchase redundancy evaluation and brand size guidance against the user's real wardrobe and measurements, which none of the three competitors offer
 - Singapore grounding through real forecast data and local context
 - Privacy-first storage as a stated product value, not a settings footnote
 
@@ -865,7 +862,7 @@ Integrate work daily instead of waiting until the end of the project
 
 ## Engineering guidelines
 
-- Read and apply `UNSLOP.md` to all writing produced for this project
+- Read and apply the `unslop` skill (`.claude/skills/unslop/SKILL.md`) to all writing produced for this project
 - Never edit `AGENTS.md` without explicit human approval; present proposed edits clearly marked for review
 - Inspect existing files before introducing new dependencies or architecture
 - Reuse the repository's established patterns where reasonable

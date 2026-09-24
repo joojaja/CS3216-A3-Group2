@@ -93,11 +93,11 @@ test("missing roles are reported when no body can be built", () => {
   assert.deepEqual(run([item("s1", "footwear")]).missing, ["top", "bottom"]);
 });
 
-test("no footwear still gives outfits, with a warning", () => {
+test("no footwear still gives outfits, without a shoe warning on the card", () => {
   const { outfits, hasFootwear } = run([item("t1", "top"), item("b1", "bottom")]);
   assert.equal(hasFootwear, false);
   assert.equal(outfits.length, 1);
-  assert.match(outfits[0].warnings[0], /no shoes/i);
+  assert.equal(outfits[0].warnings.some((w) => /shoe/i.test(w)), false);
 });
 
 test("disliked colours are never used", () => {

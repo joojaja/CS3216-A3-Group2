@@ -2,7 +2,7 @@
 // The left column holds the body (top over bottom, or a one-piece), with an
 // outer layer over the top. The right column stacks accessories and a bag
 // from the top, with footwear fixed in the bottom corner.
-// See docs/plans/daily-outfits-and-saved.md section 1.7.
+// See docs/architecture.md, "Daily outfits."
 
 export type CollageSlot = "top" | "bottom" | "onepiece" | "outer" | "extra" | "footwear";
 
@@ -75,10 +75,4 @@ export function arrangeOutfit<T extends ArrangeableItem>(items: T[]): Arranged<T
   }
 
   return arranged;
-}
-
-// Images that went through background removal sit on white, so the card can
-// blend them into its panel. Raw photos keep their background and get a frame
-export function blendsIntoPanel(imageSource: string | null | undefined): boolean {
-  return imageSource === "cleaned" || imageSource === "isolated" || imageSource === "ironed";
 }
