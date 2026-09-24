@@ -12,23 +12,10 @@ import {
   BEAUTIFY_LIMIT_MESSAGE,
   readAccountEntitlement,
 } from "@/lib/account-entitlements";
+import { BEAUTIFY_PROMPT } from "@/lib/ai/beautify-prompt";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-
-export type EnhanceMode = "isolate" | "iron";
-
-// Both prompts insist on fidelity. The model can still change small details
-// such as printed text, which is why the UI keeps the original selectable
-// and says so.
-const PROMPTS: Record<EnhanceMode, string> = {
-  isolate: `Cut out the single clothing item in this photo and place it centred on a plain pure white background, filling most of a square frame.
-
-Keep the garment exactly as it appears: the same colours, print, logo, lettering, stripes, fabric texture, wrinkles and shape. Remove everything else, including any bedsheet, pillow, floor, hands or hangers. Do not add, remove or redesign any part of the garment.`,
-  iron: `Show this exact clothing item laid perfectly flat and smooth on a plain pure white background, centred and filling most of a square frame, like a product photo in an online shop.
-
-Remove wrinkles and folds and even out the lighting, but keep the same colours, print, logo, lettering, stripes, proportions and neckline. Do not add, remove or redesign any part of the garment, and do not change its colour.`,
-};
 
 export async function GET() {
   const supabase = await createClient();
@@ -86,11 +73,7 @@ export async function POST(request: Request) {
 
   const form = await request.formData();
   const file = form.get("image");
-  const mode = form.get("mode");
 
-  if (mode !== "isolate" && mode !== "iron") {
-    return Response.json({ error: "mode must be isolate or iron" }, { status: 400 });
-  }
   if (!(file instanceof File) || file.size === 0) {
     return Response.json({ error: "An image file is required" }, { status: 400 });
   }
@@ -138,7 +121,10 @@ export async function POST(request: Request) {
         {
           role: "user",
           content: [
-            { type: "text", text: `${PROMPTS[mode]}\n\n${UNTRUSTED_CONTENT_RULE}` },
+            {
+              type: "text",
+              text: `${BEAUTIFY_PROMPT}\n\n${UNTRUSTED_CONTENT_RULE}`,
+            },
             await imagePart(file),
           ],
         },
@@ -147,7 +133,7 @@ export async function POST(request: Request) {
 
     const image = result.files.find((f) => f.mediaType.startsWith("image/"));
     if (!image) {
-      console.error(`[ai:enhance] ${IMAGE_MODEL_ID} returned no image for mode=${mode}`);
+      console.error(`[ai:enhance] ${IMAGE_MODEL_ID} returned no image`);
       return Response.json(
         { error: "The model did not return an image. Try again or use another version." },
         { status: 502 },
@@ -155,7 +141,7 @@ export async function POST(request: Request) {
     }
 
     console.log(
-      `[ai:enhance] ${IMAGE_MODEL_ID} ${mode} ${Date.now() - started}ms tokens=${result.usage.totalTokens ?? "?"}`,
+      `[ai:enhance] ${IMAGE_MODEL_ID} ${Date.now() - started}ms tokens=${result.usage.totalTokens ?? "?"}`,
     );
 
     return new Response(new Uint8Array(image.uint8Array), {
@@ -163,7 +149,6 @@ export async function POST(request: Request) {
       headers: {
         "Content-Type": image.mediaType,
         "Cache-Control": "no-store",
-        "X-Enhance-Mode": mode,
         "X-Account-Tier": entitlement.accountTier,
         "X-Beautify-Credits-Remaining": String(
           entitlement.beautifyCreditsRemaining,
@@ -171,6 +156,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return aiFailure("enhance", error, { model: IMAGE_MODEL_ID, key: "paid", mode });
+    return aiFailure("enhance", error, { model: IMAGE_MODEL_ID, key: "paid" });
   }
 }

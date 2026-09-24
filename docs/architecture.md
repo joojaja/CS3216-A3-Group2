@@ -10,9 +10,9 @@ The default text model is `gemini-3.6-flash` (`GEMINI_MODEL`); image edits use `
 
 ## Wardrobe upload and tagging
 
-Routes: `POST /api/items/analyze` for attribute extraction, `POST /api/items/locate` for a bounding-box crop fallback, `POST /api/items/enhance` for the Isolate and Iron image edits, `/api/items` for create, update and delete. Pages: `/wardrobe`, `/wardrobe/new`, `/wardrobe/[id]`.
+Routes: `POST /api/items/analyze` for attribute extraction, `POST /api/items/locate` for a bounding-box crop fallback, `POST /api/items/enhance` for the Beautify image edit, `/api/items` for create, update and delete. Pages: `/wardrobe`, `/wardrobe/new`, `/wardrobe/[id]`.
 
-A photo is cut out client-side with `@imgly/background-removal` before upload (`app/public/vendor/background-removal/`), so the image never leaves the device for that step. If that fails, `enhance` asks the paid image model to isolate the garment on white. If that also fails, `locate` asks the paid text model for a bounding box (`garmentLocationSchema`) and the client crops it. The user always picks which version to keep.
+A photo is cut out client-side with `@imgly/background-removal` before upload (`app/public/vendor/background-removal/`), so the image never leaves the device for that step. If that fails, `locate` asks the paid text model for a bounding box (`garmentLocationSchema`) and the client crops it. Beautify runs only after the user clicks its button. It asks the paid image model to select one garment, remove the background and smooth the garment in one catalogue-style image. The user always picks which version to keep.
 
 `analyze` sends the chosen photo to the paid model with `clothingAttributesSchema`: category, subcategory, colours, pattern, material cues, formality, layering role, weather tags, confidence notes and uncertain fields. The client shows every field in an editable form. Nothing is written to `wardrobe_items` until the user confirms it, and a stored `attributes_confirmed` flag keeps an unconfirmed item out of outfit and purchase logic.
 

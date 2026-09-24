@@ -7,7 +7,7 @@ export type CollageItem = {
   subcategory: string | null;
   primary_colour: string | null;
   signed_image_url: string | null;
-  // ai_confidence.image_source: original, cleaned, cropped, isolated or ironed
+  // ai_confidence.image_source: original, cleaned, cropped or beautified
   image_source?: string | null;
   // Signed link to the transparent cut-out, when one has been made
   cutout_url?: string | null;
