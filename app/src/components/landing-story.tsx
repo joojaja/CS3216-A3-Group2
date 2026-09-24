@@ -102,7 +102,7 @@ export default function LandingStory() {
       <h2 className="sr-only">How Wearabouts works</h2>
       <div className="drape-story-desktop">
         <div className="drape-story-copy">
-          <h2 className={stages[active].tightHeading ? "is-tight" : undefined}>
+          <h2>
             {stages[active].heading[0]}
             <br />
             {stages[active].heading[1]}
