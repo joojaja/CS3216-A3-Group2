@@ -1,0 +1,13 @@
+{
+  "name": "wearabouts-product-hunt-video",
+  "private": true,
+  "scripts": {
+    "check": "hyperframes check",
+    "preview": "hyperframes preview --background --port 4567",
+    "render": "hyperframes render --quality draft --workers 1 --output ../video.mp4"
+  },
+  "dependencies": {
+    "gsap": "^3.14.2",
+    "hyperframes": "0.8.73"
+  }
+}
