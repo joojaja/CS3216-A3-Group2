@@ -1,0 +1,11 @@
+{
+  "durationSeconds": 20,
+  "fps": 30,
+  "scenes": [
+    { "id": "problem", "start": 0, "duration": 4 },
+    { "id": "wardrobe", "start": 3.6, "duration": 4.5 },
+    { "id": "planner", "start": 7.7, "duration": 5.1 },
+    { "id": "purchase", "start": 12.4, "duration": 4.8 },
+    { "id": "outro", "start": 16.8, "duration": 3.2 }
+  ]
+}
