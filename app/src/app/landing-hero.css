@@ -31,25 +31,33 @@
   pointer-events: none;
 }
 .drape-public .drape-nav {
+  position: relative;
   width: min(1190px, calc(100% - 48px));
   height: 66px;
   padding: 0 18px 0 25px;
+  isolation: isolate;
+  color: #fff;
+  pointer-events: auto;
+}
+/* The frosted pill is a pseudo-element, not the nav itself, so the blur
+   can be clipped to the rounded shape (overflow: hidden) without also
+   clipping the mobile dropdown, which is a real child of .drape-nav and
+   needs to render outside this box. */
+.drape-public .drape-nav:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.28);
   border-radius: 999px;
-  isolation: isolate;
   background: rgb(27 22 18 / 0.64);
   box-shadow:
     0 18px 48px rgb(21 14 10 / 0.24),
     inset 0 1px 0 rgb(255 255 255 / 0.18);
   backdrop-filter: blur(16px) saturate(120%);
   -webkit-backdrop-filter: blur(16px) saturate(120%);
-  /* Safari ignores border-radius when clipping backdrop-filter unless the
-     element also has a mask. Using a mask here (instead of overflow: hidden)
-     keeps the blur clipped to the pill without trapping the mobile dropdown,
-     which needs to render outside this box. */
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  color: #fff;
-  pointer-events: auto;
+  pointer-events: none;
   transition:
     background 0.35s,
     border-color 0.35s,
