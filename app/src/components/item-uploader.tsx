@@ -160,7 +160,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
 
   const progressLabel =
     bg.phase === "download"
-      ? `Downloading the model, ${Math.round(bg.progress * 100)}%`
+      ? `Removing background, ${Math.round(bg.progress * 100)}%`
       : "Removing the background";
 
   return (
