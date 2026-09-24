@@ -29,20 +29,20 @@ const featureRows = [
     title: "Plan beyond the dress code",
     body: "Where you are going matters. So does the weather and everything else happening that day. Wearabouts considers it all before suggesting one complete look.",
     src: "/landing/feature-weather-screenshot.png",
-    alt: "The Today's outfits screen recommending a navy striped shirt with cargo pants for hot, humid weather with thundery showers, and explaining why it suits the forecast",
+    alt: "The outfit planner showing two recommended outfits for a casual outdoor birthday lunch, each with a photo, an explanation of why it suits the occasion and weather, and a warning about the forecast",
     shotLabel: "Outfit planner · Today's outfits",
-    width: 632,
-    height: 1024,
+    width: 1254,
+    height: 1254,
   },
   {
     number: "03 · Explore your style",
     title: "Inspiration you can actually wear.",
     body: "Browse looks curated by the Wearabouts team and matched to your style profile. Instead of saving outfits built from someone else's closet, discover ideas that feel more like you and work with what you already own.",
     src: "/landing/feature-explore-screenshot.png",
-    alt: "The Explore page showing a grid of curated clothing pieces from local retailers, each with a product name, price and short explanation of why it complements the wardrobe",
+    alt: "The Explore page showing a grid of curated clothing pieces from local retailers, such as water-repellent jackets and trousers, each with a product name, price and short explanation of why it complements the wardrobe",
     shotLabel: "Explore · Curated for you",
-    width: 1024,
-    height: 667,
+    width: 2358,
+    height: 1262,
   },
   {
     number: "04 · Check before buying",
@@ -196,7 +196,7 @@ export default function LandingPage() {
                       <span>{row.shotLabel}</span>
                       <span className="drape-shot-dots"><i /><i /><i /></span>
                     </div>
-                    <div className={`drape-shot-body${index >= 2 ? " is-photo" : ""}`}>
+                    <div className={`drape-shot-body${index >= 1 ? " is-photo" : ""}`}>
                       {index === 0 && (
                         <div className="drape-shot-filter">
                           <span>All</span><span>Tops</span><span>Bottoms</span><span>Outerwear</span>
@@ -204,7 +204,7 @@ export default function LandingPage() {
                       )}
                       <div>
                         <Image
-                          className={`drape-shot-image${index === 1 ? " is-mobile" : ""}${index === 3 ? " is-purchase" : ""}`}
+                          className={`drape-shot-image${index === 3 ? " is-purchase" : ""}`}
                           src={row.src}
                           alt={row.alt}
                           width={row.width}

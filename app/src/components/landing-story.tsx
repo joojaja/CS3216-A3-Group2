@@ -12,9 +12,8 @@ const stages = [
   },
   {
     label: "The context",
-    heading: ["What works for", "where you are going?"],
+    heading: ["What does", "today call for?"],
     body: "A morning class. Dinner after work. Tell Wearabouts what you have planned, and it finds the clothes that fit the day.",
-    tightHeading: true,
   },
   {
     label: "The comparison",
