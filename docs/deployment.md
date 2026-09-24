@@ -8,7 +8,7 @@ All variables are listed with comments in `app/.env.example`. Copy it to `app/.e
 
 `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` come from the Supabase project's Connect dialog or Settings, API Keys. Use the publishable key, never the secret key.
 
-`GOOGLE_GENERATIVE_AI_API_KEY` is the paid Google project. It powers photo analysis, purchase evaluation, the two AI image edits (Isolate, Iron) and the sizing screenshot reader. `GOOGLE_GENERATIVE_AI_FREE_API_KEY` is a second, unbilled Google project that powers the outfit planner, the daily outfit feed and the My Style archetype grouping. `GOOGLE_GENERATIVE_AI_RAG_API_KEY` is a third, unbilled project that powers the Explore feed alone. None of the free keys fall back to the paid key; a route reports a configuration error instead. `GEMINI_MODEL`, `GEMINI_RAG_MODEL` and `GEMINI_IMAGE_MODEL` override the default models.
+`GOOGLE_GENERATIVE_AI_API_KEY` is the paid Google project. It powers photo analysis, purchase evaluation, the Beautify image edit and the sizing screenshot reader. `GOOGLE_GENERATIVE_AI_FREE_API_KEY` is a second, unbilled Google project that powers the outfit planner, the daily outfit feed and the My Style archetype grouping. `GOOGLE_GENERATIVE_AI_RAG_API_KEY` is a third, unbilled project that powers the Explore feed alone. None of the free keys fall back to the paid key; a route reports a configuration error instead. `GEMINI_MODEL`, `GEMINI_RAG_MODEL` and `GEMINI_IMAGE_MODEL` override the default models.
 
 `SIZING_EXTRACT_MOCK=1` answers sizing screenshot uploads with canned fixtures instead of a paid call. It only works when `NODE_ENV=development`; production builds ignore it.
 

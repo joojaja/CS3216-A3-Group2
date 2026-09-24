@@ -221,9 +221,9 @@ function JobReporter({
   id: string;
   onChange: (id: string, snapshot: JobSnapshot) => void;
 }) {
-  const { step, file, preview, error, done, bg, enhance } = useAnalysis();
+  const { step, file, preview, error, done, bg, beautify } = useAnalysis();
   const removing = bg.status === "running";
-  const beautifying = enhance.iron.status === "running";
+  const beautifying = beautify.status === "running";
   const analyzing = step === "analyzing";
   const saving = step === "saving";
 
