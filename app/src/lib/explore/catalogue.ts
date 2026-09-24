@@ -1,3 +1,5 @@
+import type { Gender } from "@/lib/profile-gender";
+
 export type ExploreProduct = {
   id: string;
   retailer: string;
@@ -189,12 +191,23 @@ export type WardrobeForRetrieval = {
 };
 
 export type ProfileForRetrieval = {
+  gender?: Gender | null;
   preferred_styles?: string[] | null;
   preferred_colours?: string[] | null;
   disliked_colours?: string[] | null;
 };
 
 const normal = (value: string) => value.trim().toLowerCase().replaceAll("_", " ");
+
+export function catalogueForGender(gender: Gender | null | undefined) {
+  if (gender === "male") {
+    return EXPLORE_CATALOGUE.filter((product) => product.fitLine === "men");
+  }
+  if (gender === "female") {
+    return EXPLORE_CATALOGUE.filter((product) => product.fitLine === "women");
+  }
+  return EXPLORE_CATALOGUE;
+}
 
 export function retrieveExploreCandidates(
   wardrobe: WardrobeForRetrieval[],
@@ -215,7 +228,8 @@ export function retrieveExploreCandidates(
   const preferredColours = new Set((profile?.preferred_colours ?? []).map(normal));
   const dislikedColours = new Set((profile?.disliked_colours ?? []).map(normal));
 
-  const ranked = EXPLORE_CATALOGUE.map((product, index) => {
+  const eligibleProducts = catalogueForGender(profile?.gender);
+  const ranked = eligibleProducts.map((product, index) => {
     const colour = normal(product.colour);
     let score = 0;
     score += Math.max(0, 4 - (categoryCounts.get(product.category) ?? 0)) * 2;
@@ -229,7 +243,7 @@ export function retrieveExploreCandidates(
   })
     .sort((a, b) => b.score - a.score || a.index - b.index);
 
-  const target = Math.max(10, Math.min(limit, EXPLORE_CATALOGUE.length));
+  const target = Math.max(10, Math.min(limit, eligibleProducts.length));
   const selected: typeof ranked = [];
   const selectedIds = new Set<string>();
   const retailerCounts = new Map<string, number>();
@@ -237,7 +251,7 @@ export function retrieveExploreCandidates(
   // Give the ranking model at least one strong candidate from every retailer.
   // Otherwise equal scores favour whichever retailer appears first in the
   // static catalogue and the larger source can crowd out the smaller ones.
-  for (const retailer of new Set(EXPLORE_CATALOGUE.map((product) => product.retailer))) {
+  for (const retailer of new Set(eligibleProducts.map((product) => product.retailer))) {
     const candidate = ranked.find(({ product }) => product.retailer === retailer);
     if (!candidate) continue;
     selected.push(candidate);
