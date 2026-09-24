@@ -9,9 +9,12 @@ CS3216 Assignment 3, Group 2.
 
 ## Application preview
 
-[![Watch the 20-second Wearabouts launch video](app/public/launch-video/photo.jpg)](app/public/launch-video/video.mp4)
+<a href="app/public/launch-video/video.mp4">
+  <img src="app/public/launch-video/photo.jpg" alt="Watch the 20-second Wearabouts launch video" width="500">
+</a>
 
-[Watch the launch video](app/public/launch-video/video.mp4)
+https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
+
 
 | Add an item | Browse your wardrobe |
 | --- | --- |
@@ -26,7 +29,7 @@ CS3216 Assignment 3, Group 2.
 | Name | Matriculation number | Contribution |
 | --- | --- | --- |
 | Maahir Garg (@maahir-garg) | [TO FILL: matriculation number] | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
-| Brian (@joojaja) | [TO FILL: matriculation number] | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
+| Brian (@joojaja) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
 | Chi An (@tsaichian) | [TO FILL: matriculation number] | Sizing, daily outfit feed, saved outfits and My Style |
 | Sanjeev Ravichandran (@sanjeevr123) | [TO FILL: matriculation number] | Landing page hero, header, feature tour, pricing and story motion |
 
