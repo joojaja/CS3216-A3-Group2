@@ -12,7 +12,40 @@ test("Explore retrieval returns a controlled subset with real retailer URLs", ()
   const candidates = retrieveExploreCandidates(fiveTops, null, 16);
   assert.equal(candidates.length, 16);
   assert.ok(candidates.every(({ product }) => EXPLORE_CATALOGUE.includes(product)));
-  assert.ok(candidates.every(({ product }) => product.productUrl.startsWith("https://www.muji.com/sg/")));
+  const allowedHosts = new Set([
+    "www.muji.com",
+    "www.uniqlo.com",
+    "www.decathlon.sg",
+  ]);
+  assert.ok(
+    candidates.every(({ product }) =>
+      allowedHosts.has(new URL(product.productUrl).hostname),
+    ),
+  );
+  assert.equal(
+    new Set(candidates.map(({ product }) => product.retailer)).size,
+    3,
+  );
+});
+
+test("Explore catalogue has 100 unique products from three Singapore retailers", () => {
+  assert.equal(EXPLORE_CATALOGUE.length, 100);
+  assert.equal(new Set(EXPLORE_CATALOGUE.map((product) => product.id)).size, 100);
+  assert.equal(
+    new Set(EXPLORE_CATALOGUE.map((product) => product.productUrl)).size,
+    100,
+  );
+  assert.deepEqual(
+    new Set(EXPLORE_CATALOGUE.map((product) => product.retailer)),
+    new Set(["MUJI Singapore", "UNIQLO Singapore", "Decathlon Singapore"]),
+  );
+  assert.ok(
+    EXPLORE_CATALOGUE.every(
+      (product) =>
+        product.productUrl.startsWith("https://") &&
+        product.imageUrl.startsWith("https://"),
+    ),
+  );
 });
 
 test("Explore retrieval favours wardrobe gaps over another repeated category", () => {
