@@ -165,7 +165,7 @@ export function PurchaseEvaluator() {
             <button
               onClick={evaluate}
               disabled={!file}
-              className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:bg-accent-deep disabled:opacity-40"
+              className="rounded-lg bg-cobalt px-5 py-3 text-sm font-semibold text-white transition hover:bg-cobalt-deep disabled:opacity-40"
             >
               Check against my wardrobe
             </button>
