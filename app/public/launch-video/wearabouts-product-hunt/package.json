@@ -1,0 +1,10 @@
+{
+  "name": "wearabouts-product-hunt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "..\\composition\\node_modules\\.bin\\hyperframes.cmd preview --background --port 4567",
+    "check": "..\\composition\\node_modules\\.bin\\hyperframes.cmd check",
+    "render": "..\\composition\\node_modules\\.bin\\hyperframes.cmd render --quality draft --workers 1 --output ..\\video.mp4"
+  }
+}
