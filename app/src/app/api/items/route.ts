@@ -101,7 +101,7 @@ export async function POST(request: Request) {
 
   // Which version of the photo was stored, so an AI rendering is never
   // mistaken for the shot itself
-  const IMAGE_SOURCES = ["original", "cleaned", "cropped", "isolated", "ironed"] as const;
+  const IMAGE_SOURCES = ["original", "cleaned", "cropped", "beautified"] as const;
   const rawSource = String(form.get("image_source") ?? "original");
   const image_source = (IMAGE_SOURCES as readonly string[]).includes(rawSource) ? rawSource : "original";
 

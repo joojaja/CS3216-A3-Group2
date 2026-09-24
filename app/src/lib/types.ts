@@ -16,7 +16,7 @@ export type WardrobeItem = {
   ai_confidence?: {
     notes?: string;
     uncertain_fields?: string[];
-    // original, cleaned, cropped, isolated or ironed
+    // original, cleaned, cropped or beautified
     image_source?: string;
     // Background removal found no garment, so no cut-out will be made
     cutout_failed?: boolean;
