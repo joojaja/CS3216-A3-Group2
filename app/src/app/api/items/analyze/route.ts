@@ -9,6 +9,7 @@ import {
 } from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { recordAiMeasurement } from "@/lib/ai/measurements";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -31,6 +32,8 @@ Rules:
 - If the image shows multiple garments, describe the most prominent one and say so in confidence_notes
 
 ${UNTRUSTED_CONTENT_RULE}`;
+
+const ATTRIBUTE_EXTRACTION_PROMPT_VERSION = "2026-09-24.1";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -71,8 +74,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const modelStarted = performance.now();
   try {
-    const { object } = await generateObject({
+    const { object, usage } = await generateObject({
       model: getModel(),
       schema: clothingAttributesSchema,
       messages: [
@@ -83,8 +87,32 @@ export async function POST(request: Request) {
       ],
     });
 
+    recordAiMeasurement({
+      workflow: "attribute_extraction",
+      promptVersion: ATTRIBUTE_EXTRACTION_PROMPT_VERSION,
+      model: MODEL_ID,
+      keyTier: "paid",
+      success: true,
+      modelLatencyMs: Math.round(performance.now() - modelStarted),
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      totalTokens: usage.totalTokens,
+      imageBytes: file.size,
+      imageType: file.type,
+    });
+
     return Response.json({ attributes: object });
   } catch (error) {
+    recordAiMeasurement({
+      workflow: "attribute_extraction",
+      promptVersion: ATTRIBUTE_EXTRACTION_PROMPT_VERSION,
+      model: MODEL_ID,
+      keyTier: "paid",
+      success: false,
+      modelLatencyMs: Math.round(performance.now() - modelStarted),
+      imageBytes: file.size,
+      imageType: file.type,
+    });
     return aiFailure("analyze", error, { model: MODEL_ID, key: "paid" });
   }
 }
