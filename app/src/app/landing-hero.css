@@ -36,7 +36,6 @@
   padding: 0 18px 0 25px;
   border: 1px solid rgb(255 255 255 / 0.28);
   border-radius: 999px;
-  overflow: hidden;
   isolation: isolate;
   background: rgb(27 22 18 / 0.64);
   box-shadow:
@@ -44,6 +43,11 @@
     inset 0 1px 0 rgb(255 255 255 / 0.18);
   backdrop-filter: blur(16px) saturate(120%);
   -webkit-backdrop-filter: blur(16px) saturate(120%);
+  /* Safari ignores border-radius when clipping backdrop-filter unless the
+     element also has a mask. Using a mask here (instead of overflow: hidden)
+     keeps the blur clipped to the pill without trapping the mobile dropdown,
+     which needs to render outside this box. */
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
   color: #fff;
   pointer-events: auto;
   transition:
