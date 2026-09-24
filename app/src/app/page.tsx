@@ -106,6 +106,9 @@ export default function LandingPage() {
       </a>
       <header className="drape-header">
         <nav className="drape-nav" aria-label="Primary navigation">
+          <span className="drape-nav-glass" aria-hidden="true">
+            <span className="drape-nav-blur" />
+          </span>
           <Link
             className="drape-wordmark"
             href="/"
