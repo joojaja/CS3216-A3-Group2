@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Browser-ready third-party bundles copied from installed packages.
     "public/vendor/**",
+    "public/launch-video/**/assets/gsap.min.js",
   ]),
 ]);
 
