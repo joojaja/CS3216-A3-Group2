@@ -24,7 +24,7 @@ import {
 import { BEAUTIFY_PROMPT } from "../src/lib/ai/beautify-prompt.ts";
 
 const CASES_DIR = path.resolve("tests/test-cases-clothes");
-const RESULTS_ROOT = path.resolve("../test-results");
+const RESULTS_ROOT = path.resolve("tests/test-results");
 const EXPECTED_FIELDS = [
   "name",
   "category",
