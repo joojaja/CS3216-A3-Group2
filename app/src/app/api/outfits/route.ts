@@ -8,6 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { loadFeedbackContext } from "@/lib/outfits/server";
 import { readAccountEntitlement } from "@/lib/account-entitlements";
+import { recordAiMeasurement } from "@/lib/ai/measurements";
+
+const OUTFIT_PLANNER_PROMPT_VERSION = "2026-09-24.1";
 
 const requestSchema = z.object({
   occasion_text: z.string().min(2).max(1000),
@@ -164,7 +167,7 @@ Rules:
 
 ${UNTRUSTED_CONTENT_RULE}`;
 
-  const started = Date.now();
+  const modelStarted = performance.now();
   try {
     // Text only, nothing from the paid tier is needed, so this call runs on
     // the free-tier project and never touches the paid key
@@ -173,9 +176,19 @@ ${UNTRUSTED_CONTENT_RULE}`;
       schema: outfitSelectionSchema,
       prompt,
     });
-    console.log(
-      `[ai:outfits] ${MODEL_ID} key=free ${Date.now() - started}ms tokens=${usage.totalTokens ?? "?"}`,
-    );
+    recordAiMeasurement({
+      workflow: "outfit_planner",
+      promptVersion: OUTFIT_PLANNER_PROMPT_VERSION,
+      model: MODEL_ID,
+      keyTier: "free",
+      success: true,
+      modelLatencyMs: Math.round(performance.now() - modelStarted),
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      totalTokens: usage.totalTokens,
+      wardrobeItemCount: items.length,
+      followUp: Boolean(previous),
+    });
 
     if (!object.is_outfit_request) {
       return Response.json({
@@ -269,10 +282,21 @@ ${UNTRUSTED_CONTENT_RULE}`;
       weather: forecast?.summary ?? null,
     });
   } catch (error) {
+    const modelLatencyMs = Math.round(performance.now() - modelStarted);
+    recordAiMeasurement({
+      workflow: "outfit_planner",
+      promptVersion: OUTFIT_PLANNER_PROMPT_VERSION,
+      model: MODEL_ID,
+      keyTier: "free",
+      success: false,
+      modelLatencyMs,
+      wardrobeItemCount: items.length,
+      followUp: Boolean(previous),
+    });
     return aiFailure("outfits", error, {
       model: MODEL_ID,
       key: "free",
-      ms: Date.now() - started,
+      ms: modelLatencyMs,
       wardrobeItems: items.length,
       followUp: Boolean(previous),
       promptChars: prompt.length,
