@@ -1,10 +1,10 @@
-# Wearabouts
+<p align="center">
+  <img width="611" height="175" alt="image" src="https://github.com/user-attachments/assets/c0e38944-cea1-406e-9adf-55df1073d672" />
+</p>
 
 Wearabouts is a wardrobe-first clothing assistant for Singapore. You photograph the clothes you already own, get outfits built from them for an occasion and the day's NEA forecast, and check whether a new item duplicates something in your wardrobe before you buy it.
 
-CS3216 Assignment 3, Group 2.
-
-- Live application: https://wearabouts-zeta.vercel.app
+- Deployment: https://wearabouts-zeta.vercel.app
 - Repository: https://github.com/joojaja/CS3216-A3-Group2
 
 ## Test the deployed application
@@ -20,10 +20,6 @@ Anything saved to this account is visible and editable by other reviewers. Do no
 
 ## Application preview
 
-<a href="app/public/launch-video/video.mp4">
-  <img src="app/public/launch-video/photo.jpg" alt="Watch the 20-second Wearabouts launch video" width="500">
-</a>
-
 https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 
 
@@ -35,14 +31,14 @@ https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 | --- | --- |
 | ![Outfit suggestions built from the user's wardrobe](app/public/launch/product-hunt-slide-4.png) | ![A purchase check compared with the user's existing wardrobe](app/public/landing/feature-purchase.webp) |
 
-## Team
+## CS3216 Assignment 3, Team 2
 
-| Name | Matriculation number | Contribution |
-| --- | --- | --- |
-| Maahir Garg (@maahir-garg) | [TO FILL: matriculation number] | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
-| Brian (@joojaja) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
-| Chi An (@tsaichian) | [TO FILL: matriculation number] | Sizing, daily outfit feed, saved outfits and My Style |
-| Sanjeev Ravichandran (@sanjeevr123) | [TO FILL: matriculation number] | Landing page hero, header, feature tour, pricing and story motion |
+| Name and GitHub | Matric Number | Contributions |
+| :--- | :--- | :--- |
+| Maahir Garg <br>([@maahir-garg](https://github.com/maahir-garg)) | A0284729M | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
+| Brian ([@joojaja](https://github.com/joojaja)) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
+| Chi An ([@tsaichian](https://github.com/tsaichian)) | A0309019H | Sizing, daily outfit feed, saved outfits and My Style |
+| Sanjeev Ravichandran ([@sanjeevr123](https://github.com/sanjeevr123)) | A0273811H | Landing page hero, header, feature tour, pricing and story motion |
 
 ## What it does
 
@@ -146,6 +142,7 @@ The 216 tests cover deterministic and security-sensitive code: size matching, ou
 - [IMG.LY background removal](https://github.com/imgly/background-removal-js) (AGPL-3.0), bundled under `app/public/vendor/background-removal/` with its licence.
 - The W-and-hanger mark and landing imagery were designed by the Wearabouts team. See [`docs/design.md`](docs/design.md).
 - [Fraunces](https://fonts.google.com/specimen/Fraunces) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License), self-hosted.
+- This project was developed as part of the [**CS3216 Coursework Assignment 3 Artificial Intelligence**](https://cs3216.github.io/coursework/artificial-intelligence).
 
 ## Licence
 
