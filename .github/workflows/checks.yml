@@ -20,7 +20,7 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22.18.0'
           cache: npm
@@ -38,7 +38,7 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22.18.0'
       - name: Fail on high or critical advisories in production dependencies
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22.18.0'
       - name: Check relative Markdown links
