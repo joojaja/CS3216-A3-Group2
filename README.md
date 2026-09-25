@@ -22,7 +22,6 @@ Anything saved to this account is visible and editable by other reviewers. Do no
 
 https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 
-
 | Add an item | Browse your wardrobe |
 | --- | --- |
 | ![A clothing photo becoming an editable wardrobe item](app/public/launch/product-hunt-slide-2.png) | ![The private wardrobe and its category filters](app/public/launch/product-hunt-slide-3.png) |
@@ -30,6 +29,11 @@ https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 | Plan an outfit | Check a potential purchase |
 | --- | --- |
 | ![Outfit suggestions built from the user's wardrobe](app/public/launch/product-hunt-slide-4.png) | ![A purchase check compared with the user's existing wardrobe](app/public/landing/feature-purchase.webp) |
+
+## Demo preview
+
+https://github.com/user-attachments/assets/fee357a3-69dc-4327-93d4-7935eea01e90
+
 
 ## CS3216 Assignment 3, Team 2
 
