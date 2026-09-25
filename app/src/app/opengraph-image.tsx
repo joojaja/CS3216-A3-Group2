@@ -13,6 +13,10 @@ const fraunces = await readFile(
 const inter = await readFile(
   join(process.cwd(), "public/landing/font-2.woff"),
 );
+const brandMark = await readFile(
+  join(process.cwd(), "public/landing/brand-mark.png"),
+);
+const brandMarkDataUrl = `data:image/png;base64,${brandMark.toString("base64")}`;
 
 export default function Image() {
   return new ImageResponse(
@@ -31,18 +35,7 @@ export default function Image() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <svg width="64" height="64" viewBox="0 0 48 48">
-            <g
-              transform="translate(4 6)"
-              fill="none"
-              stroke="#242823"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 12 12 31 20 20 28 31 36 12M12 15l8-6c4-4-2-9-5-5" />
-            </g>
-          </svg>
+          <img src={brandMarkDataUrl} width={88} height={58} alt="" />
           <div style={{ display: "flex", fontFamily: "Fraunces", fontSize: 44 }}>
             <span>wear</span>
             <span style={{ opacity: 0.6 }}>abouts</span>

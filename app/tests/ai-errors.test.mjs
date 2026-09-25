@@ -36,12 +36,12 @@ test("rate limits read as busy too", () => {
   assert.equal(reportAiError("outfits", apiError(429, "Resource has been exhausted")), "The AI service is busy right now. Wait a moment and try again.");
 });
 
-test("free accounts see the Premium option when outfit AI credits run out", () => {
+test("free accounts see the Wearabouts Plus option when outfit AI credits run out", () => {
   assert.equal(
     reportAiError("outfits", apiError(429, "Resource has been exhausted"), {
       accountTier: "free",
     }),
-    "The free-tier outfit planner has run out of AI credits. Upgrade to Premium for uninterrupted outfit planning.",
+    "The free-tier outfit planner has run out of AI credits. Upgrade to Wearabouts Plus for uninterrupted outfit planning.",
   );
 });
 

@@ -7,14 +7,31 @@ CS3216 Assignment 3, Group 2.
 - Live application: https://wearabouts-zeta.vercel.app
 - Repository: https://github.com/joojaja/CS3216-A3-Group2
 
+## Application preview
+
+<a href="app/public/launch-video/video.mp4">
+  <img src="app/public/launch-video/photo.jpg" alt="Watch the 20-second Wearabouts launch video" width="500">
+</a>
+
+https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
+
+
+| Add an item | Browse your wardrobe |
+| --- | --- |
+| ![A clothing photo becoming an editable wardrobe item](app/public/launch/product-hunt-slide-2.png) | ![The private wardrobe and its category filters](app/public/launch/product-hunt-slide-3.png) |
+
+| Plan an outfit | Check a potential purchase |
+| --- | --- |
+| ![Outfit suggestions built from the user's wardrobe](app/public/launch/product-hunt-slide-4.png) | ![A purchase check compared with the user's existing wardrobe](app/public/landing/feature-purchase.webp) |
+
 ## Team
 
-| Name | Contribution |
-| --- | --- |
-| Maahir Garg | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
-| TODO (GitHub: joojaja) | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
-| TODO (git name: tsaichian) | Sizing (measurement profiles, stored brand charts, screenshot reader), daily outfit feed, saved outfits, My Style |
-| Sanjeev Ravichandran | Landing page redesign: hero, header, feature tour, pricing and story motion |
+| Name | Matriculation number | Contribution |
+| --- | --- | --- |
+| Maahir Garg (@maahir-garg) | A0284729M | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
+| Brian (@joojaja) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
+| Chi An (@tsaichian) | [TO FILL: matriculation number] | Sizing, daily outfit feed, saved outfits and My Style |
+| Sanjeev Ravichandran (@sanjeevr123) | A0273811H | Landing page hero, header, feature tour, pricing and story motion |
 
 ## What it does
 
@@ -29,22 +46,48 @@ CS3216 Assignment 3, Group 2.
 
 Next.js 16 (App Router) with React 19 and TypeScript, Tailwind CSS v4, Supabase (Postgres, Auth, private Storage, row-level security), Google Gemini through the Vercel AI SDK with Zod-validated structured outputs, NEA forecasts from data.gov.sg, and Vercel for hosting, Web Analytics and Speed Insights. [`docs/architecture.md`](docs/architecture.md) maps each feature to its routes, model and rules.
 
-## Run it locally
+## Local setup
 
-Requires Node 22.18 or newer.
+### Requirements
+
+- Node.js 22.18 or newer
+- npm
+- A Supabase project for persistent accounts, wardrobe data and private image storage
+- Google AI Studio keys for the Gemini-backed features you want to use
+
+### Install and start the app
 
 ```bash
+git clone https://github.com/joojaja/CS3216-A3-Group2.git
+cd CS3216-A3-Group2
 cd app
-cp .env.example .env.local
 npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-1. Create a Supabase project and run `app/supabase/schema.sql` in its SQL editor. The script only adds missing objects, so it is safe to re-run.
-2. Put the project URL and publishable key in `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-3. In Supabase Authentication, add `http://localhost:3000/auth/callback` to the allowed redirect URLs.
-4. Add Gemini keys for the features you want. `.env.example` explains each one. `GOOGLE_GENERATIVE_AI_API_KEY` is billed and powers photo analysis, purchase checks, image edits and the sizing screenshot reader. `GOOGLE_GENERATIVE_AI_FREE_API_KEY` powers the outfit planner, daily outfits and My Style. `GOOGLE_GENERATIVE_AI_RAG_API_KEY` powers Explore. No free key falls back to the billed one.
-5. Optionally run `npm run seed:wardrobe` to add 23 confirmed sample items to your account without any AI call. `-- --remove` deletes them again.
+Open http://localhost:3000 after the development server starts.
+
+### Configure Supabase
+
+1. Create a Supabase project.
+2. Open its SQL editor and run [`app/supabase/schema.sql`](app/supabase/schema.sql). The script adds missing application objects and does not delete existing rows.
+3. Copy the project URL and publishable key into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+4. Add `http://localhost:3000/auth/callback` to the allowed redirect URLs under Supabase Authentication.
+
+### Configure Gemini
+
+Add only the keys needed for the workflows you want to test. [`.env.example`](app/.env.example) documents every variable.
+
+- `GOOGLE_GENERATIVE_AI_API_KEY` powers photo analysis, purchase checks, image edits and the sizing screenshot reader. Calls made through a project with billing enabled may incur charges.
+- `GOOGLE_GENERATIVE_AI_FREE_API_KEY` powers the outfit planner, daily outfits and My Style.
+- `GOOGLE_GENERATIVE_AI_RAG_API_KEY` powers Explore.
+
+The two free-tier workflows never fall back to the billed key.
+
+### Optional sample wardrobe
+
+Run `npm run seed:wardrobe` from `app/` to add 23 confirmed sample items without making an AI call. Run `npm run seed:wardrobe -- --remove` to remove them.
 
 Without Supabase variables, development mode offers a labelled preview login (`test@gmail.com` / `testtest`) that saves nothing. Production setup is in [`docs/deployment.md`](docs/deployment.md).
 
@@ -52,17 +95,7 @@ Without Supabase variables, development mode offers a labelled preview login (`t
 
 From `app/`, run `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`. GitHub Actions runs all four on every pull request and push to `main`, alongside a Markdown link check, a dependency audit and CodeQL security scanning. Dependabot opens weekly update pull requests for npm packages and Actions.
 
-The 198 tests cover deterministic and security-sensitive code: size matching, outfit rules, colour families, AI error mapping, prompt cleaning, the purchase verdict rule, style-group repair and analytics URL redaction. `app/scripts/eval-sizing.mjs` evaluates the sizing model against screenshot fixtures and only runs when a person sets `SIZING_EVAL_I_AM_HUMAN=1`, because it spends the billed key.
-
-## How we built it
-
-We used OpenAI Codex and Claude Code as coding agents throughout. Three files kept them on track.
-
-- `AGENTS.md` is the product and engineering spec: scope, data model, AI workflows, security requirements and rules for agents, including a ban on agents calling the billed Gemini key.
-- `UNSLOP.md` is the writing standard for every user-facing string and document.
-- `.claude/skills/` packages the repository's conventions (writing style, the billed-key boundary, Supabase migrations, pre-PR checks, milestone write-ups) as skills an agent loads before that kind of work.
-
-Every change went through a pull request and had to pass CI before it merged.
+The 216 tests cover deterministic and security-sensitive code: size matching, outfit rules, colour families, AI error mapping, prompt cleaning, the purchase verdict rule, style-group repair and analytics URL redaction. `app/scripts/eval-sizing.mjs` evaluates the sizing model against screenshot fixtures and only runs when a person sets `SIZING_EVAL_I_AM_HUMAN=1`, because it spends the billed key.
 
 ## Documentation
 
@@ -79,9 +112,8 @@ Every change went through a pull request and had to pass CI before it merged.
 - [Next.js](https://nextjs.org/docs), [Supabase](https://supabase.com/docs), [Vercel AI SDK](https://ai-sdk.dev/docs) and [Gemini API](https://ai.google.dev/gemini-api/docs) documentation.
 - [data.gov.sg](https://data.gov.sg/) NEA 2-hour, 24-hour and 4-day forecast APIs.
 - [IMG.LY background removal](https://github.com/imgly/background-removal-js) (AGPL-3.0), bundled under `app/public/vendor/background-removal/` with its licence.
-- [Supabase agent skills](https://github.com/supabase/agent-skills), vendored under `.agents/skills/`.
-- The W-and-hanger mark, landing images and self-hosted fonts are adapted from the Wearabouts cinematic landing reference supplied to the team. See [`docs/design.md`](docs/design.md).
-- OpenAI Codex and Claude Code as coding agents.
+- The W-and-hanger mark and landing imagery were designed by the Wearabouts team. See [`docs/design.md`](docs/design.md).
+- [Fraunces](https://fonts.google.com/specimen/Fraunces) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License), self-hosted.
 
 ## Licence
 

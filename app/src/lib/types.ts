@@ -16,9 +16,13 @@ export type WardrobeItem = {
   ai_confidence?: {
     notes?: string;
     uncertain_fields?: string[];
-    // original, cleaned, cropped, isolated or ironed
+    // original, cleaned, cropped or beautified
     image_source?: string;
+    // Background removal found no garment, so no cut-out will be made
+    cutout_failed?: boolean;
   } | null;
+  // Transparent PNG of the garment alone, drawn on outfit cards
+  cutout_path?: string | null;
   attributes_confirmed: boolean;
   created_at: string;
   updated_at?: string;

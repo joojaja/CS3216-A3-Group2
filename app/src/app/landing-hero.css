@@ -1,0 +1,391 @@
+/* Home-wardrobe hero and its floating navigation. Scoped to the landing
+   page's hero and header, plus the bridge section's background only
+   (its own transition treatment) — no copy, layout or other styling
+   below the hero is touched here. */
+
+/* Floating glass navigation over the hero photograph. */
+.drape-public .drape-header,
+.drape-public .drape-header.is-compact {
+  height: auto !important;
+  box-shadow: none !important;
+  transition: opacity 0.3s ease !important;
+}
+.drape-public .drape-header {
+  position: fixed;
+  top: 22px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 0;
+  pointer-events: none;
+  opacity: 1;
+}
+.drape-public .drape-header.is-compact {
+  opacity: 0;
+  pointer-events: none;
+}
+.drape-public .drape-header.is-compact .drape-nav {
+  pointer-events: none;
+}
+.drape-public .drape-nav {
+  position: relative;
+  width: min(1190px, calc(100% - 48px));
+  height: 66px;
+  padding: 0 18px 0 25px;
+  isolation: isolate;
+  color: #fff;
+  pointer-events: auto;
+}
+/* The frosted pill is built from two nested, decorative layers instead of
+   .drape-nav itself, so the mobile dropdown (a real child of .drape-nav)
+   is never clipped. It is also split into two elements rather than one:
+   Safari does not reliably clip an element's own backdrop-filter to its
+   own border-radius, even with overflow: hidden set on that same element.
+   The outer layer owns the rounding and the clip; the inner layer owns
+   the blur and is clipped by the outer one instead of by itself. */
+.drape-public .drape-nav-glass {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: 999px;
+  box-shadow:
+    0 18px 48px rgb(21 14 10 / 0.24),
+    inset 0 1px 0 rgb(255 255 255 / 0.18);
+  pointer-events: none;
+  transition: border-color 0.35s, box-shadow 0.35s;
+}
+.drape-public .drape-nav-blur {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: rgb(27 22 18 / 0.64);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  transition: background 0.35s;
+}
+.drape-header .drape-wordmark {
+  font-size: 23px;
+}
+.drape-header .drape-wordmark img {
+  width: 44px;
+  height: 31px;
+  filter: invert(1);
+}
+.drape-header .drape-links {
+  gap: 48px;
+  font-size: 15px;
+}
+.drape-header .drape-nav-actions {
+  gap: 28px;
+  font-size: 15px;
+}
+.drape-header .drape-nav-actions .drape-button {
+  min-height: 44px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  background: #fff !important;
+  color: #211b18 !important;
+}
+.drape-header .drape-mobile-menu summary {
+  color: inherit;
+  border-color: rgb(255 255 255 / 0.4);
+}
+
+/* Nav links and Sign in turn orange on hover and while active/clicked. */
+.drape-header .drape-links a,
+.drape-header .drape-nav-actions > a:first-child {
+  transition: color 0.18s ease;
+}
+.drape-header .drape-links a:hover,
+.drape-header .drape-links a:active,
+.drape-header .drape-nav-actions > a:first-child:hover,
+.drape-header .drape-nav-actions > a:first-child:active,
+.drape-header .drape-mobile-menu a:hover,
+.drape-header .drape-mobile-menu a:active {
+  color: #d97a4c;
+}
+
+/* Cinematic home-wardrobe hero. */
+.drape-public .drape-hero {
+  position: relative;
+  height: 100svh;
+  min-height: 720px;
+  max-height: 960px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: #3b2c23;
+  color: #fff;
+  isolation: isolate;
+}
+.drape-public .drape-hero:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(25, 18, 14, 0.84) 0%, rgba(25, 18, 14, 0.64) 27%, rgba(25, 18, 14, 0.16) 52%, rgba(25, 18, 14, 0) 72%),
+    linear-gradient(0deg, rgba(20, 14, 11, 0.25), transparent 40%);
+  pointer-events: none;
+}
+.drape-hero-backdrop {
+  z-index: 0;
+  object-position: center center !important;
+  transition: transform 120ms linear;
+}
+.drape-hero-copy {
+  position: relative;
+  z-index: 3;
+  padding: 96px 0 148px;
+}
+.drape-public .drape-hero .drape-eyebrow {
+  max-width: 520px;
+  margin-bottom: 22px;
+  color: #fff;
+  font-size: clamp(10px, 0.9vw, 13px);
+  letter-spacing: 0.22em;
+}
+.drape-public .drape-hero h1 {
+  max-width: 540px;
+  font-family: DrapeFraunces, Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(58px, 6.3vw, 98px);
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  text-shadow: 0 5px 28px rgb(16 10 7 / 0.28);
+}
+.drape-public .drape-hero h1 em {
+  font-style: normal;
+  color: #eef0d8;
+}
+.drape-hero-ctas {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 15%;
+  z-index: 6;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  pointer-events: none;
+}
+.drape-hero-ctas .drape-container {
+  display: flex;
+  justify-content: flex-start;
+  gap: 14px;
+  pointer-events: auto;
+}
+.drape-primary-cta {
+  min-height: 58px;
+  padding: 15px 28px;
+  background: #e59a86 !important;
+  color: #1f211d !important;
+  border-radius: 999px;
+  font-size: 16px;
+  box-shadow: 0 14px 34px rgb(35 17 11 / 0.18);
+}
+.drape-primary-cta:hover {
+  background: #d48772 !important;
+}
+.drape-how-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 58px;
+  padding: 0 26px;
+  border: 1px solid rgb(255 255 255 / 0.36);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  background: rgb(31 23 18 / 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.drape-how-link:before {
+  content: "\25B6";
+  margin-right: 12px;
+  font-size: 10px;
+}
+.drape-how-link:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+/* Entrance motion: eyebrow, headline lines and CTAs settle in on load. */
+.drape-hero-backdrop {
+  animation: drape-hero-settle 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.drape-hero-line {
+  display: block;
+  animation: drape-line-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.drape-hero-line:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.drape-hero-line:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.drape-hero-line:nth-child(3) {
+  animation-delay: 0.27s;
+}
+.drape-public .drape-hero .drape-eyebrow {
+  animation: drape-fade-up 700ms ease both;
+  animation-delay: 0.4s;
+}
+.drape-hero-ctas .drape-container {
+  animation: drape-fade-up 700ms ease both;
+  animation-delay: 0.55s;
+}
+@keyframes drape-hero-settle {
+  from {
+    transform: scale(1.035);
+    filter: blur(2px);
+  }
+  to {
+    transform: scale(1);
+    filter: none;
+  }
+}
+@keyframes drape-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes drape-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .drape-header .drape-links {
+    gap: 22px;
+    font-size: 14px;
+  }
+  .drape-header .drape-nav-actions {
+    gap: 18px;
+    font-size: 14px;
+  }
+  .drape-public .drape-hero h1,
+  .drape-public .drape-hero .drape-eyebrow {
+    max-width: 48vw;
+  }
+}
+@media (max-width: 900px) {
+  .drape-public .drape-header {
+    top: 14px;
+    height: auto;
+  }
+  .drape-public .drape-nav {
+    height: 60px;
+    width: calc(100% - 28px);
+  }
+  .drape-header .drape-mobile-menu > div {
+    top: 72px;
+    border-color: var(--line);
+    border-radius: 22px;
+    background: rgb(243 237 229 / 0.97);
+    color: var(--ink);
+    box-shadow: 0 18px 45px rgb(39 25 18 / 0.18);
+  }
+  .drape-public .drape-hero {
+    min-height: 760px;
+  }
+  .drape-public .drape-hero h1 {
+    max-width: 55vw;
+    font-size: clamp(50px, 8.4vw, 76px);
+  }
+  .drape-public .drape-hero .drape-eyebrow {
+    max-width: 48vw;
+  }
+}
+@media (max-width: 640px) {
+  .drape-public .drape-header {
+    top: 10px;
+  }
+  .drape-public .drape-nav {
+    width: calc(100% - 20px);
+    padding: 0 10px 0 17px;
+  }
+  .drape-header .drape-wordmark {
+    font-size: 20px;
+  }
+  .drape-header .drape-wordmark img {
+    width: 36px;
+  }
+  .drape-header .drape-nav-actions > a:first-child {
+    display: none;
+  }
+  .drape-public .drape-hero {
+    height: 92svh;
+    min-height: 700px;
+    align-items: flex-start;
+  }
+  .drape-public .drape-hero:before {
+    background:
+      linear-gradient(180deg, rgba(24, 17, 13, 0.78) 0%, rgba(24, 17, 13, 0.58) 38%, rgba(24, 17, 13, 0.05) 68%),
+      linear-gradient(90deg, rgba(24, 17, 13, 0.34), transparent 72%);
+  }
+  .drape-hero-backdrop {
+    object-position: 64% center !important;
+  }
+  .drape-hero-copy {
+    padding-top: 128px;
+    padding-bottom: 0;
+  }
+  .drape-public .drape-hero .drape-eyebrow {
+    max-width: 280px;
+  }
+  .drape-public .drape-hero h1 {
+    max-width: 100%;
+    font-size: clamp(46px, 13vw, 68px);
+  }
+  .drape-hero-ctas {
+    bottom: 34px;
+  }
+  .drape-hero-ctas .drape-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .drape-primary-cta,
+  .drape-how-link {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drape-hero-backdrop,
+  .drape-hero-line,
+  .drape-public .drape-hero .drape-eyebrow,
+  .drape-hero-ctas .drape-container {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .drape-public .drape-header,
+  .drape-public .drape-header.is-compact {
+    transition: none !important;
+  }
+}

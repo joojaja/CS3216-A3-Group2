@@ -1,0 +1,55 @@
+{
+  "cases": [
+    {
+      "id": "clothing-test-1",
+      "file": "clothing test 1 (before).jpg",
+      "intendedBeautified": "intended/clothing test 1 (after).jpg",
+      "expected": {
+        "name": "white tank top",
+        "category": "top",
+        "subcategory": "tank top",
+        "primary_colour": "white",
+        "secondary_colours": ["navy blue", "blue"],
+        "pattern": "striped",
+        "material_cues": "-",
+        "formality": "casual",
+        "layering_role": "standalone",
+        "weather_tags": ["hot_humid"]
+      }
+    },
+    {
+      "id": "clothing-test-2",
+      "file": "clothing test 2 (before).jpg",
+      "intendedBeautified": "intended/clothing test 2 (after).jpg",
+      "expected": {
+        "name": "beige short sleeve shirt",
+        "category": "top",
+        "subcategory": "short sleeve shirt",
+        "primary_colour": "beige",
+        "secondary_colours": [],
+        "pattern": "striped",
+        "material_cues": "knit fabric",
+        "formality": "smart_casual",
+        "layering_role": "standalone",
+        "weather_tags": ["hot_humid", "air_conditioned"]
+      }
+    },
+    {
+      "id": "clothing-test-3",
+      "file": "clothing test 3 (before).jpg",
+      "intendedBeautified": "intended/clothing test 3 (intended).jpg",
+      "expected": {
+        "name": "black shorts",
+        "category": "bottom",
+        "subcategory": "shorts",
+        "primary_colour": "black",
+        "secondary_colours": ["white"],
+        "pattern": "solid",
+        "material_cues": "fleece knit",
+        "formality": "casual",
+        "layering_role": "standalone",
+        "weather_tags": ["hot_humid", "cool_evening"]
+      }
+    }
+  ]
+}

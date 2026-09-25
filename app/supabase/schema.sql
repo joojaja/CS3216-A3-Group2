@@ -181,6 +181,10 @@ create table if not exists public.wardrobe_items (
 create index if not exists wardrobe_items_user_idx
   on public.wardrobe_items (user_id);
 
+-- Transparent PNG of the garment alone, drawn on outfit cards
+alter table public.wardrobe_items
+  add column if not exists cutout_path text;
+
 -- Outfits --------------------------------------------------------------------
 
 create table if not exists public.outfit_requests (

@@ -7,23 +7,23 @@ import { trackFunnel } from "@/lib/analytics";
 const stages = [
   {
     label: "The wardrobe",
-    heading: ["Plenty of clothes.", "Still no clear answer."],
-    body: "Seeing everything at once does not make the decision easier. Wearabouts begins by understanding what is actually available.",
+    heading: ["A full wardrobe.", "Still no clear answer."],
+    body: "The right pieces are probably already there. The hard part is choosing what feels right for the moment.",
   },
   {
     label: "The context",
-    heading: ["What works for", "where you're going?"],
-    body: "Your plans and surroundings narrow the wardrobe to what genuinely fits tonight.",
+    heading: ["What does", "today call for?"],
+    body: "A morning class. Dinner after work. Tell Wearabouts what you have planned, and it finds the clothes that fit the day.",
   },
   {
     label: "The comparison",
     heading: ["Not just a suggestion.", "A reason."],
-    body: "Olive stays smart enough for dinner while feeling lighter and easier for the walk than charcoal.",
+    body: "See why each piece works for the occasion, weather, comfort and the rest of your outfit.",
   },
   {
     label: "The outfit",
     heading: ["One outfit.", "Zero second-guessing."],
-    body: "Every piece now answers the same occasion, weather and practical needs.",
+    body: "A complete look, ready for wherever the day takes you.",
   },
 ];
 
@@ -35,11 +35,22 @@ export default function LandingStory() {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const section = document.querySelector<HTMLElement>(".drape-story");
     const readingProgress = document.querySelector<HTMLElement>(".drape-reading-progress span");
+    const heroBackdrop = document.querySelector<HTMLElement>(".drape-hero-backdrop");
     let latest = 0;
+    let heroFrame: number | null = null;
     const onScroll = () => {
       if (readingProgress) {
         const documentRange = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
         readingProgress.style.transform = `scaleX(${Math.max(0, Math.min(1, window.scrollY / documentRange))})`;
+      }
+      if (heroBackdrop && !media.matches && window.innerWidth >= 901 && heroFrame === null) {
+        const y = window.scrollY;
+        heroFrame = window.requestAnimationFrame(() => {
+          // Very limited parallax drift, capped so the image never outruns its frame.
+          const shift = Math.min(16, y * 0.04);
+          heroBackdrop.style.transform = `translateY(${shift}px)`;
+          heroFrame = null;
+        });
       }
       if (window.innerWidth < 901 || media.matches) return;
       if (!section) return;

@@ -1,0 +1,8 @@
+Product Hunt tagline:
+Make more outfits from the clothes you own.
+
+Short launch post:
+Meet Wearabouts — a private wardrobe planner built for Singapore. Add the clothes you already own, plan occasion-ready outfits with local weather context, and check whether a potential purchase is genuinely useful before buying it.
+
+Try Wearabouts: https://wearabouts-zeta.vercel.app
+

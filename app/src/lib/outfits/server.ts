@@ -64,6 +64,8 @@ type ItemRow = {
   subcategory: string | null;
   primary_colour: string | null;
   ai_confidence: { image_source?: string } | null;
+  // Absent until the item cut-outs migration has run
+  cutout_path?: string | null;
 };
 
 // Reads the given wardrobe items for one user and signs their photos. Ids
@@ -77,14 +79,18 @@ export async function loadCollageItems(
   const unique = [...new Set(ids)];
   if (unique.length === 0) return new Map();
 
+  // All columns rather than a list, so this keeps working before the item
+  // cut-outs migration adds cutout_path
   const { data } = await supabase
     .from("wardrobe_items")
-    .select("id, image_path, category, subcategory, primary_colour, ai_confidence")
+    .select("*")
     .eq("user_id", userId)
     .in("id", unique);
   const rows = (data ?? []) as ItemRow[];
 
-  const paths = rows.map((row) => row.image_path).filter(Boolean);
+  const paths = rows
+    .flatMap((row) => [row.image_path, row.cutout_path])
+    .filter((path): path is string => Boolean(path));
   const { data: signed } = paths.length
     ? await supabase.storage.from("wardrobe-images").createSignedUrls(paths, SIGNED_URL_SECONDS)
     : { data: [] };
@@ -100,6 +106,7 @@ export async function loadCollageItems(
         primary_colour: row.primary_colour,
         signed_image_url: urlByPath.get(row.image_path) ?? null,
         image_source: row.ai_confidence?.image_source ?? null,
+        cutout_url: row.cutout_path ? (urlByPath.get(row.cutout_path) ?? null) : null,
       },
     ]),
   );

@@ -26,12 +26,13 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     originalPreview,
     cleaned,
     cleanedPreview,
-    ironed,
-    ironedPreview,
+    cutout,
+    beautified,
+    beautifiedPreview,
     choice,
     bg,
-    enhance,
-    requestEdit,
+    beautify,
+    requestBeautify,
     attrs,
     aiTouched,
     edited,
@@ -72,6 +73,8 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     // Recorded with the item so it is always clear whether the stored photo
     // is the shot itself, a cutout, a crop or an AI rendering
     form.set("image_source", choice);
+    // The garment alone on transparency, for outfit cards
+    if (cutout) form.set("cutout", cutout);
 
     try {
       const res = await fetch("/api/items", { method: "POST", body: form });
@@ -108,22 +111,26 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
   const uncertain = new Set(attrs.uncertain_fields);
   const reviewing = step === "review" || step === "saving";
   const removing = bg.status === "running";
-  const beautifying = enhance.iron.status === "running";
+  const beautifying = beautify.status === "running";
   const preparing = removing || beautifying;
   const busy = step === "analyzing" || step === "saving";
-  const beautifiedChosen = choice === "ironed";
+  const beautifiedChosen = choice === "beautified";
 
   // The free edit is selected automatically. Clicking the main image cycles
   // through these versions, with the paid version added after Beautify.
-  type ChoiceKey = "original" | "cleaned" | "ironed";
+  type ChoiceKey = "original" | "cleaned" | "beautified";
   const choices = [
     originalPreview && { key: "original" as const, label: "Original", src: originalPreview },
     cleaned && cleanedPreview && { key: "cleaned" as const, label: "Edited", src: cleanedPreview },
-    ironed && ironedPreview && { key: "ironed" as const, label: "Beautified", src: ironedPreview },
+    beautified && beautifiedPreview && {
+      key: "beautified" as const,
+      label: "Beautified",
+      src: beautifiedPreview,
+    },
   ].filter((c): c is { key: ChoiceKey; label: string; src: string } => Boolean(c));
   const displayedVersion = choices.find((version) => version.key === choice) ?? choices[0];
 
-  const editFailure = enhance.iron.message;
+  const editFailure = beautify.message;
 
   function handlePreviewClick() {
     if (preview && choices.length > 1) {
@@ -143,7 +150,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
     const confirmed = window.confirm(
       `Beautify this photo?${creditCopy} The image model may change small details.`,
     );
-    if (confirmed) requestEdit("iron");
+    if (confirmed) requestBeautify();
   }
 
   function tagFor(key: string): Tag {
@@ -153,7 +160,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
 
   const progressLabel =
     bg.phase === "download"
-      ? `Downloading the model, ${Math.round(bg.progress * 100)}%`
+      ? `Removing background, ${Math.round(bg.progress * 100)}%`
       : "Removing the background";
 
   return (
@@ -216,7 +223,7 @@ export function ItemUploader({ onSaved }: { onSaved?: (id: string) => void } = {
             )}
           </button>
 
-          {original && bg.status !== "unsupported" && !ironed && !busy && (
+          {original && bg.status !== "unsupported" && !beautified && !busy && (
             <button
               type="button"
               onClick={confirmBeautify}
