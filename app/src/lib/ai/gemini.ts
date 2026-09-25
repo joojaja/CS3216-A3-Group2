@@ -20,7 +20,17 @@ export const MODEL_ID = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
 export type Tier = "free" | "paid";
 
 function apiKey(tier: Tier) {
-  const name = tier === "free" ? "GOOGLE_GENERATIVE_AI_FREE_API_KEY" : "GOOGLE_GENERATIVE_AI_API_KEY";
+  if (tier === "free") {
+    const key =
+      process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 ??
+      process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY;
+    if (!key) {
+      throw new Error("GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 is not set");
+    }
+    return key;
+  }
+
+  const name = "GOOGLE_GENERATIVE_AI_API_KEY";
   const key = process.env[name];
   if (!key) throw new Error(`${name} is not set`);
   return key;
@@ -38,6 +48,56 @@ export function getRagModel() {
   const key = process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY;
   if (!key) throw new Error("GOOGLE_GENERATIVE_AI_RAG_API_KEY is not set");
   return createGoogleGenerativeAI({ apiKey: key })(RAG_MODEL_ID);
+}
+
+export type OutfitFreeKeySlot = "free-1" | "free-2" | "free-3" | "rag-fallback";
+
+function outfitFreeKeys(): { slot: OutfitFreeKeySlot; key: string }[] {
+  const configured = [
+    {
+      slot: "free-1" as const,
+      key:
+        process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 ??
+        process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY,
+    },
+    { slot: "free-2" as const, key: process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_2 },
+    { slot: "free-3" as const, key: process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_3 },
+    { slot: "rag-fallback" as const, key: process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY },
+  ];
+  const seen = new Set<string>();
+  return configured.flatMap(({ slot, key }) => {
+    if (!key || seen.has(key)) return [];
+    seen.add(key);
+    return [{ slot, key }];
+  });
+}
+
+// The outfit planner tries the dedicated free projects in order, then the
+// Explore project's free key. It never includes the paid photo key.
+export async function withOutfitModelFallback<T>(
+  run: (
+    model: ReturnType<typeof getModel>,
+    slot: OutfitFreeKeySlot,
+  ) => Promise<T>,
+): Promise<{ result: T; slot: OutfitFreeKeySlot }> {
+  const candidates = outfitFreeKeys();
+  if (candidates.length === 0) {
+    throw new Error("No free Gemini API key is configured for the outfit planner");
+  }
+
+  for (let index = 0; index < candidates.length; index += 1) {
+    const candidate = candidates[index];
+    try {
+      const model = createGoogleGenerativeAI({ apiKey: candidate.key })(MODEL_ID);
+      return { result: await run(model, candidate.slot), slot: candidate.slot };
+    } catch (error) {
+      const hasFallback = index < candidates.length - 1;
+      if (!hasFallback || !isAiCapacityError(error)) throw error;
+      console.warn(`[ai:outfits] ${candidate.slot} exhausted; trying the next free key`);
+    }
+  }
+
+  throw new Error("No free Gemini API key is available for the outfit planner");
 }
 
 // Image editing model (Nano Banana). Paid tier only: about US$0.03 per
@@ -81,6 +141,18 @@ function rootCause(error: unknown): ErrorLike {
     current = next;
   }
   return current;
+}
+
+export function isAiCapacityError(error: unknown): boolean {
+  const outer = (error ?? {}) as ErrorLike;
+  const root = rootCause(error);
+  const status = root.statusCode ?? outer.statusCode;
+  const message = root.message ?? outer.message ?? String(error);
+  return (
+    status === 429 ||
+    status === 503 ||
+    /high demand|overloaded|resource.?exhausted|rate limit|quota/i.test(message)
+  );
 }
 
 const FAILURE_MESSAGE: Record<string, string> = {
@@ -149,10 +221,7 @@ function describeAiError(where: string, error: unknown, context?: AiErrorContext
     }
   }
 
-  const busy =
-    status === 429 ||
-    status === 503 ||
-    /high demand|overloaded|resource.?exhausted|rate limit|quota/i.test(message);
+  const busy = isAiCapacityError(error);
   const userMessage = busy
     ? where === "outfits" && context?.accountTier === "free"
       ? OUTFIT_CREDIT_LIMIT_MESSAGE

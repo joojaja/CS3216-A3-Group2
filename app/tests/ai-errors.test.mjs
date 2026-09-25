@@ -3,7 +3,14 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
 process.env.NODE_ENV = "development";
-const { reportAiError, aiFailure, getModel, getRagModel, AI_ERROR_LOG } = await import("../src/lib/ai/gemini.ts");
+const {
+  reportAiError,
+  aiFailure,
+  getModel,
+  getRagModel,
+  withOutfitModelFallback,
+  AI_ERROR_LOG,
+} = await import("../src/lib/ai/gemini.ts");
 
 // Shapes mirror what the AI SDK throws: a retry wrapper around the provider
 // error, and a schema failure wrapping the validation error
@@ -109,16 +116,120 @@ test("the error response carries a reference code that matches the log, and the 
 });
 
 test("a free-tier call never falls back to the paid key", () => {
-  const saved = { paid: process.env.GOOGLE_GENERATIVE_AI_API_KEY, free: process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY };
+  const saved = {
+    paid: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    free: process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY,
+    free1: process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1,
+  };
   process.env.GOOGLE_GENERATIVE_AI_API_KEY = "paid-key-that-must-not-be-used";
   delete process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY;
+  delete process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1;
   try {
-    assert.throws(() => getModel("free"), /GOOGLE_GENERATIVE_AI_FREE_API_KEY is not set/);
-    assert.equal(reportAiError("outfits", new Error("GOOGLE_GENERATIVE_AI_FREE_API_KEY is not set")), "AI is not configured on the server.");
+    assert.throws(() => getModel("free"), /GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 is not set/);
+    assert.equal(reportAiError("outfits", new Error("GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 is not set")), "AI is not configured on the server.");
     assert.ok(getModel("paid"), "the paid path itself still resolves");
   } finally {
     if (saved.paid === undefined) delete process.env.GOOGLE_GENERATIVE_AI_API_KEY; else process.env.GOOGLE_GENERATIVE_AI_API_KEY = saved.paid;
     if (saved.free !== undefined) process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY = saved.free;
+    if (saved.free1 === undefined) delete process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1;
+    else process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 = saved.free1;
+  }
+});
+
+test("the outfit planner falls through free keys in order on capacity errors", async () => {
+  const names = [
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_1",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_2",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_3",
+    "GOOGLE_GENERATIVE_AI_RAG_API_KEY",
+  ];
+  const saved = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  delete process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY;
+  process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 = "free-one";
+  process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_2 = "free-two";
+  process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_3 = "free-three";
+  process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY = "rag-four";
+
+  try {
+    const attempts = [];
+    const outcome = await withOutfitModelFallback(async (_model, slot) => {
+      attempts.push(slot);
+      if (slot !== "rag-fallback") throw apiError(429, "Resource has been exhausted");
+      return "ok";
+    });
+    assert.equal(outcome.result, "ok");
+    assert.equal(outcome.slot, "rag-fallback");
+    assert.deepEqual(attempts, ["free-1", "free-2", "free-3", "rag-fallback"]);
+  } finally {
+    for (const name of names) {
+      if (saved[name] === undefined) delete process.env[name];
+      else process.env[name] = saved[name];
+    }
+  }
+});
+
+test("the outfit planner does not rotate keys for non-capacity failures", async () => {
+  const names = [
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_1",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_2",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_3",
+    "GOOGLE_GENERATIVE_AI_RAG_API_KEY",
+  ];
+  const saved = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  delete process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY;
+  process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_1 = "free-one";
+  process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_2 = "free-two";
+  process.env.GOOGLE_GENERATIVE_AI_FREE_API_KEY_3 = "free-three";
+  process.env.GOOGLE_GENERATIVE_AI_RAG_API_KEY = "rag-four";
+
+  try {
+    const attempts = [];
+    await assert.rejects(
+      withOutfitModelFallback(async (_model, slot) => {
+        attempts.push(slot);
+        throw apiError(400, "Request was invalid");
+      }),
+      /Request was invalid/,
+    );
+    assert.deepEqual(attempts, ["free-1"]);
+  } finally {
+    for (const name of names) {
+      if (saved[name] === undefined) delete process.env[name];
+      else process.env[name] = saved[name];
+    }
+  }
+});
+
+test("the outfit fallback pool never substitutes the paid key", async () => {
+  const names = [
+    "GOOGLE_GENERATIVE_AI_API_KEY",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_1",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_2",
+    "GOOGLE_GENERATIVE_AI_FREE_API_KEY_3",
+    "GOOGLE_GENERATIVE_AI_RAG_API_KEY",
+  ];
+  const saved = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = "paid-key-that-must-not-be-used";
+  for (const name of names.slice(1)) delete process.env[name];
+
+  try {
+    let called = false;
+    await assert.rejects(
+      withOutfitModelFallback(async () => {
+        called = true;
+        return "unexpected";
+      }),
+      /No free Gemini API key is configured/,
+    );
+    assert.equal(called, false);
+  } finally {
+    for (const name of names) {
+      if (saved[name] === undefined) delete process.env[name];
+      else process.env[name] = saved[name];
+    }
   }
 });
 

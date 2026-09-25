@@ -7,6 +7,17 @@ Wearabouts is a wardrobe-first clothing assistant for Singapore. You photograph 
 - Deployment: https://wearabouts-zeta.vercel.app
 - Repository: https://github.com/joojaja/CS3216-A3-Group2
 
+## Test the deployed application
+
+Open the [Wearabouts deployment](https://wearabouts-zeta.vercel.app) and sign in with the shared test account:
+
+| | |
+| --- | --- |
+| Email | `test@gmail.com` |
+| Password | `testtest` |
+
+Anything saved to this account is visible and editable by other reviewers. Do not upload personal or sensitive images.
+
 ## Application preview
 
 https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
@@ -48,28 +59,49 @@ Next.js 16 (App Router) with React 19 and TypeScript, Tailwind CSS v4, Supabase 
 
 - Node.js 22.18 or newer
 - npm
-- A Supabase project for persistent accounts, wardrobe data and private image storage
-- Google AI Studio keys for the Gemini-backed features you want to use
+- A Supabase project if you need persistent accounts, wardrobe data and private image storage
+- Google AI Studio keys for the Gemini-backed features you want to test
+
+The application can start without Supabase or Gemini credentials. In that mode, it provides a local preview that does not save data or run AI features.
 
 ### Install and start the app
 
 ```bash
 git clone https://github.com/joojaja/CS3216-A3-Group2.git
-cd CS3216-A3-Group2
-cd app
+cd CS3216-A3-Group2/app
 npm ci
+```
+
+Copy the environment-variable template. On macOS, Linux, Git Bash or WSL, run:
+
+```bash
 cp .env.example .env.local
+```
+
+On Windows PowerShell, run:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-Open http://localhost:3000 after the development server starts.
+Open http://localhost:3000 after the development server starts. Without Supabase credentials, use `test@gmail.com` and `testtest` for the local preview. This preview does not save changes.
 
 ### Configure Supabase
 
 1. Create a Supabase project.
-2. Open its SQL editor and run [`app/supabase/schema.sql`](app/supabase/schema.sql). The script adds missing application objects and does not delete existing rows.
+2. Open its SQL editor and run [`app/supabase/schema.sql`](app/supabase/schema.sql). The script adds or updates the required application objects without deleting existing tables or rows.
 3. Copy the project URL and publishable key into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. Add `http://localhost:3000/auth/callback` to the allowed redirect URLs under Supabase Authentication.
+4. Set the site URL to `http://localhost:3000` under Supabase Authentication.
+5. Add `http://localhost:3000/auth/callback` to the allowed redirect URLs.
+6. Start the application and create an account through `/login`.
+
+Never commit `.env.local` or place private API keys in the repository.
 
 ### Configure Gemini
 
@@ -79,17 +111,17 @@ Add only the keys needed for the workflows you want to test. [`.env.example`](ap
 - `GOOGLE_GENERATIVE_AI_FREE_API_KEY` powers the outfit planner, daily outfits and My Style.
 - `GOOGLE_GENERATIVE_AI_RAG_API_KEY` powers Explore.
 
-The two free-tier workflows never fall back to the billed key.
+Neither free-tier key falls back to the billed key.
 
 ### Optional sample wardrobe
 
-Run `npm run seed:wardrobe` from `app/` to add 23 confirmed sample items without making an AI call. Run `npm run seed:wardrobe -- --remove` to remove them.
+After configuring Supabase and creating an account, run `npm run seed:wardrobe` from `app/` to add 23 confirmed sample items without making an AI call. The script asks for that account's email and password. Run `npm run seed:wardrobe -- --remove` to remove only the generated sample items.
 
-Without Supabase variables, development mode offers a labelled preview login (`test@gmail.com` / `testtest`) that saves nothing. Production setup is in [`docs/deployment.md`](docs/deployment.md).
+Production setup is in [`docs/deployment.md`](docs/deployment.md).
 
 ## Checks and CI
 
-From `app/`, run `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`. GitHub Actions runs all four on every pull request and push to `main`, alongside a Markdown link check, a dependency audit and CodeQL security scanning. Dependabot opens weekly update pull requests for npm packages and Actions.
+From `app/`, run `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build -- --webpack`. GitHub Actions runs all four on every pull request and push to `main`, alongside a Markdown link check, a dependency audit and CodeQL security scanning. Dependabot opens weekly update pull requests for npm packages and Actions.
 
 The 216 tests cover deterministic and security-sensitive code: size matching, outfit rules, colour families, AI error mapping, prompt cleaning, the purchase verdict rule, style-group repair and analytics URL redaction. `app/scripts/eval-sizing.mjs` evaluates the sizing model against screenshot fixtures and only runs when a person sets `SIZING_EVAL_I_AM_HUMAN=1`, because it spends the billed key.
 

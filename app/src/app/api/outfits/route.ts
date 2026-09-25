@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { outfitSelectionSchema } from "@/lib/schemas/ai";
-import { aiFailure, getModel, MODEL_ID, UNTRUSTED_CONTENT_RULE } from "@/lib/ai/gemini";
+import {
+  aiFailure,
+  MODEL_ID,
+  UNTRUSTED_CONTENT_RULE,
+  withOutfitModelFallback,
+} from "@/lib/ai/gemini";
 import { getSingaporeForecast } from "@/lib/weather";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -169,13 +174,19 @@ ${UNTRUSTED_CONTENT_RULE}`;
 
   const modelStarted = performance.now();
   try {
-    // Text only, nothing from the paid tier is needed, so this call runs on
-    // the free-tier project and never touches the paid key
-    const { object, usage } = await generateObject({
-      model: getModel("free"),
-      schema: outfitSelectionSchema,
-      prompt,
-    });
+    // Text only, so the planner tries the configured free projects in order.
+    // Quota and capacity failures move to the next free key. No attempt can
+    // reach the paid photo key.
+    const {
+      result: { object, usage },
+      slot: providerSlot,
+    } = await withOutfitModelFallback((model) =>
+      generateObject({
+        model,
+        schema: outfitSelectionSchema,
+        prompt,
+      }),
+    );
     recordAiMeasurement({
       workflow: "outfit_planner",
       promptVersion: OUTFIT_PLANNER_PROMPT_VERSION,
@@ -188,6 +199,7 @@ ${UNTRUSTED_CONTENT_RULE}`;
       totalTokens: usage.totalTokens,
       wardrobeItemCount: items.length,
       followUp: Boolean(previous),
+      providerSlot,
     });
 
     if (!object.is_outfit_request) {

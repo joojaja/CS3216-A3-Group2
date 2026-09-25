@@ -19,6 +19,7 @@ type AiMeasurement = {
   totalTokens?: number;
   wardrobeItemCount?: number;
   followUp?: boolean;
+  providerSlot?: string;
   imageBytes?: number;
   imageType?: string;
 };
