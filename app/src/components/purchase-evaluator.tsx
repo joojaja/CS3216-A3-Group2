@@ -34,6 +34,11 @@ const LABEL_STYLE: Record<string, string> = {
   insufficient_information: "bg-wash text-mute border-line",
 };
 
+function safePreviewSrc(value: string | null): string | null {
+  if (!value) return null;
+  return value.startsWith("blob:") ? value : null;
+}
+
 export function PurchaseEvaluator() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -104,7 +109,7 @@ export function PurchaseEvaluator() {
         >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="Prospective purchase" className="size-full object-cover" />
+            <img src={safePreviewSrc(preview) ?? undefined} alt="Prospective purchase" className="size-full object-cover" />
           ) : (
             <span className="px-5 text-sm leading-relaxed text-mute">
               Choose a photo or screenshot
