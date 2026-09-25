@@ -7,15 +7,15 @@ description: Verify or test any Wearabouts route that calls Gemini without spend
 
 `AGENTS.md` rule 6 bans agents from making any call billed to the paid Google project, for any reason, including verification. This skill is how to actually get useful verification done inside that constraint.
 
-## The three keys, and what each one may touch
+## The key groups, and what each one may touch
 
 | Env var | Billing | Routes | Agents may call it? |
 | --- | --- | --- | --- |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | Paid | `/api/items/analyze`, `/api/items/locate`, `/api/items/enhance`, `/api/purchases/evaluate`, `/api/sizing/extract` | No, never. Only a human using the app. |
-| `GOOGLE_GENERATIVE_AI_FREE_API_KEY` | Unbilled | `/api/outfits`, `/api/daily-outfits`, `/api/style/archetypes` | Yes, sparingly, within the free-tier rate limit. |
-| `GOOGLE_GENERATIVE_AI_RAG_API_KEY` | Unbilled | `/api/explore` | Yes, sparingly, within the free-tier rate limit. |
+| `GOOGLE_GENERATIVE_AI_FREE_API_KEY_1`, `_2`, `_3` | Unbilled | `/api/outfits`; the first key also powers `/api/daily-outfits` and `/api/style/archetypes` | Yes, sparingly, within the free-tier rate limits. |
+| `GOOGLE_GENERATIVE_AI_RAG_API_KEY` | Unbilled | `/api/explore`; fourth fallback for `/api/outfits` | Yes, sparingly, within the free-tier rate limit. |
 
-Neither free key falls back to the paid key; a route with a missing free key returns a configuration error instead of silently spending. Check `app/src/lib/ai/gemini.ts` (`getModel(tier)`) if a new route's key tier is unclear before assuming either way.
+No free key falls back to the paid key. The outfit planner rotates only among its configured unbilled keys. A route with no suitable free key returns a configuration error instead of silently spending. Check `app/src/lib/ai/gemini.ts` if a new route's key tier is unclear before assuming either way.
 
 ## How to verify a paid-key route without paying
 
