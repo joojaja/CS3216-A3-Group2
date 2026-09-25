@@ -28,10 +28,10 @@ https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 
 | Name | Matriculation number | Contribution |
 | --- | --- | --- |
-| Maahir Garg (@maahir-garg) | [TO FILL: matriculation number] | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
+| Maahir Garg (@maahir-garg) | A0284729M | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
 | Brian (@joojaja) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
 | Chi An (@tsaichian) | [TO FILL: matriculation number] | Sizing, daily outfit feed, saved outfits and My Style |
-| Sanjeev Ravichandran (@sanjeevr123) | [TO FILL: matriculation number] | Landing page hero, header, feature tour, pricing and story motion |
+| Sanjeev Ravichandran (@sanjeevr123) | A0273811H | Landing page hero, header, feature tour, pricing and story motion |
 
 ## What it does
 
