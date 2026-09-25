@@ -24,7 +24,7 @@ https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 
 | Name and GitHub | Matric Number | Contributions |
 | :--- | :--- | :--- |
-| Maahir Garg ([@maahir-garg](https://github.com/maahir-garg)) | A0284729M | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
+| Maahir Garg <br>([@maahir-garg](https://github.com/maahir-garg)) | A0284729M | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
 | Brian ([@joojaja](https://github.com/joojaja)) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
 | Chi An ([@tsaichian](https://github.com/tsaichian)) | A0309019H | Sizing, daily outfit feed, saved outfits and My Style |
 | Sanjeev Ravichandran ([@sanjeevr123](https://github.com/sanjeevr123)) | A0273811H | Landing page hero, header, feature tour, pricing and story motion |
@@ -110,6 +110,7 @@ The 216 tests cover deterministic and security-sensitive code: size matching, ou
 - [IMG.LY background removal](https://github.com/imgly/background-removal-js) (AGPL-3.0), bundled under `app/public/vendor/background-removal/` with its licence.
 - The W-and-hanger mark and landing imagery were designed by the Wearabouts team. See [`docs/design.md`](docs/design.md).
 - [Fraunces](https://fonts.google.com/specimen/Fraunces) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License), self-hosted.
+- This project was developed as part of the [**CS3216 Coursework Assignment 3 Artificial Intelligence**](https://cs3216.github.io/coursework/artificial-intelligence).
 
 ## Licence
 
