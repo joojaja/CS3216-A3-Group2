@@ -1,17 +1,13 @@
-# Wearabouts
+<p align="center">
+  <img width="611" height="175" alt="image" src="https://github.com/user-attachments/assets/c0e38944-cea1-406e-9adf-55df1073d672" />
+</p>
 
 Wearabouts is a wardrobe-first clothing assistant for Singapore. You photograph the clothes you already own, get outfits built from them for an occasion and the day's NEA forecast, and check whether a new item duplicates something in your wardrobe before you buy it.
 
-CS3216 Assignment 3, Group 2.
-
-- Live application: https://wearabouts-zeta.vercel.app
+- Deployment: https://wearabouts-zeta.vercel.app
 - Repository: https://github.com/joojaja/CS3216-A3-Group2
 
 ## Application preview
-
-<a href="app/public/launch-video/video.mp4">
-  <img src="app/public/launch-video/photo.jpg" alt="Watch the 20-second Wearabouts launch video" width="500">
-</a>
 
 https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 
@@ -24,14 +20,14 @@ https://github.com/user-attachments/assets/75a62ef2-0f81-4bb8-92a6-a14e29cf6908
 | --- | --- |
 | ![Outfit suggestions built from the user's wardrobe](app/public/launch/product-hunt-slide-4.png) | ![A purchase check compared with the user's existing wardrobe](app/public/landing/feature-purchase.webp) |
 
-## Team
+## CS3216 Assignment 3, Team 2
 
-| Name | Matriculation number | Contribution |
-| --- | --- | --- |
-| Maahir Garg (@maahir-garg) | A0284729M | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
-| Brian (@joojaja) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
-| Chi An (@tsaichian) | [TO FILL: matriculation number] | Sizing, daily outfit feed, saved outfits and My Style |
-| Sanjeev Ravichandran (@sanjeevr123) | A0273811H | Landing page hero, header, feature tour, pricing and story motion |
+| Name and GitHub | Matric Number | Contributions |
+| :--- | :--- | :--- |
+| Maahir Garg ([@maahir-garg](https://github.com/maahir-garg)) | A0284729M | Landing page and onboarding integration, analytics, Open Graph card and sitemap, security hardening, submission documentation |
+| Brian ([@joojaja](https://github.com/joojaja)) | A0308053M | Outfit planner, purchase evaluation, Explore feed, free and premium tiers, repository and deployment owner |
+| Chi An ([@tsaichian](https://github.com/tsaichian)) | A0309019H | Sizing, daily outfit feed, saved outfits and My Style |
+| Sanjeev Ravichandran ([@sanjeevr123](https://github.com/sanjeevr123)) | A0273811H | Landing page hero, header, feature tour, pricing and story motion |
 
 ## What it does
 
